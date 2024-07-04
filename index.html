@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在庫管理アプリ</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+</head>
+<body>
+    <div id="login-screen">
+        <h2>ログイン</h2>
+        <div class="password-container">
+            <input type="password" id="password-input" placeholder="パスワードを入力">
+            <button id="toggle-password" type="button">👁</button>
+        </div>
+        <button id="login-button">ログイン</button>
+    </div>
+
+    <div id="app-content" style="display: none;">
+        <h1>在庫管理アプリ</h1>
+        <form id="add-item-form">
+            <button id="scan-barcode" type="button">バーコードをスキャン</button>
+            <div id="barcode-scanner" style="display:none;"></div>
+            <input type="text" id="item-name" placeholder="商品名" required>
+            <input type="number" id="item-quantity" placeholder="数量" required>
+            <button type="submit">追加</button>
+        </form>
+        <input type="text" id="search-input" placeholder="商品を検索">
+        <button id="sort-name">名前順に並べ替え</button>
+        <button id="sort-quantity">数量順に並べ替え</button>
+        <ul id="inventory-list"></ul>
+        <template id="inventory-item-template">
+            <li>
+                <span class="item-name"></span>:
+                <input type="number" class="item-quantity" min="0">
+                <button class="update-btn">更新</button>
+                <button class="delete-btn">削除</button>
+            </li>
+        </template>
+        <button id="export-csv">CSVエクスポート</button>
+        <input type="file" id="import-csv" accept=".csv" style="display:none;">
+        <button id="import-csv-btn">CSVインポート</button>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+</body>
+</html>

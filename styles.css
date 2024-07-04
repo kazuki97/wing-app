@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
+
+#add-item-form {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+input, button {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#inventory-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#inventory-list li {
+    background-color: white;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.password-container {
+    position: relative;
+    display: inline-block;
+}
+
+#toggle-password {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#password-input {
+    padding-right: 30px;
+}
+
+#login-screen {
+    text-align: center;
+    margin-top: 50px;
+}
+
+#app-content {
+    display: none;
+}
