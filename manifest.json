@@ -1,0 +1,9 @@
+{
+  "name": "在庫管理アプリ",
+  "short_name": "在庫管理",
+  "start_url": "/wing-app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "icons": []
+}
