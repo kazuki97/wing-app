@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>在庫管理アプリ</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4CAF50">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div id="login-screen">
@@ -47,16 +47,5 @@
     </div>
 
     <script src="app.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-        });
-      }
-    </script>
 </body>
 </html>
