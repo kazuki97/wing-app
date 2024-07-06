@@ -1,26 +1,76 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     background-color: #f0f0f0;
 }
 
-h1, h2 {
+#login-screen {
     text-align: center;
+    margin-top: 50px;
+}
+
+#app-content {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1, h2, h3 {
     color: #333;
 }
 
-#add-item-form {
+#main-content {
     display: flex;
+    gap: 20px;
+}
+
+#left-panel {
+    flex: 1;
+    background-color: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#right-panel {
+    flex: 1;
+    background-color: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#category-list, #inventory-list {
     margin-bottom: 20px;
 }
 
-input, button {
+#categories, #items {
+    list-style-type: none;
+    padding: 0;
+}
+
+#categories li, #items li {
+    cursor: pointer;
     padding: 10px;
-    margin-right: 10px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+#categories li:hover, #items li:hover {
+    background-color: #e9e9e9;
+}
+
+input, select, button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 button {
@@ -34,17 +84,9 @@ button:hover {
     background-color: #45a049;
 }
 
-#inventory-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#inventory-list li {
-    background-color: white;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+#footer {
+    margin-top: 20px;
+    text-align: center;
 }
 
 .password-container {
@@ -64,13 +106,4 @@ button:hover {
 
 #password-input {
     padding-right: 30px;
-}
-
-#login-screen {
-    text-align: center;
-    margin-top: 50px;
-}
-
-#app-content {
-    display: none;
 }
