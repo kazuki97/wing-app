@@ -13,6 +13,7 @@ const firebaseConfig = {
 // Firebase の初期化
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+
 // ログイン関連の要素
 const loginScreen = document.getElementById('login-screen');
 const appContent = document.getElementById('app-content');
@@ -54,28 +55,6 @@ function attemptLogin() {
 }
 
 function initializeApp() {
-    let db;
-
-    const dbName = 'InventoryDB';
-    const storeName = 'inventory';
-
-    const request = indexedDB.open(dbName, 1);
-
-    request.onerror = function(event) {
-        console.error("IndexedDB error:", event.target.error);
-    };
-
-    request.onsuccess = function(event) {
-        db = event.target.result;
-        loadInventory();
-    };
-
-    request.onupgradeneeded = function(event) {
-        db = event.target.result;
-        const store = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
-        store.createIndex('name', 'name', { unique: false });
-    };
-
     // DOM要素の取得
     const searchInput = document.getElementById('search-input');
     const itemTemplate = document.getElementById('inventory-item-template');
@@ -93,21 +72,6 @@ function initializeApp() {
 
     // 在庫リスト
     let inventory = [];
-// データベースから在庫データを読み込む
-function loadInventory() {
-  const dbRef = database.ref('inventory');
-  dbRef.on('value', (snapshot) => {
-    inventory = [];
-    snapshot.forEach((childSnapshot) => {
-      inventory.push({
-        id: childSnapshot.key,
-        ...childSnapshot.val()
-      });
-    });
-    updateInventoryDisplay();
-  });
-}
-
 
     // イベントリスナーの設定
     form.addEventListener('submit', function(e) {
@@ -142,69 +106,58 @@ function loadInventory() {
     importCsvBtn.addEventListener('click', () => importCsvInput.click());
     importCsvInput.addEventListener('change', importFromCsv);
 
-   function addItem(name, quantity) {
-    const dbRef = database.ref('inventory');
-    dbRef.push({
-        name: name,
-        quantity: parseInt(quantity)
-    });
-}
-
-    function updateInventoryDisplay(items = inventory) {
-    inventoryList.innerHTML = '';
-    items.forEach((item) => {
-        const itemElement = document.importNode(itemTemplate.content, true);
-        itemElement.querySelector('.item-name').textContent = item.name;
-        const quantityInput = itemElement.querySelector('.item-quantity');
-        quantityInput.value = item.quantity;
-        
-        const updateBtn = itemElement.querySelector('.update-btn');
-        updateBtn.addEventListener('click', () => updateItemQuantity(item.id, quantityInput.value));
-        
-        const deleteBtn = itemElement.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', () => deleteItem(item.id));
-        
-        inventoryList.appendChild(itemElement);
-    });
-}
-
-    function saveInventory() {
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
-
-        store.clear();
-
-        inventory.forEach(item => {
-            store.add(item);
+    // 関数定義
+    function loadInventory() {
+        const dbRef = database.ref('inventory');
+        dbRef.on('value', (snapshot) => {
+            inventory = [];
+            snapshot.forEach((childSnapshot) => {
+                inventory.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            updateInventoryDisplay();
         });
-
-        transaction.oncomplete = function() {
-            console.log('All items saved successfully');
-        };
     }
 
-    function loadInventory() {
-        const transaction = db.transaction([storeName], 'readonly');
-        const store = transaction.objectStore(storeName);
-        const request = store.getAll();
+    function addItem(name, quantity) {
+        const dbRef = database.ref('inventory');
+        dbRef.push({
+            name: name,
+            quantity: parseInt(quantity)
+        });
+    }
 
-        request.onsuccess = function(event) {
-            inventory = event.target.result;
-            updateInventoryDisplay();
-        };
+    function updateInventoryDisplay(items = inventory) {
+        inventoryList.innerHTML = '';
+        items.forEach((item) => {
+            const itemElement = document.importNode(itemTemplate.content, true);
+            itemElement.querySelector('.item-name').textContent = item.name;
+            const quantityInput = itemElement.querySelector('.item-quantity');
+            quantityInput.value = item.quantity;
+            
+            const updateBtn = itemElement.querySelector('.update-btn');
+            updateBtn.addEventListener('click', () => updateItemQuantity(item.id, quantityInput.value));
+            
+            const deleteBtn = itemElement.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => deleteItem(item.id));
+            
+            inventoryList.appendChild(itemElement);
+        });
     }
 
     function deleteItem(id) {
-    const dbRef = database.ref('inventory/' + id);
-    dbRef.remove();
-}
+        const dbRef = database.ref('inventory/' + id);
+        dbRef.remove();
+    }
 
     function updateItemQuantity(id, newQuantity) {
-    const dbRef = database.ref('inventory/' + id);
-    dbRef.update({
-        quantity: parseInt(newQuantity)
-    });
-}
+        const dbRef = database.ref('inventory/' + id);
+        dbRef.update({
+            quantity: parseInt(newQuantity)
+        });
+    }
 
     function startBarcodeScanner() {
         barcodeScannerDiv.style.display = 'block';
