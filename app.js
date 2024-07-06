@@ -14,48 +14,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// ログイン関連の要素
-const loginScreen = document.getElementById('login-screen');
-const appContent = document.getElementById('app-content');
-const passwordInput = document.getElementById('password-input');
-const loginButton = document.getElementById('login-button');
-const togglePasswordButton = document.getElementById('toggle-password');
-
 // パスワードを平文で設定（注意: 実運用ではこの方法は使用しないでください）
 const correctPassword = 'wing99kk';
 
-// ログイン機能
-loginButton.addEventListener('click', attemptLogin);
-passwordInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        attemptLogin();
-    }
-});
+// グローバル変数
+let inventory = [];
 
-// パスワードの可視性を切り替える
-togglePasswordButton.addEventListener('click', function() {
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        togglePasswordButton.textContent = '🔒';
-    } else {
-        passwordInput.type = 'password';
-        togglePasswordButton.textContent = '👁';
-    }
-});
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
 
-function attemptLogin() {
-    const enteredPassword = passwordInput.value;
-    if (enteredPassword === correctPassword) {
-        loginScreen.style.display = 'none';
-        appContent.style.display = 'block';
-        initializeApp();
-    } else {
-        alert('パスワードが間違っています');
-    }
-}
-
-function initializeApp() {
     // DOM要素の取得
+    const loginScreen = document.getElementById('login-screen');
+    const appContent = document.getElementById('app-content');
+    const passwordInput = document.getElementById('password-input');
+    const loginButton = document.getElementById('login-button');
+    const togglePasswordButton = document.getElementById('toggle-password');
     const searchInput = document.getElementById('search-input');
     const itemTemplate = document.getElementById('inventory-item-template');
     const form = document.getElementById('add-item-form');
@@ -70,43 +43,77 @@ function initializeApp() {
     const importCsvInput = document.getElementById('import-csv');
     const importCsvBtn = document.getElementById('import-csv-btn');
 
-    // 在庫リスト
-    let inventory = [];
-
-    // イベントリスナーの設定
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = itemNameInput.value;
-        const quantity = parseInt(itemQuantityInput.value);
-        addItem(name, quantity);
-        form.reset();
+    // ログイン機能
+    loginButton.addEventListener('click', attemptLogin);
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            attemptLogin();
+        }
     });
 
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const filteredInventory = inventory.filter(item => 
-            item.name.toLowerCase().includes(searchTerm)
-        );
-        updateInventoryDisplay(filteredInventory);
+    // パスワードの可視性を切り替える
+    togglePasswordButton.addEventListener('click', function() {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            togglePasswordButton.textContent = '🔒';
+        } else {
+            passwordInput.type = 'password';
+            togglePasswordButton.textContent = '👁';
+        }
     });
 
-    sortNameBtn.addEventListener('click', () => {
-        inventory.sort((a, b) => a.name.localeCompare(b.name));
-        updateInventoryDisplay();
-    });
+    function attemptLogin() {
+        console.log('Attempting login');
+        const enteredPassword = passwordInput.value;
+        if (enteredPassword === correctPassword) {
+            console.log('Login successful');
+            loginScreen.style.display = 'none';
+            appContent.style.display = 'block';
+            initializeApp();
+        } else {
+            console.log('Login failed');
+            alert('パスワードが間違っています');
+        }
+    }
 
-    sortQuantityBtn.addEventListener('click', () => {
-        inventory.sort((a, b) => b.quantity - a.quantity);
-        updateInventoryDisplay();
-    });
+    function initializeApp() {
+        // イベントリスナーの設定
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = itemNameInput.value;
+            const quantity = parseInt(itemQuantityInput.value);
+            addItem(name, quantity);
+            form.reset();
+        });
 
-    scanBarcodeBtn.addEventListener('click', startBarcodeScanner);
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredInventory = inventory.filter(item => 
+                item.name.toLowerCase().includes(searchTerm)
+            );
+            updateInventoryDisplay(filteredInventory);
+        });
 
-    exportCsvBtn.addEventListener('click', exportToCsv);
-    importCsvBtn.addEventListener('click', () => importCsvInput.click());
-    importCsvInput.addEventListener('change', importFromCsv);
+        sortNameBtn.addEventListener('click', () => {
+            inventory.sort((a, b) => a.name.localeCompare(b.name));
+            updateInventoryDisplay();
+        });
 
-    // 関数定義
+        sortQuantityBtn.addEventListener('click', () => {
+            inventory.sort((a, b) => b.quantity - a.quantity);
+            updateInventoryDisplay();
+        });
+
+        scanBarcodeBtn.addEventListener('click', startBarcodeScanner);
+
+        exportCsvBtn.addEventListener('click', exportToCsv);
+        importCsvBtn.addEventListener('click', () => importCsvInput.click());
+        importCsvInput.addEventListener('change', importFromCsv);
+
+        // 初期データ読み込み
+        loadInventory();
+    }
+
     function loadInventory() {
         const dbRef = database.ref('inventory');
         dbRef.on('value', (snapshot) => {
@@ -220,6 +227,5 @@ function initializeApp() {
         reader.readAsText(file);
     }
 
-    // ページ読み込み時に在庫データを読み込む
-    loadInventory();
-}
+    console.log('Event listeners added');
+});
