@@ -1,3 +1,8 @@
+// Firebase SDKの読み込みを確認
+if (typeof firebase === 'undefined') {
+  console.error('Firebase SDK is not loaded. Check your script tags.');
+}
+
 // Firebase の設定
 const firebaseConfig = {
   apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
