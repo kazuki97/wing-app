@@ -1,3 +1,18 @@
+// Firebase の設定
+const firebaseConfig = {
+  apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
+  authDomain: "wing-3be9c.firebaseapp.com",
+  databaseURL: "https://wing-3be9c-default-rtdb.firebaseio.com",
+  projectId: "wing-3be9c",
+  storageBucket: "wing-3be9c.appspot.com",
+  messagingSenderId: "875454320750",
+  appId: "1:875454320750:web:268b366e2e94aa1f05167f",
+  measurementId: "G-F81ZH8X0JW"
+};
+
+// Firebase の初期化
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 // ログイン関連の要素
 const loginScreen = document.getElementById('login-screen');
 const appContent = document.getElementById('app-content');
@@ -78,6 +93,21 @@ function initializeApp() {
 
     // 在庫リスト
     let inventory = [];
+// データベースから在庫データを読み込む
+function loadInventory() {
+  const dbRef = database.ref('inventory');
+  dbRef.on('value', (snapshot) => {
+    inventory = [];
+    snapshot.forEach((childSnapshot) => {
+      inventory.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
+    });
+    updateInventoryDisplay();
+  });
+}
+
 
     // イベントリスナーの設定
     form.addEventListener('submit', function(e) {
@@ -112,36 +142,31 @@ function initializeApp() {
     importCsvBtn.addEventListener('click', () => importCsvInput.click());
     importCsvInput.addEventListener('change', importFromCsv);
 
-    function addItem(name, quantity) {
-        const newItem = { name, quantity: parseInt(quantity) };
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
-        const request = store.add(newItem);
-
-        request.onsuccess = function(event) {
-            newItem.id = event.target.result;
-            inventory.push(newItem);
-            updateInventoryDisplay();
-        };
-    }
+   function addItem(name, quantity) {
+    const dbRef = database.ref('inventory');
+    dbRef.push({
+        name: name,
+        quantity: parseInt(quantity)
+    });
+}
 
     function updateInventoryDisplay(items = inventory) {
-        inventoryList.innerHTML = '';
-        items.forEach((item, index) => {
-            const itemElement = document.importNode(itemTemplate.content, true);
-            itemElement.querySelector('.item-name').textContent = item.name;
-            const quantityInput = itemElement.querySelector('.item-quantity');
-            quantityInput.value = item.quantity;
-            
-            const updateBtn = itemElement.querySelector('.update-btn');
-            updateBtn.addEventListener('click', () => updateItemQuantity(index, quantityInput.value));
-            
-            const deleteBtn = itemElement.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => deleteItem(index));
-            
-            inventoryList.appendChild(itemElement);
-        });
-    }
+    inventoryList.innerHTML = '';
+    items.forEach((item) => {
+        const itemElement = document.importNode(itemTemplate.content, true);
+        itemElement.querySelector('.item-name').textContent = item.name;
+        const quantityInput = itemElement.querySelector('.item-quantity');
+        quantityInput.value = item.quantity;
+        
+        const updateBtn = itemElement.querySelector('.update-btn');
+        updateBtn.addEventListener('click', () => updateItemQuantity(item.id, quantityInput.value));
+        
+        const deleteBtn = itemElement.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => deleteItem(item.id));
+        
+        inventoryList.appendChild(itemElement);
+    });
+}
 
     function saveInventory() {
         const transaction = db.transaction([storeName], 'readwrite');
@@ -169,17 +194,17 @@ function initializeApp() {
         };
     }
 
-    function deleteItem(index) {
-        inventory.splice(index, 1);
-        saveInventory();
-        updateInventoryDisplay();
-    }
+    function deleteItem(id) {
+    const dbRef = database.ref('inventory/' + id);
+    dbRef.remove();
+}
 
-    function updateItemQuantity(index, newQuantity) {
-        inventory[index].quantity = parseInt(newQuantity);
-        saveInventory();
-        updateInventoryDisplay();
-    }
+    function updateItemQuantity(id, newQuantity) {
+    const dbRef = database.ref('inventory/' + id);
+    dbRef.update({
+        quantity: parseInt(newQuantity)
+    });
+}
 
     function startBarcodeScanner() {
         barcodeScannerDiv.style.display = 'block';
