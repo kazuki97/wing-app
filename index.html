@@ -23,9 +23,32 @@
         </div>
     </div>
     <div id="app-content" style="display: none;">
-        <!-- アプリケーションのメインコンテンツをここに配置 -->
         <h2>在庫管理</h2>
-        <p>ログインに成功しました。ここに在庫管理機能を実装します。</p>
+        <div id="inventory-controls">
+            <input type="text" id="search-input" placeholder="商品を検索">
+            <select id="sort-select">
+                <option value="name">名前順</option>
+                <option value="quantity">数量順</option>
+            </select>
+            <button id="add-item-button">商品を追加</button>
+            <button id="export-csv">CSVエクスポート</button>
+            <button id="import-csv">CSVインポート</button>
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+        </div>
+        <div id="barcode-scanner">
+            <button id="start-scan">バーコードスキャン開始</button>
+            <div id="scanner-container"></div>
+        </div>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>商品名</th>
+                    <th>数量</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-list"></tbody>
+        </table>
     </div>
     <script src="app.js"></script>
 </body>
