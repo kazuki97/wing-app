@@ -20,43 +20,7 @@
         <button id="login-button">ログイン</button>
     </div>
     <div id="app-content" style="display: none;">
-        <h1>在庫管理アプリ</h1>
-        <div id="main-content">
-            <div id="left-panel">
-                <div id="category-list">
-                    <h2>カテゴリ</h2>
-                    <ul id="categories"></ul>
-                    <button id="add-category-btn">カテゴリ追加</button>
-                </div>
-                <div id="inventory-list">
-                    <h2>商品一覧</h2>
-                    <input type="text" id="search-input" placeholder="商品を検索">
-                    <ul id="items"></ul>
-                </div>
-            </div>
-            <div id="right-panel">
-                <h2>商品詳細</h2>
-                <div id="item-details">
-                    <p>商品を選択してください</p>
-                </div>
-                <form id="add-item-form">
-                    <h3>新規商品追加</h3>
-                    <button id="scan-barcode" type="button">バーコードをスキャン</button>
-                    <div id="barcode-scanner" style="display:none;"></div>
-                    <input type="text" id="item-name" placeholder="商品名" required>
-                    <input type="number" id="item-quantity" placeholder="数量" required>
-                    <select id="item-category" required>
-                        <option value="">カテゴリを選択</option>
-                    </select>
-                    <button type="submit">追加</button>
-                </form>
-            </div>
-        </div>
-        <div id="footer">
-            <button id="export-csv">CSVエクスポート</button>
-            <input type="file" id="import-csv" accept=".csv" style="display:none;">
-            <button id="import-csv-btn">CSVインポート</button>
-        </div>
+        <!-- アプリケーションのメインコンテンツ -->
     </div>
     <script src="app.js"></script>
 </body>
