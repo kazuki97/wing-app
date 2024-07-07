@@ -24,6 +24,7 @@ const correctPassword = 'wing99kk';
 
 // グローバル変数
 let inventory = [];
+let categories = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded and parsed');
@@ -35,11 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginButton = document.getElementById('login-button');
     const togglePasswordButton = document.getElementById('toggle-password');
     const searchInput = document.getElementById('search-input');
-    const itemTemplate = document.getElementById('inventory-item-template');
     const form = document.getElementById('add-item-form');
     const itemNameInput = document.getElementById('item-name');
     const itemQuantityInput = document.getElementById('item-quantity');
-    const inventoryList = document.getElementById('inventory-list');
+    const itemCategorySelect = document.getElementById('item-category');
+    const inventoryList = document.getElementById('items');
+    const categoryList = document.getElementById('categories');
     const sortNameBtn = document.getElementById('sort-name');
     const sortQuantityBtn = document.getElementById('sort-quantity');
     const scanBarcodeBtn = document.getElementById('scan-barcode');
@@ -47,6 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportCsvBtn = document.getElementById('export-csv');
     const importCsvInput = document.getElementById('import-csv');
     const importCsvBtn = document.getElementById('import-csv-btn');
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    const itemDetails = document.getElementById('item-details');
 
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
@@ -87,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const name = itemNameInput.value;
             const quantity = parseInt(itemQuantityInput.value);
-            addItem(name, quantity);
+            const categoryId = itemCategorySelect.value;
+            addItem(name, quantity, categoryId);
             form.reset();
         });
 
@@ -115,8 +120,26 @@ document.addEventListener('DOMContentLoaded', function() {
         importCsvBtn.addEventListener('click', () => importCsvInput.click());
         importCsvInput.addEventListener('change', importFromCsv);
 
+        addCategoryBtn.addEventListener('click', addCategory);
+
         // 初期データ読み込み
+        loadCategories();
         loadInventory();
+    }
+
+    function loadCategories() {
+        const dbRef = database.ref('categories');
+        dbRef.on('value', (snapshot) => {
+            categories = [];
+            snapshot.forEach((childSnapshot) => {
+                categories.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            updateCategoryDisplay();
+            updateCategorySelect();
+        });
     }
 
     function loadInventory() {
@@ -133,30 +156,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function addItem(name, quantity) {
+    function addItem(name, quantity, categoryId) {
         const dbRef = database.ref('inventory');
         dbRef.push({
             name: name,
-            quantity: parseInt(quantity)
+            quantity: parseInt(quantity),
+            categoryId: categoryId
         });
     }
 
     function updateInventoryDisplay(items = inventory) {
         inventoryList.innerHTML = '';
         items.forEach((item) => {
-            const itemElement = document.importNode(itemTemplate.content, true);
-            itemElement.querySelector('.item-name').textContent = item.name;
-            const quantityInput = itemElement.querySelector('.item-quantity');
-            quantityInput.value = item.quantity;
-            
-            const updateBtn = itemElement.querySelector('.update-btn');
-            updateBtn.addEventListener('click', () => updateItemQuantity(item.id, quantityInput.value));
-            
-            const deleteBtn = itemElement.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => deleteItem(item.id));
-            
-            inventoryList.appendChild(itemElement);
+            const li = document.createElement('li');
+            li.textContent = `${item.name} (${item.quantity})`;
+            li.addEventListener('click', () => showItemDetails(item));
+            inventoryList.appendChild(li);
         });
+    }
+
+    function updateCategoryDisplay() {
+        categoryList.innerHTML = '';
+        categories.forEach((category) => {
+            const li = document.createElement('li');
+            li.textContent = category.name;
+            li.addEventListener('click', () => filterByCategory(category.id));
+            categoryList.appendChild(li);
+        });
+    }
+
+    function updateCategorySelect() {
+        itemCategorySelect.innerHTML = '<option value="">カテゴリを選択</option>';
+        categories.forEach((category) => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            itemCategorySelect.appendChild(option);
+        });
+    }
+
+    function addCategory() {
+        const categoryName = prompt('新しいカテゴリ名を入力してください：');
+        if (categoryName) {
+            const dbRef = database.ref('categories');
+            dbRef.push({
+                name: categoryName
+            });
+        }
+    }
+
+    function filterByCategory(categoryId) {
+        const filteredInventory = inventory.filter(item => item.categoryId === categoryId);
+        updateInventoryDisplay(filteredInventory);
+    }
+
+    function showItemDetails(item) {
+        itemDetails.innerHTML = `
+            <h3>${item.name}</h3>
+            <p>数量: ${item.quantity}</p>
+            <p>カテゴリ: ${categories.find(c => c.id === item.categoryId)?.name || '未分類'}</p>
+            <input type="number" id="update-quantity" value="${item.quantity}">
+            <button onclick="updateItemQuantity('${item.id}', document.getElementById('update-quantity').value)">更新</button>
+            <button onclick="deleteItem('${item.id}')">削除</button>
+        `;
     }
 
     function deleteItem(id) {
@@ -200,9 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function exportToCsv() {
         let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "名前,数量\n";
+        csvContent += "名前,数量,カテゴリID\n";
         inventory.forEach(item => {
-            csvContent += `${item.name},${item.quantity}\n`;
+            csvContent += `${item.name},${item.quantity},${item.categoryId}\n`;
         });
         
         const encodedUri = encodeURI(csvContent);
@@ -224,8 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             for(let i = 1; i < lines.length; i++) {
                 if(lines[i].trim() === '') continue;
-                const [name, quantity] = lines[i].split(',');
-                addItem(name.trim(), parseInt(quantity.trim()));
+                const [name, quantity, categoryId] = lines[i].split(',');
+                addItem(name.trim(), parseInt(quantity.trim()), categoryId.trim());
             }
         };
         
