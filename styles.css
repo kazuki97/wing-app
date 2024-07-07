@@ -1,20 +1,37 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-#login-screen {
+.login-container {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
-    margin-top: 50px;
+    width: 100%;
+    max-width: 300px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    color: #666;
+    margin-bottom: 1.5rem;
 }
 
 .password-container {
     position: relative;
-    display: inline-block;
-    width: 200px;
+    margin-bottom: 1rem;
 }
 
 #password-input {
@@ -23,11 +40,12 @@ body {
     padding-right: 40px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 #toggle-password {
     position: absolute;
-    right: 5px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -37,15 +55,24 @@ body {
 }
 
 #login-button {
-    margin-top: 10px;
-    padding: 10px 20px;
+    width: 100%;
+    padding: 10px;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 #login-button:hover {
     background-color: #45a049;
+}
+
+#app-content {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
