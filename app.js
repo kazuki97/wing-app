@@ -21,6 +21,7 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded and parsed");
     const loginScreen = document.getElementById('login-screen');
     const appContent = document.getElementById('app-content');
     const emailInput = document.getElementById('email-input');
@@ -38,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
+    console.log("Login button event listener added");
+
     passwordInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') attemptLogin();
     });
