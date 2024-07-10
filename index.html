@@ -7,23 +7,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 </head>
 <body>
     <div id="login-screen">
         <div class="login-container">
             <h1><i class="fas fa-box-open"></i> 高級在庫管理システム</h1>
             <div class="input-group">
-                <input type="password" id="password-input" placeholder="パスワードを入力">
-                <button id="toggle-password" type="button"><i class="fas fa-eye"></i></button>
+                <input type="email" id="email-input" placeholder="メールアドレス" aria-label="メールアドレス">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password-input" placeholder="パスワード" aria-label="パスワード">
+                <button id="toggle-password" type="button" aria-label="パスワードを表示/非表示"><i class="fas fa-eye"></i></button>
             </div>
             <button id="login-button">ログイン</button>
         </div>
     </div>
     <div id="app-content" class="hidden">
-        <nav id="side-menu">
+        <nav id="side-menu" aria-label="サイドメニュー">
             <ul>
                 <li><a href="#" data-view="home"><i class="fas fa-home"></i> トップページ</a></li>
                 <li><a href="#" data-view="category"><i class="fas fa-tags"></i> カテゴリ設定</a></li>
@@ -69,8 +69,8 @@
             <div id="inventory-view" class="view">
                 <h2>在庫管理</h2>
                 <div id="inventory-controls">
-                    <input type="text" id="search-input" placeholder="商品を検索">
-                    <select id="category-filter">
+                    <input type="text" id="search-input" placeholder="商品を検索" aria-label="商品を検索">
+                    <select id="category-filter" aria-label="カテゴリでフィルター">
                         <option value="all">すべてのカテゴリ</option>
                     </select>
                 </div>
@@ -89,10 +89,9 @@
         </main>
     </div>
 
-    <!-- モーダル -->
-    <div id="modal" class="modal">
+    <div id="modal" class="modal" aria-hidden="true">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <button class="close" aria-label="閉じる">&times;</button>
             <h2 id="modal-title"></h2>
             <form id="modal-form">
                 <!-- フォームの内容はJavaScriptで動的に生成 -->
@@ -100,6 +99,14 @@
         </div>
     </div>
 
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
