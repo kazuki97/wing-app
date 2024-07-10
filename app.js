@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePasswordButton = document.getElementById('toggle-password');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalForm = document.getElementById('modal-form');
+    const closeModal = document.getElementsByClassName('close')[0];
 
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
@@ -58,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCategories();
         loadProducts();
         loadInventory();
+        setupChart();
     }
 
     function setupNavigation() {
@@ -80,8 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryList = document.getElementById('category-list');
 
     addCategoryButton.addEventListener('click', function() {
-        const name = prompt('新しいカテゴリ名を入力してください:');
-        if (name) addCategory(name);
+        showModal('カテゴリを追加', createCategoryForm());
     });
 
     function loadCategories() {
@@ -107,13 +111,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function createCategoryForm(id = null, name = '') {
+        return `
+            <input type="text" id="category-name" value="${name}" placeholder="カテゴリ名" required>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
+    }
+
     function addCategory(name) {
         database.ref('categories').push().set(name);
     }
 
     window.editCategory = function(id) {
-        const newName = prompt('新しいカテゴリ名を入力してください:');
-        if (newName) database.ref(`categories/${id}`).set(newName);
+        database.ref(`categories/${id}`).once('value', snapshot => {
+            const name = snapshot.val();
+            showModal('カテゴリを編集', createCategoryForm(id, name));
+        });
     }
 
     window.deleteCategory = function(id) {
@@ -126,7 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
-    addProductButton.addEventListener('click', showAddProductDialog);
+    addProductButton.addEventListener('click', function() {
+        showModal('商品を追加', createProductForm());
+    });
 
     function loadProducts() {
         database.ref('products').on('value', snapshot => {
@@ -151,10 +166,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function showAddProductDialog() {
-        const name = prompt('商品名を入力してください:');
-        const category = prompt('カテゴリを入力してください:');
-        if (name && category) addProduct(name, category);
+    function createProductForm(id = null, product = { name: '', category: '' }) {
+        let categoryOptions = '';
+        database.ref('categories').once('value', snapshot => {
+            const categories = snapshot.val() || {};
+            for (const [categoryId, categoryName] of Object.entries(categories)) {
+                categoryOptions += `<option value="${categoryName}" ${product.category === categoryName ? 'selected' : ''}>${categoryName}</option>`;
+            }
+        });
+
+        return `
+            <input type="text" id="product-name" value="${product.name}" placeholder="商品名" required>
+            <select id="product-category" required>
+                <option value="">カテゴリを選択</option>
+                ${categoryOptions}
+            </select>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
     }
 
     function addProduct(name, category) {
@@ -162,11 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.editProduct = function(id) {
-        const newName = prompt('新しい商品名を入力してください:');
-        const newCategory = prompt('新しいカテゴリを入力してください:');
-        if (newName && newCategory) {
-            database.ref(`products/${id}`).update({ name: newName, category: newCategory });
-        }
+        database.ref(`products/${id}`).once('value', snapshot => {
+            const product = snapshot.val();
+            showModal('商品を編集', createProductForm(id, product));
+        });
     }
 
     window.deleteProduct = function(id) {
@@ -187,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         database.ref('inventory').on('value', snapshot => {
             const inventory = snapshot.val() || {};
             updateInventoryList(inventory);
+            updateChart(inventory);
         });
     }
 
@@ -232,21 +260,135 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.editInventoryItem = function(id) {
-        const newName = prompt('新しい商品名を入力してください:');
-        const newCategory = prompt('新しいカテゴリを入力してください:');
-        const newQuantity = prompt('新しい在庫数を入力してください:');
-        if (newName && newCategory && newQuantity) {
-            database.ref(`inventory/${id}`).update({
-                name: newName,
-                category: newCategory,
-                quantity: parseInt(newQuantity, 10)
-            });
-        }
+        database.ref(`inventory/${id}`).once('value', snapshot => {
+            const item = snapshot.val();
+            showModal('在庫を編集', createInventoryForm(id, item));
+        });
     }
 
     window.deleteInventoryItem = function(id) {
         if (confirm('この在庫項目を削除してもよろしいですか？')) {
             database.ref(`inventory/${id}`).remove();
         }
+    }
+
+    function createInventoryForm(id = null, item = { name: '', category: '', quantity: '' }) {
+        let productOptions = '';
+        database.ref('products').once('value', snapshot => {
+            const products = snapshot.val() || {};
+            for (const [productId, product] of Object.entries(products)) {
+                productOptions += `<option value="${product.name}" data-category="${product.category}" ${item.name === product.name ? 'selected' : ''}>${product.name}</option>`;
+            }
+        });
+
+        return `
+            <select id="inventory-product" required>
+                <option value="">商品を選択</option>
+                ${productOptions}
+            </select>
+            <input type="number" id="inventory-quantity" value="${item.quantity}" placeholder="数量" required>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
+    }
+
+    // モーダル関連の機能
+    function showModal(title, content) {
+        modalTitle.textContent = title;
+        modalForm.innerHTML = content;
+        modal.style.display = 'block';
+
+        modalForm.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(modalForm);
+            const data = Object.fromEntries(formData.entries());
+
+            if (title.includes('カテゴリ')) {
+                if (title.includes('編集')) {
+                    const id = modalForm.getAttribute('data-id');
+                    database.ref(`categories/${id}`).set(data['category-name']);
+                } else {
+                    addCategory(data['category-name']);
+                }
+            } else if (title.includes('商品')) {
+                if (title.includes('編集')) {
+                    const id = modalForm.getAttribute('data-id');
+                    database.ref(`products/${id}`).update(data);
+                } else {
+                    addProduct(data['product-name'], data['product-category']);
+                }
+            } else if (title.includes('在庫')) {
+                const productSelect = document.getElementById('inventory-product');
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const category = selectedOption.getAttribute('data-category');
+                
+                if (title.includes('編集')) {
+                    const id = modalForm.getAttribute('data-id');
+                    database.ref(`inventory/${id}`).update({
+                        name: data['inventory-product'],
+                        category: category,
+                        quantity: parseInt(data['inventory-quantity'])
+                    });
+                } else {
+                    database.ref('inventory').push().set({
+                        name: data['inventory-product'],
+                        category: category,
+                        quantity: parseInt(data['inventory-quantity'])
+                    });
+                }
+            }
+
+            closeModal.click();
+        };
+    }
+
+    closeModal.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // グラフ関連の機能
+    let stockChart;
+
+    function setupChart() {
+        const ctx = document.getElementById('stock-chart').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '在庫数',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart(inventory) {
+        const labels = [];
+        const data = [];
+
+        for (const item of Object.values(inventory)) {
+            labels.push(item.name);
+            data.push(item.quantity);
+        }
+
+        stockChart.data.labels = labels;
+        stockChart.data.datasets[0].data = data;
+        stockChart.update();
     }
 });
