@@ -12,18 +12,27 @@
 </head>
 <body>
     <div id="login-screen">
-        <!-- ログイン画面の内容（変更なし） -->
+        <div class="login-container">
+            <h1>在庫管理アプリ</h1>
+            <h2>ログイン</h2>
+            <div class="password-container">
+                <input type="password" id="password-input" placeholder="パスワードを入力">
+                <button id="toggle-password" type="button">👁</button>
+            </div>
+            <button id="login-button">ログイン</button>
+        </div>
     </div>
     <div id="app-content" style="display: none;">
-        <h2>在庫管理</h2>
-        <div id="category-controls">
+        <h1>在庫管理アプリ</h1>
+        <div id="category-view">
+            <h2>カテゴリ一覧</h2>
             <button id="add-category-button">カテゴリを追加</button>
+            <div id="category-list"></div>
         </div>
-        <div id="category-list"></div>
-        <div id="item-list" style="display: none;">
-            <h3 id="current-category"></h3>
+        <div id="item-view" style="display: none;">
+            <h2 id="current-category-name"></h2>
             <button id="add-item-button">商品を追加</button>
-            <table id="inventory-table">
+            <table id="item-table">
                 <thead>
                     <tr>
                         <th>商品名</th>
@@ -31,7 +40,7 @@
                         <th>操作</th>
                     </tr>
                 </thead>
-                <tbody id="inventory-list"></tbody>
+                <tbody id="item-list"></tbody>
             </table>
             <button id="back-to-categories">カテゴリ一覧に戻る</button>
         </div>
