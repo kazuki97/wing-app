@@ -1,18 +1,18 @@
 // Firebase SDKの読み込みを確認
 if (typeof firebase === 'undefined') {
-  console.error('Firebase SDK is not loaded. Check your script tags.');
+    console.error('Firebase SDK is not loaded. Check your script tags.');
 }
 
 // Firebase設定
 const firebaseConfig = {
-  apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
-  authDomain: "wing-3be9c.firebaseapp.com",
-  databaseURL: "https://wing-3be9c-default-rtdb.firebaseio.com",
-  projectId: "wing-3be9c",
-  storageBucket: "wing-3be9c.appspot.com",
-  messagingSenderId: "875454320750",
-  appId: "1:875454320750:web:268b366e2e94aa1f05167f",
-  measurementId: "G-F81ZH8X0JW"
+    apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
+    authDomain: "wing-3be9c.firebaseapp.com",
+    databaseURL: "https://wing-3be9c-default-rtdb.firebaseio.com",
+    projectId: "wing-3be9c",
+    storageBucket: "wing-3be9c.appspot.com",
+    messagingSenderId: "875454320750",
+    appId: "1:875454320750:web:268b366e2e94aa1f05167f",
+    measurementId: "G-F81ZH8X0JW"
 };
 
 // Firebase初期化
@@ -23,7 +23,6 @@ const database = firebase.database();
 const correctPassword = 'wing99kk';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 以下、前回のコードと同じ
     const loginScreen = document.getElementById('login-screen');
     const appContent = document.getElementById('app-content');
     const passwordInput = document.getElementById('password-input');
@@ -39,14 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     togglePasswordButton.addEventListener('click', function() {
-        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
-        this.textContent = passwordInput.type === 'password' ? '👁' : '🔒';
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
     });
 
     function attemptLogin() {
         if (passwordInput.value === correctPassword) {
-            loginScreen.style.display = 'none';
-            appContent.style.display = 'flex';
+            loginScreen.classList.add('hidden');
+            appContent.classList.remove('hidden');
             initializeApp();
         } else {
             alert('パスワードが間違っています');
@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showView(viewId) {
-        views.forEach(view => view.style.display = 'none');
-        document.getElementById(`${viewId}-view`).style.display = 'block';
+        views.forEach(view => view.classList.remove('active'));
+        document.getElementById(`${viewId}-view`).classList.add('active');
     }
 
     // カテゴリ関連の機能
@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
             row.innerHTML = `
                 <td>${name}</td>
                 <td>
-                    <button onclick="editCategory('${id}')">編集</button>
-                    <button onclick="deleteCategory('${id}')">削除</button>
+                    <button onclick="editCategory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteCategory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             categoryList.appendChild(row);
@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${product.name}</td>
                 <td>${product.category}</td>
                 <td>
-                    <button onclick="editProduct('${id}')">編集</button>
-                    <button onclick="deleteProduct('${id}')">削除</button>
+                    <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             productList.appendChild(row);
@@ -199,8 +199,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${item.category}</td>
                 <td>${item.quantity}</td>
                 <td>
-                    <button onclick="editInventoryItem('${id}')">編集</button>
-                    <button onclick="deleteInventoryItem('${id}')">削除</button>
+                    <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             inventoryList.appendChild(row);
