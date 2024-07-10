@@ -21,11 +21,7 @@ const database = firebase.database();
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
-    const loginScreen = document.getElementById('login-screen');
     const appContent = document.getElementById('app-content');
-    const passwordInput = document.getElementById('password-input');
-    const loginButton = document.getElementById('login-button');
-    const togglePasswordButton = document.getElementById('toggle-password');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
     const modal = document.getElementById('modal');
@@ -34,33 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
-    // ログイン機能
-    loginButton.addEventListener('click', attemptLogin);
-    console.log("Login button event listener added");
-
-    passwordInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') attemptLogin();
-    });
-
-    togglePasswordButton.addEventListener('click', function() {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-    });
-
-    function attemptLogin() {
-        console.log("Login attempt started");
-        const password = passwordInput.value;
-        if (password === 'wing99kk') {  // パスワードを「wing99kk」に設定
-            loginScreen.style.display = 'none';
-            appContent.style.display = 'flex';
-            initializeApp();
-            console.log("Login successful");
-        } else {
-            alert('パスワードが正しくありません。');
-            console.log("Login failed");
-        }
-    }
+    // アプリケーションを直接初期化
+    initializeApp();
 
     function initializeApp() {
         console.log("Initializing app");
