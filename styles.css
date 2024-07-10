@@ -9,14 +9,13 @@ body {
     min-height: 100vh;
 }
 
-.login-container {
+.login-container, #app-content {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
     width: 100%;
-    max-width: 300px;
+    max-width: 800px;
 }
 
 h1, h2 {
@@ -49,8 +48,7 @@ h1, h2 {
     font-size: 20px;
 }
 
-#login-button {
-    width: 100%;
+button {
     padding: 10px;
     background-color: #4CAF50;
     color: white;
@@ -58,56 +56,37 @@ h1, h2 {
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    margin: 5px;
 }
 
-#login-button:hover {
+button:hover {
     background-color: #45a049;
 }
 
-#app-content {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+#category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-#inventory-controls {
-    margin-bottom: 20px;
+#category-list button {
+    flex: 1 0 calc(33.333% - 10px);
+    min-width: 150px;
 }
 
-#inventory-controls input,
-#inventory-controls select,
-#inventory-controls button {
-    margin-right: 10px;
-    margin-bottom: 10px;
-}
-
-#inventory-table {
+#item-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
-#inventory-table th,
-#inventory-table td {
+#item-table th, #item-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
 
-#inventory-table th {
+#item-table th {
     background-color: #f2f2f2;
-}
-
-#barcode-scanner {
-    margin-bottom: 20px;
-}
-
-#scanner-container {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
 }
