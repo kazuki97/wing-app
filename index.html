@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>高級在庫管理システム</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 </head>
 <body>
     <div id="login-screen">
@@ -33,6 +35,9 @@
             <div id="home-view" class="view active">
                 <h2>トップページ</h2>
                 <p>高級在庫管理システムへようこそ。左のメニューから操作を選択してください。</p>
+                <div id="stock-chart-container">
+                    <canvas id="stock-chart"></canvas>
+                </div>
             </div>
             <div id="category-view" class="view">
                 <h2>カテゴリ設定</h2>
@@ -83,6 +88,18 @@
             </div>
         </main>
     </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <form id="modal-form">
+                <!-- フォームの内容はJavaScriptで動的に生成 -->
+            </form>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
