@@ -10,17 +10,7 @@
     <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-    <div id="login-screen">
-        <div class="login-container">
-            <h1><i class="fas fa-box-open"></i> 高級在庫管理システム</h1>
-            <div class="input-group">
-                <input type="password" id="password-input" placeholder="パスワード" aria-label="パスワード">
-                <button id="toggle-password" type="button" aria-label="パスワードを表示/非表示"><i class="fas fa-eye"></i></button>
-            </div>
-            <button id="login-button">ログイン</button>
-        </div>
-    </div>
-    <div id="app-content" class="hidden">
+    <div id="app-content">
         <nav id="side-menu" aria-label="サイドメニュー">
             <ul>
                 <li><a href="#" data-view="home"><i class="fas fa-home"></i> トップページ</a></li>
@@ -102,7 +92,6 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="app.js"></script>
