@@ -59,10 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            loginScreen.classList.add('hidden');
-            appContent.classList.remove('hidden');
+            loginScreen.style.display = 'none';
+            appContent.style.display = 'flex';
             initializeApp();
         } catch (error) {
+            console.error('ログインエラー:', error);
             alert('ログインに失敗しました: ' + error.message);
         } finally {
             hideLoading();
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('パスワードリセットのメールを送信しました。メールをご確認ください。');
                 closeModal.click();
             } catch (error) {
+                console.error('パスワードリセットエラー:', error);
                 alert('パスワードリセットメールの送信に失敗しました: ' + error.message);
             } finally {
                 hideLoading();
@@ -113,7 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
         views.forEach(view => view.classList.remove('active'));
         document.getElementById(`${viewId}-view`).classList.add('active');
     }
-// カテゴリ関連の機能
+
+    // カテゴリ関連の機能
     const addCategoryButton = document.getElementById('add-category-button');
     const categoryList = document.getElementById('category-list');
 
@@ -237,8 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-
-    async function createProductForm(id = null, product = { name: '', category: '' }) {
+async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -260,7 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="submit">${id ? '更新' : '追加'}</button>
         `;
     }
-async function addProduct(name, category) {
+
+    async function addProduct(name, category) {
         showLoading();
         try {
             await database.ref('products').push().set({ name, category });
@@ -488,6 +491,14 @@ async function addProduct(name, category) {
         }
     }
 
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
+    }
+
     // グラフ関連の機能
     let stockChart;
 
@@ -528,14 +539,6 @@ async function addProduct(name, category) {
         stockChart.data.datasets[0].data = data;
         stockChart.update();
     }
-
-    function showLoading() {
-        loadingOverlay.classList.remove('hidden');
-    }
-
-    function hideLoading() {
-        loadingOverlay.classList.add('hidden');
-    }
 });
 
 if ('serviceWorker' in navigator) {
@@ -547,4 +550,3 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-
