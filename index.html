@@ -23,27 +23,37 @@
         </div>
     </div>
     <div id="app-content" style="display: none;">
-        <h1>在庫管理アプリ</h1>
-        <div id="category-view">
-            <h2>カテゴリ一覧</h2>
+        <h2>在庫管理</h2>
+        <div id="inventory-controls">
+            <input type="text" id="search-input" placeholder="商品を検索">
+            <select id="sort-select">
+                <option value="name">名前順</option>
+                <option value="quantity">数量順</option>
+            </select>
+            <select id="category-select">
+                <option value="all">すべてのカテゴリ</option>
+            </select>
             <button id="add-category-button">カテゴリを追加</button>
-            <div id="category-list"></div>
-        </div>
-        <div id="item-view" style="display: none;">
-            <h2 id="current-category-name"></h2>
             <button id="add-item-button">商品を追加</button>
-            <table id="item-table">
-                <thead>
-                    <tr>
-                        <th>商品名</th>
-                        <th>数量</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="item-list"></tbody>
-            </table>
-            <button id="back-to-categories">カテゴリ一覧に戻る</button>
+            <button id="export-csv">CSVエクスポート</button>
+            <button id="import-csv">CSVインポート</button>
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
         </div>
+        <div id="barcode-scanner">
+            <button id="start-scan">バーコードスキャン開始</button>
+            <div id="scanner-container"></div>
+        </div>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>カテゴリ</th>
+                    <th>商品名</th>
+                    <th>数量</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-list"></tbody>
+        </table>
     </div>
     <script src="app.js"></script>
 </body>
