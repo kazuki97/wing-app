@@ -17,18 +17,15 @@ const firebaseConfig = {
 
 // Firebase初期化
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const database = firebase.database();
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
     const loginScreen = document.getElementById('login-screen');
     const appContent = document.getElementById('app-content');
-    const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
     const loginButton = document.getElementById('login-button');
     const togglePasswordButton = document.getElementById('toggle-password');
-    const forgotPasswordLink = document.getElementById('forgot-password');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
     const modal = document.getElementById('modal');
@@ -51,33 +48,18 @@ document.addEventListener('DOMContentLoaded', function() {
         this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
     });
 
-    forgotPasswordLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        showPasswordResetModal();
-    });
-
     function attemptLogin() {
         console.log("Login attempt started");
-        showLoading();
-        // 開発中はログインをスキップ
-        loginScreen.style.display = 'none';
-        appContent.style.display = 'flex';
-        hideLoading();
-        initializeApp();
-        console.log("Login attempt completed");
-    }
-
-    function showPasswordResetModal() {
-        showModal('パスワードリセット', `
-            <input type="email" id="reset-email" placeholder="メールアドレス" required>
-            <button type="submit">リセットリンクを送信</button>
-        `);
-
-        modalForm.onsubmit = function(e) {
-            e.preventDefault();
-            alert('パスワードリセット機能は現在無効です。');
-            closeModal.click();
-        };
+        const password = passwordInput.value;
+        if (password === 'admin') {  // 簡単なパスワード認証
+            loginScreen.style.display = 'none';
+            appContent.style.display = 'flex';
+            initializeApp();
+            console.log("Login successful");
+        } else {
+            alert('パスワードが正しくありません。');
+            console.log("Login failed");
+        }
     }
 
     function initializeApp() {
@@ -141,8 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             categoryList.appendChild(row);
         }
     }
-
-    function createCategoryForm(id = null, name = '') {
+function createCategoryForm(id = null, name = '') {
         return `
             <input type="text" id="category-name" value="${name}" placeholder="カテゴリ名" required>
             <button type="submit">${id ? '更新' : '追加'}</button>
@@ -190,7 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-// 商品関連の機能
+
+    // 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
