@@ -3,42 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在庫管理アプリ</title>
+    <title>高級在庫管理システム</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div id="login-screen">
         <div class="login-container">
-            <h1>在庫管理アプリ</h1>
-            <h2>ログイン</h2>
-            <div class="password-container">
+            <h1><i class="fas fa-box-open"></i> 高級在庫管理システム</h1>
+            <div class="input-group">
                 <input type="password" id="password-input" placeholder="パスワードを入力">
-                <button id="toggle-password" type="button">👁</button>
+                <button id="toggle-password" type="button"><i class="fas fa-eye"></i></button>
             </div>
             <button id="login-button">ログイン</button>
         </div>
     </div>
-    <div id="app-content" style="display: none;">
+    <div id="app-content" class="hidden">
         <nav id="side-menu">
             <ul>
-                <li><a href="#" data-view="home">トップページ</a></li>
-                <li><a href="#" data-view="category-settings">カテゴリ設定</a></li>
-                <li><a href="#" data-view="product-settings">商品設定</a></li>
-                <li><a href="#" data-view="inventory">在庫管理</a></li>
+                <li><a href="#" data-view="home"><i class="fas fa-home"></i> トップページ</a></li>
+                <li><a href="#" data-view="category"><i class="fas fa-tags"></i> カテゴリ設定</a></li>
+                <li><a href="#" data-view="product"><i class="fas fa-box"></i> 商品設定</a></li>
+                <li><a href="#" data-view="inventory"><i class="fas fa-warehouse"></i> 在庫管理</a></li>
             </ul>
         </nav>
         <main id="main-content">
-            <div id="home-view" class="view">
+            <div id="home-view" class="view active">
                 <h2>トップページ</h2>
-                <p>在庫管理アプリへようこそ。左のメニューから操作を選択してください。</p>
+                <p>高級在庫管理システムへようこそ。左のメニューから操作を選択してください。</p>
             </div>
-            <div id="category-settings-view" class="view" style="display: none;">
+            <div id="category-view" class="view">
                 <h2>カテゴリ設定</h2>
-                <button id="add-category-button">カテゴリを追加</button>
+                <button id="add-category-button" class="action-button"><i class="fas fa-plus"></i> カテゴリを追加</button>
                 <table id="category-table">
                     <thead>
                         <tr>
@@ -49,9 +47,9 @@
                     <tbody id="category-list"></tbody>
                 </table>
             </div>
-            <div id="product-settings-view" class="view" style="display: none;">
+            <div id="product-view" class="view">
                 <h2>商品設定</h2>
-                <button id="add-product-button">商品を追加</button>
+                <button id="add-product-button" class="action-button"><i class="fas fa-plus"></i> 商品を追加</button>
                 <table id="product-table">
                     <thead>
                         <tr>
@@ -63,7 +61,7 @@
                     <tbody id="product-list"></tbody>
                 </table>
             </div>
-            <div id="inventory-view" class="view" style="display: none;">
+            <div id="inventory-view" class="view">
                 <h2>在庫管理</h2>
                 <div id="inventory-controls">
                     <input type="text" id="search-input" placeholder="商品を検索">
