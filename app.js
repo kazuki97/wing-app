@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password-input');
     const loginButton = document.getElementById('login-button');
     const togglePasswordButton = document.getElementById('toggle-password');
+    const forgotPasswordLink = document.getElementById('forgot-password');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
     const modal = document.getElementById('modal');
@@ -47,6 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
         this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
     });
 
+    forgotPasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        showPasswordResetModal();
+    });
+
     async function attemptLogin() {
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -61,6 +67,28 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             hideLoading();
         }
+    }
+
+    function showPasswordResetModal() {
+        showModal('パスワードリセット', `
+            <input type="email" id="reset-email" placeholder="メールアドレス" required>
+            <button type="submit">リセットリンクを送信</button>
+        `);
+
+        modalForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            showLoading();
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert('パスワードリセットのメールを送信しました。メールをご確認ください。');
+                closeModal.click();
+            } catch (error) {
+                alert('パスワードリセットメールの送信に失敗しました: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
     }
 
     function initializeApp() {
@@ -85,8 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         views.forEach(view => view.classList.remove('active'));
         document.getElementById(`${viewId}-view`).classList.add('active');
     }
-
-    // カテゴリ関連の機能
+// カテゴリ関連の機能
     const addCategoryButton = document.getElementById('add-category-button');
     const categoryList = document.getElementById('category-list');
 
@@ -172,7 +199,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-// 商品関連の機能
+
+    // 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
@@ -232,8 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="submit">${id ? '更新' : '追加'}</button>
         `;
     }
-
-    async function addProduct(name, category) {
+async function addProduct(name, category) {
         showLoading();
         try {
             await database.ref('products').push().set({ name, category });
@@ -505,16 +532,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function showLoading() {
         loadingOverlay.classList.remove('hidden');
     }
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-    }, function(err) {
-      console.log('ServiceWorker registration failed: ', err);
-    });
-  });
-}
+
     function hideLoading() {
         loadingOverlay.classList.add('hidden');
     }
 });
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+}
+
