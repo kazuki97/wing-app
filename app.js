@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePasswordButton = document.getElementById('toggle-password');
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
+    const categorySelect = document.getElementById('category-select');
+    const addCategoryButton = document.getElementById('add-category-button');
     const addItemButton = document.getElementById('add-item-button');
     const exportCsvButton = document.getElementById('export-csv');
     const importCsvButton = document.getElementById('import-csv');
@@ -75,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function initializeApp() {
         console.log('Initializing app');
+        loadCategories();
         loadInventory();
         setupEventListeners();
     }
@@ -82,11 +85,30 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupEventListeners() {
         searchInput.addEventListener('input', filterInventory);
         sortSelect.addEventListener('change', sortInventory);
+        categorySelect.addEventListener('change', filterInventory);
+        addCategoryButton.addEventListener('click', showAddCategoryDialog);
         addItemButton.addEventListener('click', showAddItemDialog);
         exportCsvButton.addEventListener('click', exportToCsv);
         importCsvButton.addEventListener('click', () => csvFileInput.click());
         csvFileInput.addEventListener('change', importFromCsv);
         startScanButton.addEventListener('click', startBarcodeScanner);
+    }
+
+    function loadCategories() {
+        database.ref('categories').on('value', (snapshot) => {
+            const categories = snapshot.val() || {};
+            updateCategorySelect(categories);
+        });
+    }
+
+    function updateCategorySelect(categories) {
+        categorySelect.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+        for (const [id, name] of Object.entries(categories)) {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = name;
+            categorySelect.appendChild(option);
+        }
     }
 
     function loadInventory() {
@@ -101,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
         for (const [id, item] of Object.entries(data)) {
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td>${item.category}</td>
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
                 <td>
@@ -114,10 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterInventory() {
         const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categorySelect.value;
         const rows = inventoryList.getElementsByTagName('tr');
         for (const row of rows) {
-            const name = row.cells[0].textContent.toLowerCase();
-            row.style.display = name.includes(searchTerm) ? '' : 'none';
+            const category = row.cells[0].textContent;
+            const name = row.cells[1].textContent.toLowerCase();
+            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+            const searchMatch = name.includes(searchTerm);
+            row.style.display = categoryMatch && searchMatch ? '' : 'none';
         }
     }
 
@@ -125,34 +152,49 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortBy = sortSelect.value;
         const rows = Array.from(inventoryList.getElementsByTagName('tr'));
         rows.sort((a, b) => {
-            const aValue = a.cells[sortBy === 'name' ? 0 : 1].textContent;
-            const bValue = b.cells[sortBy === 'name' ? 0 : 1].textContent;
+            const aValue = a.cells[sortBy === 'name' ? 1 : 2].textContent;
+            const bValue = b.cells[sortBy === 'name' ? 1 : 2].textContent;
             return sortBy === 'name' ? aValue.localeCompare(bValue) : aValue - bValue;
         });
         inventoryList.innerHTML = '';
         rows.forEach(row => inventoryList.appendChild(row));
     }
 
-    function showAddItemDialog() {
-        const name = prompt('商品名を入力してください:');
-        const quantity = prompt('数量を入力してください:');
-        if (name && quantity) {
-            addItem(name, parseInt(quantity, 10));
+    function showAddCategoryDialog() {
+        const name = prompt('新しいカテゴリ名を入力してください:');
+        if (name) {
+            addCategory(name);
         }
     }
 
-    function addItem(name, quantity) {
+    function addCategory(name) {
+        const newCategoryRef = database.ref('categories').push();
+        newCategoryRef.set(name);
+    }
+
+    function showAddItemDialog() {
+        const name = prompt('商品名を入力してください:');
+        const quantity = prompt('数量を入力してください:');
+        const category = prompt('カテゴリを入力してください:');
+        if (name && quantity && category) {
+            addItem(name, parseInt(quantity, 10), category);
+        }
+    }
+
+    function addItem(name, quantity, category) {
         const newItemRef = database.ref('inventory').push();
-        newItemRef.set({ name, quantity });
+        newItemRef.set({ name, quantity, category });
     }
 
     window.editItem = function(id) {
         const newName = prompt('新しい商品名を入力してください:');
         const newQuantity = prompt('新しい数量を入力してください:');
-        if (newName && newQuantity) {
+        const newCategory = prompt('新しいカテゴリを入力してください:');
+        if (newName && newQuantity && newCategory) {
             database.ref(`inventory/${id}`).update({
                 name: newName,
-                quantity: parseInt(newQuantity, 10)
+                quantity: parseInt(newQuantity, 10),
+                category: newCategory
             });
         }
     }
@@ -167,9 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
         database.ref('inventory').once('value', (snapshot) => {
             const data = snapshot.val();
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "商品名,数量\n";
+            csvContent += "カテゴリ,商品名,数量\n";
             for (const item of Object.values(data)) {
-                csvContent += `${item.name},${item.quantity}\n`;
+                csvContent += `${item.category},${item.name},${item.quantity}\n`;
             }
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
@@ -189,41 +231,4 @@ document.addEventListener('DOMContentLoaded', function() {
             lines.shift(); // ヘッダー行を削除
             const newItems = {};
             for (const line of lines) {
-                const [name, quantity] = line.split(',');
-                if (name && quantity) {
-                    const newItemRef = database.ref('inventory').push();
-                    newItems[newItemRef.key] = { name, quantity: parseInt(quantity, 10) };
-                }
-            }
-            database.ref('inventory').update(newItems);
-        };
-        reader.readAsText(file);
-    }
-
-    function startBarcodeScanner() {
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#scanner-container')
-            },
-            decoder: {
-                readers: ["ean_reader", "ean_8_reader", "code_39_reader", "code_128_reader"]
-            }
-        }, function(err) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            Quagga.start();
-        });
-
-        Quagga.onDetected(function(result) {
-            const code = result.codeResult.code;
-            alert(`バーコード: ${code}`);
-            Quagga.stop();
-        });
-    }
-
-    console.log('Event listeners added');
-});
+                const [category,
