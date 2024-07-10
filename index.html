@@ -23,37 +23,67 @@
         </div>
     </div>
     <div id="app-content" style="display: none;">
-        <h2>在庫管理</h2>
-        <div id="inventory-controls">
-            <input type="text" id="search-input" placeholder="商品を検索">
-            <select id="sort-select">
-                <option value="name">名前順</option>
-                <option value="quantity">数量順</option>
-            </select>
-            <select id="category-select">
-                <option value="all">すべてのカテゴリ</option>
-            </select>
-            <button id="add-category-button">カテゴリを追加</button>
-            <button id="add-item-button">商品を追加</button>
-            <button id="export-csv">CSVエクスポート</button>
-            <button id="import-csv">CSVインポート</button>
-            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
-        </div>
-        <div id="barcode-scanner">
-            <button id="start-scan">バーコードスキャン開始</button>
-            <div id="scanner-container"></div>
-        </div>
-        <table id="inventory-table">
-            <thead>
-                <tr>
-                    <th>カテゴリ</th>
-                    <th>商品名</th>
-                    <th>数量</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="inventory-list"></tbody>
-        </table>
+        <nav id="side-menu">
+            <ul>
+                <li><a href="#" data-view="home">トップページ</a></li>
+                <li><a href="#" data-view="category-settings">カテゴリ設定</a></li>
+                <li><a href="#" data-view="product-settings">商品設定</a></li>
+                <li><a href="#" data-view="inventory">在庫管理</a></li>
+            </ul>
+        </nav>
+        <main id="main-content">
+            <div id="home-view" class="view">
+                <h2>トップページ</h2>
+                <p>在庫管理アプリへようこそ。左のメニューから操作を選択してください。</p>
+            </div>
+            <div id="category-settings-view" class="view" style="display: none;">
+                <h2>カテゴリ設定</h2>
+                <button id="add-category-button">カテゴリを追加</button>
+                <table id="category-table">
+                    <thead>
+                        <tr>
+                            <th>カテゴリ名</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="category-list"></tbody>
+                </table>
+            </div>
+            <div id="product-settings-view" class="view" style="display: none;">
+                <h2>商品設定</h2>
+                <button id="add-product-button">商品を追加</button>
+                <table id="product-table">
+                    <thead>
+                        <tr>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-list"></tbody>
+                </table>
+            </div>
+            <div id="inventory-view" class="view" style="display: none;">
+                <h2>在庫管理</h2>
+                <div id="inventory-controls">
+                    <input type="text" id="search-input" placeholder="商品を検索">
+                    <select id="category-filter">
+                        <option value="all">すべてのカテゴリ</option>
+                    </select>
+                </div>
+                <table id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>在庫数</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-list"></tbody>
+                </table>
+            </div>
+        </main>
     </div>
     <script src="app.js"></script>
 </body>
