@@ -54,12 +54,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function attemptLogin() {
+        console.log("Login attempt started");
         showLoading();
         // 開発中はログインをスキップ
         loginScreen.style.display = 'none';
         appContent.style.display = 'flex';
         hideLoading();
         initializeApp();
+        console.log("Login attempt completed");
     }
 
     function showPasswordResetModal() {
@@ -76,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initializeApp() {
+        console.log("Initializing app");
         setupNavigation();
         loadCategories();
         loadProducts();
@@ -184,8 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    // 商品関連の機能
+// 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
@@ -222,7 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-async function createProductForm(id = null, product = { name: '', category: '' }) {
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
