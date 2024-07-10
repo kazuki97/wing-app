@@ -169,7 +169,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addCategory(name) {
         const newCategoryRef = database.ref('categories').push();
-        newCategoryRef.set(name);
+        newCategoryRef.set(name)
+            .then(() => {
+                console.log('カテゴリが正常に追加されました');
+                loadCategories(); // カテゴリリストを更新
+            })
+            .catch((error) => {
+                console.error('カテゴリの追加中にエラーが発生しました:', error);
+            });
     }
 
     function showAddItemDialog() {
