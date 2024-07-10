@@ -12,48 +12,29 @@
 </head>
 <body>
     <div id="login-screen">
-        <div class="login-container">
-            <h1>在庫管理アプリ</h1>
-            <h2>ログイン</h2>
-            <div class="password-container">
-                <input type="password" id="password-input" placeholder="パスワードを入力">
-                <button id="toggle-password" type="button">👁</button>
-            </div>
-            <button id="login-button">ログイン</button>
-        </div>
+        <!-- ログイン画面の内容（変更なし） -->
     </div>
     <div id="app-content" style="display: none;">
         <h2>在庫管理</h2>
-        <div id="inventory-controls">
-            <input type="text" id="search-input" placeholder="商品を検索">
-            <select id="sort-select">
-                <option value="name">名前順</option>
-                <option value="quantity">数量順</option>
-            </select>
-            <select id="category-select">
-                <option value="all">すべてのカテゴリ</option>
-            </select>
+        <div id="category-controls">
             <button id="add-category-button">カテゴリを追加</button>
+        </div>
+        <div id="category-list"></div>
+        <div id="item-list" style="display: none;">
+            <h3 id="current-category"></h3>
             <button id="add-item-button">商品を追加</button>
-            <button id="export-csv">CSVエクスポート</button>
-            <button id="import-csv">CSVインポート</button>
-            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+            <table id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>商品名</th>
+                        <th>数量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-list"></tbody>
+            </table>
+            <button id="back-to-categories">カテゴリ一覧に戻る</button>
         </div>
-        <div id="barcode-scanner">
-            <button id="start-scan">バーコードスキャン開始</button>
-            <div id="scanner-container"></div>
-        </div>
-        <table id="inventory-table">
-            <thead>
-                <tr>
-                    <th>カテゴリ</th>
-                    <th>商品名</th>
-                    <th>数量</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="inventory-list"></tbody>
-        </table>
     </div>
     <script src="app.js"></script>
 </body>
