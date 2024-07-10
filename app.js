@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newCategoryRef.set(name)
             .then(() => {
                 console.log('カテゴリが正常に追加されました');
-                loadCategories(); // カテゴリリストを更新
+                loadCategories();
             })
             .catch((error) => {
                 console.error('カテゴリの追加中にエラーが発生しました:', error);
