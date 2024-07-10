@@ -17,7 +17,6 @@ const firebaseConfig = {
 
 // Firebase初期化
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const database = firebase.database();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -27,6 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password-input');
     const loginButton = document.getElementById('login-button');
     const togglePasswordButton = document.getElementById('toggle-password');
+    const sideMenu = document.getElementById('side-menu');
+    const views = document.querySelectorAll('.view');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalForm = document.getElementById('modal-form');
+    const closeModal = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
     // ログイン機能
@@ -47,21 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Login attempt started");
         const password = passwordInput.value;
         if (password === 'wing99kk') {  // パスワードを「wing99kk」に設定
-            showLoading();
-            // ここでFirebase Authenticationを使用してログインを行う
-            auth.signInAnonymously()
-                .then(() => {
-                    console.log("Login successful");
-                    loginScreen.style.display = 'none';
-                    appContent.style.display = 'flex';
-                    hideLoading();
-                    initializeApp();
-                })
-                .catch((error) => {
-                    console.error("Login failed", error);
-                    alert('ログインに失敗しました。もう一度お試しください。');
-                    hideLoading();
-                });
+            loginScreen.style.display = 'none';
+            appContent.style.display = 'flex';
+            initializeApp();
+            console.log("Login successful");
         } else {
             alert('パスワードが正しくありません。');
             console.log("Login failed");
@@ -74,11 +68,10 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCategories();
         loadProducts();
         loadInventory();
+        setupChart();
     }
 
     function setupNavigation() {
-        const sideMenu = document.getElementById('side-menu');
-        const views = document.querySelectorAll('.view');
         sideMenu.addEventListener('click', function(e) {
             if (e.target.tagName === 'A') {
                 e.preventDefault();
@@ -86,23 +79,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 showView(targetView);
             }
         });
-
-        function showView(viewId) {
-            views.forEach(view => view.classList.remove('active'));
-            document.getElementById(`${viewId}-view`).classList.add('active');
-        }
     }
 
-    function showLoading() {
-        loadingOverlay.style.display = 'flex';
+    function showView(viewId) {
+        views.forEach(view => view.classList.remove('active'));
+        document.getElementById(`${viewId}-view`).classList.add('active');
     }
-
-    function hideLoading() {
-        loadingOverlay.style.display = 'none';
-    }
-// ... (前半部分の続き)
 
     // カテゴリ関連の機能
+    const addCategoryButton = document.getElementById('add-category-button');
+    const categoryList = document.getElementById('category-list');
+
+    addCategoryButton.addEventListener('click', function() {
+        showModal('カテゴリを追加', createCategoryForm());
+    });
+
     async function loadCategories() {
         showLoading();
         try {
@@ -119,8 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCategoryList(categories) {
-        const categoryList = document.getElementById('category-list');
-        if (!categoryList) return;
         categoryList.innerHTML = '';
         for (const [id, name] of Object.entries(categories)) {
             const row = document.createElement('tr');
@@ -135,24 +124,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateCategoryFilter(categories) {
-        const categoryFilter = document.getElementById('category-filter');
-        if (!categoryFilter) return;
-        categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
-        for (const category of Object.values(categories)) {
-            const option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            categoryFilter.appendChild(option);
-        }
+    function createCategoryForm(id = null, name = '') {
+        return `
+            <input type="text" id="category-name" value="${name}" placeholder="カテゴリ名" required>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
     }
 
-    window.addCategory = async function(name) {
+    async function addCategory(name) {
         showLoading();
         try {
             await database.ref('categories').push().set(name);
             alert('カテゴリを追加しました。');
-            loadCategories();
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -162,19 +145,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.editCategory = async function(id) {
-        const newName = prompt('新しいカテゴリ名を入力してください:');
-        if (newName) {
-            showLoading();
-            try {
-                await database.ref(`categories/${id}`).set(newName);
-                alert('カテゴリを更新しました。');
-                loadCategories();
-            } catch (error) {
-                console.error('カテゴリの更新に失敗しました:', error);
-                alert('カテゴリの更新に失敗しました。');
-            } finally {
-                hideLoading();
-            }
+        showLoading();
+        try {
+            const snapshot = await database.ref(`categories/${id}`).once('value');
+            const name = snapshot.val();
+            showModal('カテゴリを編集', createCategoryForm(id, name));
+        } catch (error) {
+            console.error('カテゴリの編集に失敗しました:', error);
+            alert('カテゴリの編集に失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
 
@@ -184,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`categories/${id}`).remove();
                 alert('カテゴリを削除しました。');
-                loadCategories();
             } catch (error) {
                 console.error('カテゴリの削除に失敗しました:', error);
                 alert('カテゴリの削除に失敗しました。');
@@ -193,8 +172,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+// ... (前半部分の続き)
 
     // 商品関連の機能
+    const addProductButton = document.getElementById('add-product-button');
+    const productList = document.getElementById('product-list');
+
+    addProductButton.addEventListener('click', function() {
+        showModal('商品を追加', createProductForm());
+    });
+
     async function loadProducts() {
         showLoading();
         try {
@@ -210,8 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateProductList(products) {
-        const productList = document.getElementById('product-list');
-        if (!productList) return;
         productList.innerHTML = '';
         for (const [id, product] of Object.entries(products)) {
             const row = document.createElement('tr');
@@ -227,12 +212,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.addProduct = async function(name, category) {
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
+        let categoryOptions = '';
+        try {
+            const snapshot = await database.ref('categories').once('value');
+            const categories = snapshot.val() || {};
+            for (const [categoryId, categoryName] of Object.entries(categories)) {
+                categoryOptions += `<option value="${categoryName}" ${product.category === categoryName ? 'selected' : ''}>${categoryName}</option>`;
+            }
+        } catch (error) {
+            console.error('カテゴリの読み込みに失敗しました:', error);
+            alert('カテゴリの読み込みに失敗しました。');
+        }
+
+        return `
+            <input type="text" id="product-name" value="${product.name}" placeholder="商品名" required>
+            <select id="product-category" required>
+                <option value="">カテゴリを選択</option>
+                ${categoryOptions}
+            </select>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
+    }
+
+    async function addProduct(name, category) {
         showLoading();
         try {
             await database.ref('products').push().set({ name, category });
             alert('商品を追加しました。');
-            loadProducts();
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -242,21 +249,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.editProduct = async function(id) {
-        const product = (await database.ref(`products/${id}`).once('value')).val();
-        const newName = prompt('新しい商品名を入力してください:', product.name);
-        const newCategory = prompt('新しいカテゴリを入力してください:', product.category);
-        if (newName && newCategory) {
-            showLoading();
-            try {
-                await database.ref(`products/${id}`).update({ name: newName, category: newCategory });
-                alert('商品を更新しました。');
-                loadProducts();
-            } catch (error) {
-                console.error('商品の更新に失敗しました:', error);
-                alert('商品の更新に失敗しました。');
-            } finally {
-                hideLoading();
-            }
+        showLoading();
+        try {
+            const snapshot = await database.ref(`products/${id}`).once('value');
+            const product = snapshot.val();
+            showModal('商品を編集', await createProductForm(id, product));
+        } catch (error) {
+            console.error('商品の編集に失敗しました:', error);
+            alert('商品の編集に失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
 
@@ -266,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`products/${id}`).remove();
                 alert('商品を削除しました。');
-                loadProducts();
             } catch (error) {
                 console.error('商品の削除に失敗しました:', error);
                 alert('商品の削除に失敗しました。');
@@ -277,12 +278,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在庫管理関連の機能
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const inventoryList = document.getElementById('inventory-list');
+
+    searchInput.addEventListener('input', filterInventory);
+    categoryFilter.addEventListener('change', filterInventory);
+
     async function loadInventory() {
         showLoading();
         try {
             const snapshot = await database.ref('inventory').once('value');
             const inventory = snapshot.val() || {};
             updateInventoryList(inventory);
+            updateChart(inventory);
         } catch (error) {
             console.error('在庫の読み込みに失敗しました:', error);
             alert('在庫の読み込みに失敗しました。');
@@ -292,8 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateInventoryList(inventory) {
-        const inventoryList = document.getElementById('inventory-list');
-        if (!inventoryList) return;
         inventoryList.innerHTML = '';
         for (const [id, item] of Object.entries(inventory)) {
             const row = document.createElement('tr');
@@ -310,41 +317,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.addInventoryItem = async function(name, category, quantity) {
-        showLoading();
-        try {
-            await database.ref('inventory').push().set({ name, category, quantity: parseInt(quantity) });
-            alert('在庫項目を追加しました。');
-            loadInventory();
-        } catch (error) {
-            console.error('在庫項目の追加に失敗しました:', error);
-            alert('在庫項目の追加に失敗しました。');
-        } finally {
-            hideLoading();
+    function filterInventory() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const rows = inventoryList.getElementsByTagName('tr');
+
+        for (const row of rows) {
+            const name = row.cells[0].textContent.toLowerCase();
+            const category = row.cells[1].textContent;
+            const nameMatch = name.includes(searchTerm);
+            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+            row.style.display = nameMatch && categoryMatch ? '' : 'none';
+        }
+    }
+
+    function updateCategoryFilter(categories) {
+        categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+        for (const category of Object.values(categories)) {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
         }
     }
 
     window.editInventoryItem = async function(id) {
-        const item = (await database.ref(`inventory/${id}`).once('value')).val();
-        const newName = prompt('新しい商品名を入力してください:', item.name);
-        const newCategory = prompt('新しいカテゴリを入力してください:', item.category);
-        const newQuantity = prompt('新しい数量を入力してください:', item.quantity);
-        if (newName && newCategory && newQuantity) {
-            showLoading();
-            try {
-                await database.ref(`inventory/${id}`).update({
-                    name: newName,
-                    category: newCategory,
-                    quantity: parseInt(newQuantity)
-                });
-                alert('在庫項目を更新しました。');
-                loadInventory();
-            } catch (error) {
-                console.error('在庫項目の更新に失敗しました:', error);
-                alert('在庫項目の更新に失敗しました。');
-            } finally {
-                hideLoading();
-            }
+        showLoading();
+        try {
+            const snapshot = await database.ref(`inventory/${id}`).once('value');
+            const item = snapshot.val();
+            showModal('在庫を編集', await createInventoryForm(id, item));
+        } catch (error) {
+            console.error('在庫項目の編集に失敗しました:', error);
+            alert('在庫項目の編集に失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
 
@@ -354,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`inventory/${id}`).remove();
                 alert('在庫項目を削除しました。');
-                loadInventory();
             } catch (error) {
                 console.error('在庫項目の削除に失敗しました:', error);
                 alert('在庫項目の削除に失敗しました。');
@@ -364,6 +370,145 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // アプリケーションの初期化
-    initializeApp();
+    async function createInventoryForm(id = null, item = { name: '', category: '', quantity: '' }) {
+        let productOptions = '';
+        try {
+            const snapshot = await database.ref('products').once('value');
+            const products = snapshot.val() || {};
+            for (const [productId, product] of Object.entries(products)) {
+                productOptions += `<option value="${product.name}" data-category="${product.category}" ${item.name === product.name ? 'selected' : ''}>${product.name}</option>`;
+            }
+        } catch (error) {
+            console.error('商品の読み込みに失敗しました:', error);
+            alert('商品の読み込みに失敗しました。');
+        }
+
+        return `
+            <select id="inventory-product" required>
+                <option value="">商品を選択</option>
+                ${productOptions}
+            </select>
+            <input type="number" id="inventory-quantity" value="${item.quantity}" placeholder="数量" required>
+            <button type="submit">${id ? '更新' : '追加'}</button>
+        `;
+    }
+
+    // モーダル関連の機能
+    function showModal(title, content) {
+        modalTitle.textContent = title;
+        modalForm.innerHTML = content;
+        modal.style.display = 'block';
+
+        modalForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(modalForm);
+            const data = Object.fromEntries(formData.entries());
+
+            showLoading();
+            try {
+                if (title.includes('カテゴリ')) {
+                    if (title.includes('編集')) {
+                        const id = modalForm.getAttribute('data-id');
+                        await database.ref(`categories/${id}`).set(data['category-name']);
+                    } else {
+                        await addCategory(data['category-name']);
+                    }
+                } else if (title.includes('商品')) {
+                    if (title.includes('編集')) {
+                        const id = modalForm.getAttribute('data-id');
+                        await database.ref(`products/${id}`).update(data);
+                    } else {
+                        await addProduct(data['product-name'], data['product-category']);
+                    }
+                } else if (title.includes('在庫')) {
+                    const productSelect = document.getElementById('inventory-product');
+                    const selectedOption = productSelect.options[productSelect.selectedIndex];
+                    const category = selectedOption.getAttribute('data-category');
+                    
+                    if (title.includes('編集')) {
+                        const id = modalForm.getAttribute('data-id');
+                        await database.ref(`inventory/${id}`).update({
+                            name: data['inventory-product'],
+                            category: category,
+                            quantity: parseInt(data['inventory-quantity'])
+                        });
+                    } else {
+                        await database.ref('inventory').push().set({
+                            name: data['inventory-product'],
+                            category: category,
+                            quantity: parseInt(data['inventory-quantity'])
+                        });
+                    }
+                }
+                closeModal.click();
+                loadCategories();
+                loadProducts();
+                loadInventory();
+            } catch (error) {
+                console.error('操作に失敗しました:', error);
+                alert('操作に失敗しました。');
+            } finally {
+                hideLoading();
+            }
+        };
+    }
+
+    closeModal.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
+    }
+
+    // グラフ関連の機能
+    let stockChart;
+
+    function setupChart() {
+        const ctx = document.getElementById('stock-chart').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '在庫数',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart(inventory) {
+        const labels = [];
+        const data = [];
+
+        for (const item of Object.values(inventory)) {
+            labels.push(item.name);
+            data.push(item.quantity);
+        }
+
+        stockChart.data.labels = labels;
+        stockChart.data.datasets[0].data = data;
+        stockChart.update();
+    }
 });
