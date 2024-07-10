@@ -1,11 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap');
 
-body {
-    font-family: 'Noto Sans JP', sans-serif;
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2c3e50;
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --border-color: #ddd;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+}
+
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
 }
 
 .hidden {
@@ -24,14 +38,14 @@ body {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--shadow-color);
     text-align: center;
     width: 100%;
     max-width: 300px;
 }
 
 .login-container h1 {
-    color: #333;
+    color: var(--secondary-color);
     margin-bottom: 1.5rem;
 }
 
@@ -40,13 +54,13 @@ body {
     margin-bottom: 1rem;
 }
 
-#password-input {
+.input-group input {
     width: 100%;
     padding: 10px;
     padding-right: 40px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    box-sizing: border-box;
+    font-size: 16px;
 }
 
 #toggle-password {
@@ -64,7 +78,7 @@ body {
 #login-button {
     width: 100%;
     padding: 10px;
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 4px;
@@ -84,15 +98,13 @@ body {
 
 #side-menu {
     width: 200px;
-    background-color: #2c3e50;
+    background-color: var(--secondary-color);
     color: white;
     padding: 20px 0;
 }
 
 #side-menu ul {
     list-style-type: none;
-    padding: 0;
-    margin: 0;
 }
 
 #side-menu li {
@@ -121,7 +133,7 @@ body {
     background-color: white;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px var(--shadow-color);
     display: none;
 }
 
@@ -130,7 +142,7 @@ body {
 }
 
 h2 {
-    color: #2c3e50;
+    color: var(--secondary-color);
     margin-bottom: 20px;
 }
 
@@ -141,7 +153,7 @@ table {
 }
 
 th, td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     padding: 12px;
     text-align: left;
 }
@@ -174,8 +186,9 @@ th {
 
 #search-input, #category-filter {
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 14px;
 }
 
 #search-input {
@@ -191,7 +204,7 @@ th {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -208,11 +221,14 @@ th {
     width: 80%;
     max-width: 500px;
     border-radius: 8px;
+    position: relative;
 }
 
 .close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
     color: #aaa;
-    float: right;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
@@ -220,7 +236,7 @@ th {
 
 .close:hover,
 .close:focus {
-    color: black;
+    color: #000;
     text-decoration: none;
     cursor: pointer;
 }
@@ -234,19 +250,77 @@ th {
 #modal-form input,
 #modal-form select {
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 14px;
 }
 
 #modal-form button {
     padding: 10px;
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 #modal-form button:hover {
     background-color: #45a049;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    #app-content {
+        flex-direction: column;
+    }
+
+    #side-menu {
+        width: 100%;
+        padding: 10px 0;
+    }
+
+    #side-menu ul {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    #side-menu li {
+        margin-bottom: 0;
+    }
+
+    #main-content {
+        padding: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
 }
