@@ -36,6 +36,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
+// 前半部分の変更箇所のみを記載
+async function attemptLogin() {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    showLoading();
+    try {
+        // 開発中はログインをスキップ
+        // await auth.signInWithEmailAndPassword(email, password);
+        loginScreen.style.display = 'none';
+        appContent.style.display = 'flex';
+        initializeApp();
+    } catch (error) {
+        console.error('ログインエラー:', error);
+        alert('ログインに失敗しました: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
     passwordInput.addEventListener('keypress', function(e) {
