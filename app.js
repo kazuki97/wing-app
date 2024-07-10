@@ -231,4 +231,45 @@ document.addEventListener('DOMContentLoaded', function() {
             lines.shift(); // ヘッダー行を削除
             const newItems = {};
             for (const line of lines) {
-                const [category,
+                const [category, name, quantity] = line.split(',');
+                if (category && name && quantity) {
+                    const newItemRef = database.ref('inventory').push();
+                    newItems[newItemRef.key] = { 
+                        category, 
+                        name, 
+                        quantity: parseInt(quantity, 10) 
+                    };
+                }
+            }
+            database.ref('inventory').update(newItems);
+        };
+        reader.readAsText(file);
+    }
+
+    function startBarcodeScanner() {
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#scanner-container')
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "code_39_reader", "code_128_reader"]
+            }
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            Quagga.start();
+        });
+
+        Quagga.onDetected(function(result) {
+            const code = result.codeResult.code;
+            alert(`バーコード: ${code}`);
+            Quagga.stop();
+        });
+    }
+
+    console.log('Event listeners added');
+});
