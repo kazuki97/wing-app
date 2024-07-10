@@ -30,6 +30,10 @@
                 <option value="name">名前順</option>
                 <option value="quantity">数量順</option>
             </select>
+            <select id="category-select">
+                <option value="all">すべてのカテゴリ</option>
+            </select>
+            <button id="add-category-button">カテゴリを追加</button>
             <button id="add-item-button">商品を追加</button>
             <button id="export-csv">CSVエクスポート</button>
             <button id="import-csv">CSVインポート</button>
@@ -42,6 +46,7 @@
         <table id="inventory-table">
             <thead>
                 <tr>
+                    <th>カテゴリ</th>
                     <th>商品名</th>
                     <th>数量</th>
                     <th>操作</th>
