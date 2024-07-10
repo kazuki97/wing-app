@@ -36,24 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
-// 前半部分の変更箇所のみを記載
-async function attemptLogin() {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    showLoading();
-    try {
-        // 開発中はログインをスキップ
-        // await auth.signInWithEmailAndPassword(email, password);
-        loginScreen.style.display = 'none';
-        appContent.style.display = 'flex';
-        initializeApp();
-    } catch (error) {
-        console.error('ログインエラー:', error);
-        alert('ログインに失敗しました: ' + error.message);
-    } finally {
-        hideLoading();
-    }
-}
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
     passwordInput.addEventListener('keypress', function(e) {
@@ -71,21 +53,13 @@ async function attemptLogin() {
         showPasswordResetModal();
     });
 
-    async function attemptLogin() {
-        const email = emailInput.value;
-        const password = passwordInput.value;
+    function attemptLogin() {
         showLoading();
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-            loginScreen.style.display = 'none';
-            appContent.style.display = 'flex';
-            initializeApp();
-        } catch (error) {
-            console.error('ログインエラー:', error);
-            alert('ログインに失敗しました: ' + error.message);
-        } finally {
-            hideLoading();
-        }
+        // 開発中はログインをスキップ
+        loginScreen.style.display = 'none';
+        appContent.style.display = 'flex';
+        hideLoading();
+        initializeApp();
     }
 
     function showPasswordResetModal() {
@@ -94,20 +68,10 @@ async function attemptLogin() {
             <button type="submit">リセットリンクを送信</button>
         `);
 
-        modalForm.onsubmit = async function(e) {
+        modalForm.onsubmit = function(e) {
             e.preventDefault();
-            const email = document.getElementById('reset-email').value;
-            showLoading();
-            try {
-                await auth.sendPasswordResetEmail(email);
-                alert('パスワードリセットのメールを送信しました。メールをご確認ください。');
-                closeModal.click();
-            } catch (error) {
-                console.error('パスワードリセットエラー:', error);
-                alert('パスワードリセットメールの送信に失敗しました: ' + error.message);
-            } finally {
-                hideLoading();
-            }
+            alert('パスワードリセット機能は現在無効です。');
+            closeModal.click();
         };
     }
 
