@@ -23,24 +23,20 @@ const database = firebase.database();
 const correctPassword = 'wing99kk';
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded and parsed');
-
     // DOM要素の取得
     const loginScreen = document.getElementById('login-screen');
     const appContent = document.getElementById('app-content');
     const passwordInput = document.getElementById('password-input');
     const loginButton = document.getElementById('login-button');
     const togglePasswordButton = document.getElementById('toggle-password');
-    const searchInput = document.getElementById('search-input');
-    const sortSelect = document.getElementById('sort-select');
-    const categorySelect = document.getElementById('category-select');
+    const categoryView = document.getElementById('category-view');
+    const itemView = document.getElementById('item-view');
+    const categoryList = document.getElementById('category-list');
+    const currentCategoryName = document.getElementById('current-category-name');
+    const itemList = document.getElementById('item-list');
     const addCategoryButton = document.getElementById('add-category-button');
     const addItemButton = document.getElementById('add-item-button');
-    const exportCsvButton = document.getElementById('export-csv');
-    const importCsvButton = document.getElementById('import-csv');
-    const csvFileInput = document.getElementById('csv-file-input');
-    const startScanButton = document.getElementById('start-scan');
-    const inventoryList = document.getElementById('inventory-list');
+    const backToCategoriesButton = document.getElementById('back-to-categories');
 
     // ログイン機能
     loginButton.addEventListener('click', attemptLogin);
@@ -62,68 +58,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function attemptLogin() {
-        console.log('Attempting login');
         const enteredPassword = passwordInput.value;
         if (enteredPassword === correctPassword) {
-            console.log('Login successful');
             loginScreen.style.display = 'none';
             appContent.style.display = 'block';
             initializeApp();
         } else {
-            console.log('Login failed');
             alert('パスワードが間違っています');
         }
     }
 
     function initializeApp() {
-        console.log('Initializing app');
         loadCategories();
-        loadInventory();
         setupEventListeners();
     }
 
     function setupEventListeners() {
-        searchInput.addEventListener('input', filterInventory);
-        sortSelect.addEventListener('change', sortInventory);
-        categorySelect.addEventListener('change', filterInventory);
         addCategoryButton.addEventListener('click', showAddCategoryDialog);
         addItemButton.addEventListener('click', showAddItemDialog);
-        exportCsvButton.addEventListener('click', exportToCsv);
-        importCsvButton.addEventListener('click', () => csvFileInput.click());
-        csvFileInput.addEventListener('change', importFromCsv);
-        startScanButton.addEventListener('click', startBarcodeScanner);
+        backToCategoriesButton.addEventListener('click', showCategoryView);
     }
 
     function loadCategories() {
         database.ref('categories').on('value', (snapshot) => {
             const categories = snapshot.val() || {};
-            updateCategorySelect(categories);
+            updateCategoryList(categories);
         });
     }
 
-    function updateCategorySelect(categories) {
-        categorySelect.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+    function updateCategoryList(categories) {
+        categoryList.innerHTML = '';
         for (const [id, name] of Object.entries(categories)) {
-            const option = document.createElement('option');
-            option.value = id;
-            option.textContent = name;
-            categorySelect.appendChild(option);
+            const button = document.createElement('button');
+            button.textContent = name;
+            button.addEventListener('click', () => showItemView(id, name));
+            categoryList.appendChild(button);
         }
     }
 
-    function loadInventory() {
-        database.ref('inventory').on('value', (snapshot) => {
-            const data = snapshot.val();
-            updateInventoryList(data);
+    function showCategoryView() {
+        categoryView.style.display = 'block';
+        itemView.style.display = 'none';
+    }
+
+    function showItemView(categoryId, categoryName) {
+        categoryView.style.display = 'none';
+        itemView.style.display = 'block';
+        currentCategoryName.textContent = categoryName;
+        loadItems(categoryId);
+    }
+
+    function loadItems(categoryId) {
+        database.ref('inventory').orderByChild('category').equalTo(categoryId).on('value', (snapshot) => {
+            const items = snapshot.val() || {};
+            updateItemList(items);
         });
     }
 
-    function updateInventoryList(data) {
-        inventoryList.innerHTML = '';
-        for (const [id, item] of Object.entries(data)) {
+    function updateItemList(items) {
+        itemList.innerHTML = '';
+        for (const [id, item] of Object.entries(items)) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${item.category}</td>
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
                 <td>
@@ -131,33 +127,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button onclick="deleteItem('${id}')">削除</button>
                 </td>
             `;
-            inventoryList.appendChild(row);
+            itemList.appendChild(row);
         }
-    }
-
-    function filterInventory() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categorySelect.value;
-        const rows = inventoryList.getElementsByTagName('tr');
-        for (const row of rows) {
-            const category = row.cells[0].textContent;
-            const name = row.cells[1].textContent.toLowerCase();
-            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
-            const searchMatch = name.includes(searchTerm);
-            row.style.display = categoryMatch && searchMatch ? '' : 'none';
-        }
-    }
-
-    function sortInventory() {
-        const sortBy = sortSelect.value;
-        const rows = Array.from(inventoryList.getElementsByTagName('tr'));
-        rows.sort((a, b) => {
-            const aValue = a.cells[sortBy === 'name' ? 1 : 2].textContent;
-            const bValue = b.cells[sortBy === 'name' ? 1 : 2].textContent;
-            return sortBy === 'name' ? aValue.localeCompare(bValue) : aValue - bValue;
-        });
-        inventoryList.innerHTML = '';
-        rows.forEach(row => inventoryList.appendChild(row));
     }
 
     function showAddCategoryDialog() {
@@ -169,39 +140,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addCategory(name) {
         const newCategoryRef = database.ref('categories').push();
-        newCategoryRef.set(name)
-            .then(() => {
-                console.log('カテゴリが正常に追加されました');
-                loadCategories(); // カテゴリリストを更新
-            })
-            .catch((error) => {
-                console.error('カテゴリの追加中にエラーが発生しました:', error);
-            });
+        newCategoryRef.set(name);
     }
 
     function showAddItemDialog() {
         const name = prompt('商品名を入力してください:');
         const quantity = prompt('数量を入力してください:');
-        const category = prompt('カテゴリを入力してください:');
-        if (name && quantity && category) {
-            addItem(name, parseInt(quantity, 10), category);
+        if (name && quantity) {
+            const categoryId = currentCategoryName.dataset.categoryId;
+            addItem(name, parseInt(quantity, 10), categoryId);
         }
     }
 
-    function addItem(name, quantity, category) {
+    function addItem(name, quantity, categoryId) {
         const newItemRef = database.ref('inventory').push();
-        newItemRef.set({ name, quantity, category });
+        newItemRef.set({ name, quantity, category: categoryId });
     }
 
     window.editItem = function(id) {
         const newName = prompt('新しい商品名を入力してください:');
         const newQuantity = prompt('新しい数量を入力してください:');
-        const newCategory = prompt('新しいカテゴリを入力してください:');
-        if (newName && newQuantity && newCategory) {
+        if (newName && newQuantity) {
             database.ref(`inventory/${id}`).update({
                 name: newName,
-                quantity: parseInt(newQuantity, 10),
-                category: newCategory
+                quantity: parseInt(newQuantity, 10)
             });
         }
     }
@@ -211,72 +173,4 @@ document.addEventListener('DOMContentLoaded', function() {
             database.ref(`inventory/${id}`).remove();
         }
     }
-
-    function exportToCsv() {
-        database.ref('inventory').once('value', (snapshot) => {
-            const data = snapshot.val();
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "カテゴリ,商品名,数量\n";
-            for (const item of Object.values(data)) {
-                csvContent += `${item.category},${item.name},${item.quantity}\n`;
-            }
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "inventory.csv");
-            document.body.appendChild(link);
-            link.click();
-        });
-    }
-
-    function importFromCsv(event) {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const contents = e.target.result;
-            const lines = contents.split('\n');
-            lines.shift(); // ヘッダー行を削除
-            const newItems = {};
-            for (const line of lines) {
-                const [category, name, quantity] = line.split(',');
-                if (category && name && quantity) {
-                    const newItemRef = database.ref('inventory').push();
-                    newItems[newItemRef.key] = { 
-                        category, 
-                        name, 
-                        quantity: parseInt(quantity, 10) 
-                    };
-                }
-            }
-            database.ref('inventory').update(newItems);
-        };
-        reader.readAsText(file);
-    }
-
-    function startBarcodeScanner() {
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#scanner-container')
-            },
-            decoder: {
-                readers: ["ean_reader", "ean_8_reader", "code_39_reader", "code_128_reader"]
-            }
-        }, function(err) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            Quagga.start();
-        });
-
-        Quagga.onDetected(function(result) {
-            const code = result.codeResult.code;
-            alert(`バーコード: ${code}`);
-            Quagga.stop();
-        });
-    }
-
-    console.log('Event listeners added');
 });
