@@ -33,68 +33,9 @@
             <div id="home-view" class="view active">
                 <h2>トップページ</h2>
                 <p>高級在庫管理システムへようこそ。左のメニューから操作を選択してください。</p>
-                <div id="stock-chart-container">
-                    <canvas id="stock-chart"></canvas>
-                </div>
             </div>
-            <div id="category-view" class="view">
-                <h2>カテゴリ設定</h2>
-                <button id="add-category-button" class="action-button"><i class="fas fa-plus"></i> カテゴリを追加</button>
-                <table id="category-table">
-                    <thead>
-                        <tr>
-                            <th>カテゴリ名</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="category-list"></tbody>
-                </table>
-            </div>
-            <div id="product-view" class="view">
-                <h2>商品設定</h2>
-                <button id="add-product-button" class="action-button"><i class="fas fa-plus"></i> 商品を追加</button>
-                <table id="product-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-list"></tbody>
-                </table>
-            </div>
-            <div id="inventory-view" class="view">
-                <h2>在庫管理</h2>
-                <div id="inventory-controls">
-                    <input type="text" id="search-input" placeholder="商品を検索" aria-label="商品を検索">
-                    <select id="category-filter" aria-label="カテゴリでフィルター">
-                        <option value="all">すべてのカテゴリ</option>
-                    </select>
-                </div>
-                <table id="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>在庫数</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-list"></tbody>
-                </table>
-            </div>
+            <!-- 他のビューはJavaScriptで動的に追加します -->
         </main>
-    </div>
-
-    <div id="modal" class="modal" aria-hidden="true">
-        <div class="modal-content">
-            <button class="close" aria-label="閉じる">&times;</button>
-            <h2 id="modal-title"></h2>
-            <form id="modal-form">
-                <!-- フォームの内容はJavaScriptで動的に生成 -->
-            </form>
-        </div>
     </div>
 
     <div id="loading-overlay" class="hidden">
@@ -102,6 +43,7 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="app.js"></script>
