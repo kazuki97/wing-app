@@ -5,14 +5,14 @@ if (typeof firebase === 'undefined') {
 
 // Firebase設定
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
+    apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
+    authDomain: "wing-3be9c.firebaseapp.com",
+    databaseURL: "https://wing-3be9c-default-rtdb.firebaseio.com",
+    projectId: "wing-3be9c",
+    storageBucket: "wing-3be9c.appspot.com",
+    messagingSenderId: "875454320750",
+    appId: "1:875454320750:web:268b366e2e94aa1f05167f",
+    measurementId: "G-F81ZH8X0JW"
 };
 
 // Firebase初期化
@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function() {
             categoryList.appendChild(row);
         }
     }
-function createCategoryForm(id = null, name = '') {
+
+    function createCategoryForm(id = null, name = '') {
         return `
             <input type="text" id="category-name" value="${name}" placeholder="カテゴリ名" required>
             <button type="submit">${id ? '更新' : '追加'}</button>
@@ -171,8 +172,7 @@ function createCategoryForm(id = null, name = '') {
             }
         }
     }
-
-    // 商品関連の機能
+// 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
@@ -510,13 +510,3 @@ function createCategoryForm(id = null, name = '') {
         stockChart.update();
     }
 });
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-}
