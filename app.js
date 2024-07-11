@@ -30,12 +30,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
+    let stockChart = null;
+    let categoryList = null;
+    let productList = null;
+    let inventoryList = null;
+
     // アプリケーションを直接初期化
     initializeApp();
 
     function initializeApp() {
         console.log("Initializing app");
         setupNavigation();
+        setupCategoryManagement();
+        setupProductManagement();
+        setupInventoryManagement();
         loadCategories();
         loadProducts();
         loadInventory();
@@ -63,13 +71,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // カテゴリ関連の機能
-    const addCategoryButton = document.getElementById('add-category-button');
-    const categoryList = document.getElementById('category-list');
+    function setupCategoryManagement() {
+        const addCategoryButton = document.getElementById('add-category-button');
+        categoryList = document.getElementById('category-list');
+        if (addCategoryButton) {
+            addCategoryButton.addEventListener('click', function() {
+                showModal('カテゴリを追加', createCategoryForm());
+            });
+        }
+    }
 
-    addCategoryButton.addEventListener('click', function() {
-        showModal('カテゴリを追加', createCategoryForm());
-    });
+    function setupProductManagement() {
+        const addProductButton = document.getElementById('add-product-button');
+        productList = document.getElementById('product-list');
+        if (addProductButton) {
+            addProductButton.addEventListener('click', function() {
+                showModal('商品を追加', createProductForm());
+            });
+        }
+    }
+
+    function setupInventoryManagement() {
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        inventoryList = document.getElementById('inventory-list');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterInventory);
+        }
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', filterInventory);
+        }
+    }
 
     async function loadCategories() {
         showLoading();
@@ -87,19 +119,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCategoryList(categories) {
-        categoryList.innerHTML = '';
-        for (const [id, name] of Object.entries(categories)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${name}</td>
-                <td>
-                    <button onclick="editCategory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteCategory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            categoryList.appendChild(row);
+        if (categoryList) {
+            categoryList.innerHTML = '';
+            for (const [id, name] of Object.entries(categories)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>
+                        <button onclick="editCategory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCategory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                categoryList.appendChild(row);
+            }
         }
     }
+// ... (前半部分の続き)
 
     function createCategoryForm(id = null, name = '') {
         return `
@@ -113,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await database.ref('categories').push().set(name);
             alert('カテゴリを追加しました。');
+            loadCategories();
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -141,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`categories/${id}`).remove();
                 alert('カテゴリを削除しました。');
+                loadCategories();
             } catch (error) {
                 console.error('カテゴリの削除に失敗しました:', error);
                 alert('カテゴリの削除に失敗しました。');
@@ -149,15 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-// ... (前半部分の続き)
-
-    // 商品関連の機能
-    const addProductButton = document.getElementById('add-product-button');
-    const productList = document.getElementById('product-list');
-
-    addProductButton.addEventListener('click', function() {
-        showModal('商品を追加', createProductForm());
-    });
 
     async function loadProducts() {
         showLoading();
@@ -174,18 +202,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateProductList(products) {
-        productList.innerHTML = '';
-        for (const [id, product] of Object.entries(products)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>
-                    <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            productList.appendChild(row);
+        if (productList) {
+            productList.innerHTML = '';
+            for (const [id, product] of Object.entries(products)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>
+                        <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                productList.appendChild(row);
+            }
         }
     }
 
@@ -217,6 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await database.ref('products').push().set({ name, category });
             alert('商品を追加しました。');
+            loadProducts();
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -245,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`products/${id}`).remove();
                 alert('商品を削除しました。');
+                loadProducts();
             } catch (error) {
                 console.error('商品の削除に失敗しました:', error);
                 alert('商品の削除に失敗しました。');
@@ -253,14 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    // 在庫管理関連の機能
-    const searchInput = document.getElementById('search-input');
-    const categoryFilter = document.getElementById('category-filter');
-    const inventoryList = document.getElementById('inventory-list');
-
-    searchInput.addEventListener('input', filterInventory);
-    categoryFilter.addEventListener('change', filterInventory);
+// ... (前の部分の続き)
 
     async function loadInventory() {
         showLoading();
@@ -278,43 +303,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateInventoryList(inventory) {
-        inventoryList.innerHTML = '';
-        for (const [id, item] of Object.entries(inventory)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.quantity}</td>
-                <td>
-                    <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            inventoryList.appendChild(row);
+        if (inventoryList) {
+            inventoryList.innerHTML = '';
+            for (const [id, item] of Object.entries(inventory)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>${item.quantity}</td>
+                    <td>
+                        <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                inventoryList.appendChild(row);
+            }
         }
     }
 
     function filterInventory() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-        const rows = inventoryList.getElementsByTagName('tr');
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        if (searchInput && categoryFilter && inventoryList) {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            const rows = inventoryList.getElementsByTagName('tr');
 
-        for (const row of rows) {
-            const name = row.cells[0].textContent.toLowerCase();
-            const category = row.cells[1].textContent;
-            const nameMatch = name.includes(searchTerm);
-            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
-            row.style.display = nameMatch && categoryMatch ? '' : 'none';
+            for (const row of rows) {
+                const name = row.cells[0].textContent.toLowerCase();
+                const category = row.cells[1].textContent;
+                const nameMatch = name.includes(searchTerm);
+                const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+                row.style.display = nameMatch && categoryMatch ? '' : 'none';
+            }
         }
     }
 
     function updateCategoryFilter(categories) {
-        categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
-        for (const category of Object.values(categories)) {
-            const option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            categoryFilter.appendChild(option);
+        const categoryFilter = document.getElementById('category-filter');
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+            for (const category of Object.values(categories)) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            }
         }
     }
 
@@ -338,6 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`inventory/${id}`).remove();
                 alert('在庫項目を削除しました。');
+                loadInventory();
             } catch (error) {
                 console.error('在庫項目の削除に失敗しました:', error);
                 alert('在庫項目の削除に失敗しました。');
@@ -370,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // モーダル関連の機能
     function showModal(title, content) {
         modalTitle.textContent = title;
         modalForm.innerHTML = content;
@@ -417,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                 }
-                closeModal.click();
+                closeModal();
                 loadCategories();
                 loadProducts();
                 loadInventory();
@@ -430,13 +464,15 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    closeModal.onclick = function() {
+    function closeModal() {
         modal.style.display = 'none';
     }
 
+    closeModal.onclick = closeModal;
+
     window.onclick = function(event) {
         if (event.target == modal) {
-            modal.style.display = 'none';
+            closeModal();
         }
     }
 
@@ -448,44 +484,45 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.style.display = 'none';
     }
 
-    // グラフ関連の機能
-    let stockChart;
-
     function setupChart() {
-        const ctx = document.getElementById('stock-chart').getContext('2d');
-        stockChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: '在庫数',
-                    data: [],
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        const ctx = document.getElementById('stock-chart');
+        if (ctx) {
+            stockChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '在庫数',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     function updateChart(inventory) {
-        const labels = [];
-        const data = [];
+        if (stockChart) {
+            const labels = [];
+            const data = [];
 
-        for (const item of Object.values(inventory)) {
-            labels.push(item.name);
-            data.push(item.quantity);
+            for (const item of Object.values(inventory)) {
+                labels.push(item.name);
+                data.push(item.quantity);
+            }
+
+            stockChart.data.labels = labels;
+            stockChart.data.datasets[0].data = data;
+            stockChart.update();
         }
-
-        stockChart.data.labels = labels;
-        stockChart.data.datasets[0].data = data;
-        stockChart.update();
     }
 });
