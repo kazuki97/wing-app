@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
     const modalForm = document.getElementById('modal-form');
-    const closeModal = document.getElementsByClassName('close')[0];
+    const closeModalButton = document.getElementsByClassName('close')[0];
     const loadingOverlay = document.getElementById('loading-overlay');
 
     let stockChart = null;
@@ -94,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryFilter = document.getElementById('category-filter');
         if (categoryFilter) {
             categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
-            for (const category of Object.values(categories)) {
+            for (const [id, name] of Object.entries(categories)) {
                 const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
+                option.value = id;
+                option.textContent = name;
                 categoryFilter.appendChild(option);
             }
         }
@@ -113,7 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
     async function addCategory(name) {
         showLoading();
         try {
-            await database.ref('categories').push().set(name);
+            const newCategoryRef = await database.ref('categories').push();
+            await newCategoryRef.set(name);
             alert('カテゴリを追加しました。');
             loadCategories();
         } catch (error) {
@@ -130,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const snapshot = await database.ref(`categories/${id}`).once('value');
             const name = snapshot.val();
             showModal('カテゴリを編集', createCategoryForm(id, name));
+            modalForm.setAttribute('data-id', id);
         } catch (error) {
             console.error('カテゴリの編集に失敗しました:', error);
             alert('カテゴリの編集に失敗しました。');
@@ -214,9 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="submit">${id ? '更新' : '追加'}</button>
         `;
     }
-// ... (前半部分の続き)
-
-    async function addProduct(name, category) {
+async function addProduct(name, category) {
         showLoading();
         try {
             await database.ref('products').push().set({ name, category });
@@ -235,7 +235,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const snapshot = await database.ref(`products/${id}`).once('value');
             const product = snapshot.val();
-            showModal('商品を編集', await createProductForm(id, product));
+            const formContent = await createProductForm(id, product);
+            showModal('商品を編集', formContent);
+            modalForm.setAttribute('data-id', id);
         } catch (error) {
             console.error('商品の編集に失敗しました:', error);
             alert('商品の編集に失敗しました。');
@@ -319,7 +321,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const snapshot = await database.ref(`inventory/${id}`).once('value');
             const item = snapshot.val();
-            showModal('在庫を編集', await createInventoryForm(id, item));
+            const formContent = await createInventoryForm(id, item);
+            showModal('在庫を編集', formContent);
+            modalForm.setAttribute('data-id', id);
         } catch (error) {
             console.error('在庫項目の編集に失敗しました:', error);
             alert('在庫項目の編集に失敗しました。');
@@ -431,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'none';
     }
 
-    closeModal.onclick = closeModal;
+    closeModalButton.onclick = closeModal;
 
     window.onclick = function(event) {
         if (event.target == modal) {
