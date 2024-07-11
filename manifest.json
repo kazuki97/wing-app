@@ -1,7 +1,7 @@
 {
-  "name": "在庫管理アプリ",
+  "name": "高級在庫管理システム",
   "short_name": "在庫管理",
-  "start_url": "/wing-app/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
