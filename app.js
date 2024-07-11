@@ -44,9 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function setupNavigation() {
         sideMenu.addEventListener('click', function(e) {
-            if (e.target.tagName === 'A') {
-                e.preventDefault();
-                const targetView = e.target.getAttribute('data-view');
+            e.preventDefault();
+            const link = e.target.closest('a');
+            if (link) {
+                const targetView = link.getAttribute('data-view');
                 showView(targetView);
             }
         });
@@ -54,7 +55,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showView(viewId) {
         views.forEach(view => view.classList.remove('active'));
-        document.getElementById(`${viewId}-view`).classList.add('active');
+        const targetView = document.getElementById(`${viewId}-view`);
+        if (targetView) {
+            targetView.classList.add('active');
+        } else {
+            console.error(`View with id "${viewId}-view" not found`);
+        }
     }
 
     // カテゴリ関連の機能
