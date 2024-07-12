@@ -105,8 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createCategoryForm(id = null, name = '') {
         return `
-            <input type="text" id="category-name" value="${name}" placeholder="カテゴリ名" required>
-            <button type="submit">${id ? '更新' : '追加'}</button>
+            <form id="category-form">
+                <input type="text" id="category-name" name="category-name" value="${name}" placeholder="カテゴリ名" required>
+                <button type="submit">${id ? '更新' : '追加'}</button>
+            </form>
         `;
     }
 
@@ -131,7 +133,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const snapshot = await database.ref(`categories/${id}`).once('value');
             const name = snapshot.val();
             showModal('カテゴリを編集', createCategoryForm(id, name));
-            modalForm.setAttribute('data-id', id);
+            const form = document.getElementById('category-form');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const updatedName = document.getElementById('category-name').value;
+                await database.ref(`categories/${id}`).set(updatedName);
+                closeModal();
+                loadCategories();
+            };
         } catch (error) {
             console.error('カテゴリの編集に失敗しました:', error);
             alert('カテゴリの編集に失敗しました。');
@@ -160,13 +169,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
-    addProductButton.addEventListener('click', function() {
-        createProductForm().then(formContent => {
+    addProductButton.addEventListener('click', async function() {
+        try {
+            const formContent = await createProductForm();
             showModal('商品を追加', formContent);
-        }).catch(error => {
+        } catch (error) {
             console.error('商品フォームの作成に失敗しました:', error);
             alert('商品フォームの作成に失敗しました。');
-        });
+        }
     });
 
     async function loadProducts() {
@@ -213,12 +223,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         return `
-            <input type="text" id="product-name" value="${product.name}" placeholder="商品名" required>
-            <select id="product-category" required>
-                <option value="">カテゴリを選択</option>
-                ${categoryOptions}
-            </select>
-            <button type="submit">${id ? '更新' : '追加'}</button>
+            <form id="product-form">
+                <input type="text" id="product-name" name="product-name" value="${product.name}" placeholder="商品名" required>
+                <select id="product-category" name="product-category" required>
+                    <option value="">カテゴリを選択</option>
+                    ${categoryOptions}
+                </select>
+                <button type="submit">${id ? '更新' : '追加'}</button>
+            </form>
         `;
     }
 async function addProduct(name, category) {
@@ -242,7 +254,15 @@ async function addProduct(name, category) {
             const product = snapshot.val();
             const formContent = await createProductForm(id, product);
             showModal('商品を編集', formContent);
-            modalForm.setAttribute('data-id', id);
+            const form = document.getElementById('product-form');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const updatedName = document.getElementById('product-name').value;
+                const updatedCategory = document.getElementById('product-category').value;
+                await database.ref(`products/${id}`).update({ name: updatedName, category: updatedCategory });
+                closeModal();
+                loadProducts();
+            };
         } catch (error) {
             console.error('商品の編集に失敗しました:', error);
             alert('商品の編集に失敗しました。');
@@ -328,7 +348,18 @@ async function addProduct(name, category) {
             const item = snapshot.val();
             const formContent = await createInventoryForm(id, item);
             showModal('在庫を編集', formContent);
-            modalForm.setAttribute('data-id', id);
+            const form = document.getElementById('inventory-form');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const updatedProduct = document.getElementById('inventory-product').value;
+                const updatedQuantity = parseInt(document.getElementById('inventory-quantity').value);
+                const productSnapshot = await database.ref('products').orderByChild('name').equalTo(updatedProduct).once('value');
+                const productData = productSnapshot.val();
+                const category = productData[Object.keys(productData)[0]].category;
+                await database.ref(`inventory/${id}`).update({ name: updatedProduct, category: category, quantity: updatedQuantity });
+                closeModal();
+                loadInventory();
+            };
         } catch (error) {
             console.error('在庫項目の編集に失敗しました:', error);
             alert('在庫項目の編集に失敗しました。');
@@ -367,12 +398,14 @@ async function addProduct(name, category) {
         }
 
         return `
-            <select id="inventory-product" required>
-                <option value="">商品を選択</option>
-                ${productOptions}
-            </select>
-            <input type="number" id="inventory-quantity" value="${item.quantity}" placeholder="数量" required>
-            <button type="submit">${id ? '更新' : '追加'}</button>
+            <form id="inventory-form">
+                <select id="inventory-product" name="inventory-product" required>
+                    <option value="">商品を選択</option>
+                    ${productOptions}
+                </select>
+                <input type="number" id="inventory-quantity" name="inventory-quantity" value="${item.quantity}" placeholder="数量" required>
+                <button type="submit">${id ? '更新' : '追加'}</button>
+            </form>
         `;
     }
 
@@ -382,58 +415,61 @@ async function addProduct(name, category) {
         modalForm.innerHTML = content;
         modal.style.display = 'block';
 
-        modalForm.onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(modalForm);
-            const data = Object.fromEntries(formData.entries());
+        const form = modalForm.querySelector('form');
+        if (form) {
+            form.onsubmit = async function(e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
 
-            showLoading();
-            try {
-                if (title.includes('カテゴリ')) {
-                    if (title.includes('編集')) {
-                        const id = modalForm.getAttribute('data-id');
-                        await database.ref(`categories/${id}`).set(data['category-name']);
-                    } else {
-                        await addCategory(data['category-name']);
+                showLoading();
+                try {
+                    if (title.includes('カテゴリ')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`categories/${id}`).set(data['category-name']);
+                        } else {
+                            await addCategory(data['category-name']);
+                        }
+                    } else if (title.includes('商品')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`products/${id}`).update(data);
+                        } else {
+                            await addProduct(data['product-name'], data['product-category']);
+                        }
+                    } else if (title.includes('在庫')) {
+                        const productSelect = document.getElementById('inventory-product');
+                        const selectedOption = productSelect.options[productSelect.selectedIndex];
+                        const category = selectedOption.getAttribute('data-category');
+                        
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`inventory/${id}`).update({
+                                name: data['inventory-product'],
+                                category: category,
+                                quantity: parseInt(data['inventory-quantity'])
+                            });
+                        } else {
+                            await database.ref('inventory').push().set({
+                                name: data['inventory-product'],
+                                category: category,
+                                quantity: parseInt(data['inventory-quantity'])
+                            });
+                        }
                     }
-                } else if (title.includes('商品')) {
-                    if (title.includes('編集')) {
-                        const id = modalForm.getAttribute('data-id');
-                        await database.ref(`products/${id}`).update(data);
-                    } else {
-                        await addProduct(data['product-name'], data['product-category']);
-                    }
-                } else if (title.includes('在庫')) {
-                    const productSelect = document.getElementById('inventory-product');
-                    const selectedOption = productSelect.options[productSelect.selectedIndex];
-                    const category = selectedOption.getAttribute('data-category');
-                    
-                    if (title.includes('編集')) {
-                        const id = modalForm.getAttribute('data-id');
-                        await database.ref(`inventory/${id}`).update({
-                            name: data['inventory-product'],
-                            category: category,
-                            quantity: parseInt(data['inventory-quantity'])
-                        });
-                    } else {
-                        await database.ref('inventory').push().set({
-                            name: data['inventory-product'],
-                            category: category,
-                            quantity: parseInt(data['inventory-quantity'])
-                        });
-                    }
+                    closeModal();
+                    loadCategories();
+                    loadProducts();
+                    loadInventory();
+                } catch (error) {
+                    console.error('操作に失敗しました:', error);
+                    alert('操作に失敗しました。');
+                } finally {
+                    hideLoading();
                 }
-                closeModal();
-                loadCategories();
-                loadProducts();
-                loadInventory();
-            } catch (error) {
-                console.error('操作に失敗しました:', error);
-                alert('操作に失敗しました。');
-            } finally {
-                hideLoading();
-            }
-        };
+            };
+        }
     }
 
     function closeModal() {
