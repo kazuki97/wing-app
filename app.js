@@ -118,8 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const newCategoryRef = await database.ref('categories').push();
             await newCategoryRef.set(name);
             console.log('カテゴリを追加しました:', name);
-            alert('カテゴリを追加しました。');
             await loadCategories();
+            closeModal();
+            alert('カテゴリを追加しました。');
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -141,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await database.ref(`categories/${id}`).set(updatedName);
                 closeModal();
                 await loadCategories();
+                alert('カテゴリを更新しました。');
             };
         } catch (error) {
             console.error('カテゴリの編集に失敗しました:', error);
@@ -155,8 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading();
             try {
                 await database.ref(`categories/${id}`).remove();
-                alert('カテゴリを削除しました。');
                 await loadCategories();
+                alert('カテゴリを削除しました。');
             } catch (error) {
                 console.error('カテゴリの削除に失敗しました:', error);
                 alert('カテゴリの削除に失敗しました。');
@@ -209,8 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-
-    async function createProductForm(id = null, product = { name: '', category: '' }) {
+async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -241,8 +242,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const newProductRef = await database.ref('products').push();
             await newProductRef.set({ name, category });
             console.log('商品を追加しました:', { name, category });
-            alert('商品を追加しました。');
             await loadProducts();
+            closeModal();
+            alert('商品を追加しました。');
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -250,7 +252,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-window.editProduct = async function(id) {
+
+    window.editProduct = async function(id) {
         showLoading();
         try {
             const snapshot = await database.ref(`products/${id}`).once('value');
@@ -265,6 +268,7 @@ window.editProduct = async function(id) {
                 await database.ref(`products/${id}`).update({ name: updatedName, category: updatedCategory });
                 closeModal();
                 await loadProducts();
+                alert('商品を更新しました。');
             };
         } catch (error) {
             console.error('商品の編集に失敗しました:', error);
@@ -279,8 +283,8 @@ window.editProduct = async function(id) {
             showLoading();
             try {
                 await database.ref(`products/${id}`).remove();
-                alert('商品を削除しました。');
                 await loadProducts();
+                alert('商品を削除しました。');
             } catch (error) {
                 console.error('商品の削除に失敗しました:', error);
                 alert('商品の削除に失敗しました。');
@@ -362,6 +366,7 @@ window.editProduct = async function(id) {
                 await database.ref(`inventory/${id}`).update({ name: updatedProduct, category: category, quantity: updatedQuantity });
                 closeModal();
                 await loadInventory();
+                alert('在庫を更新しました。');
             };
         } catch (error) {
             console.error('在庫項目の編集に失敗しました:', error);
@@ -376,8 +381,8 @@ window.editProduct = async function(id) {
             showLoading();
             try {
                 await database.ref(`inventory/${id}`).remove();
-                alert('在庫項目を削除しました。');
                 await loadInventory();
+                alert('在庫項目を削除しました。');
             } catch (error) {
                 console.error('在庫項目の削除に失敗しました:', error);
                 alert('在庫項目の削除に失敗しました。');
