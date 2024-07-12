@@ -136,14 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const name = snapshot.val();
             showModal('カテゴリを編集', createCategoryForm(id, name));
             const form = document.getElementById('category-form');
-            form.onsubmit = async (e) => {
-                e.preventDefault();
-                const updatedName = document.getElementById('category-name').value;
-                await database.ref(`categories/${id}`).set(updatedName);
-                closeModal();
-                await loadCategories();
-                alert('カテゴリを更新しました。');
-            };
+            form.setAttribute('data-id', id);
         } catch (error) {
             console.error('カテゴリの編集に失敗しました:', error);
             alert('カテゴリの編集に失敗しました。');
@@ -261,15 +254,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             const formContent = await createProductForm(id, product);
             showModal('商品を編集', formContent);
             const form = document.getElementById('product-form');
-            form.onsubmit = async (e) => {
-                e.preventDefault();
-                const updatedName = document.getElementById('product-name').value;
-                const updatedCategory = document.getElementById('product-category').value;
-                await database.ref(`products/${id}`).update({ name: updatedName, category: updatedCategory });
-                closeModal();
-                await loadProducts();
-                alert('商品を更新しました。');
-            };
+            form.setAttribute('data-id', id);
         } catch (error) {
             console.error('商品の編集に失敗しました:', error);
             alert('商品の編集に失敗しました。');
@@ -356,18 +341,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             const formContent = await createInventoryForm(id, item);
             showModal('在庫を編集', formContent);
             const form = document.getElementById('inventory-form');
-            form.onsubmit = async (e) => {
-                e.preventDefault();
-                const updatedProduct = document.getElementById('inventory-product').value;
-                const updatedQuantity = parseInt(document.getElementById('inventory-quantity').value);
-                const productSnapshot = await database.ref('products').orderByChild('name').equalTo(updatedProduct).once('value');
-                const productData = productSnapshot.val();
-                const category = productData[Object.keys(productData)[0]].category;
-                await database.ref(`inventory/${id}`).update({ name: updatedProduct, category: category, quantity: updatedQuantity });
-                closeModal();
-                await loadInventory();
-                alert('在庫を更新しました。');
-            };
+            form.setAttribute('data-id', id);
         } catch (error) {
             console.error('在庫項目の編集に失敗しました:', error);
             alert('在庫項目の編集に失敗しました。');
