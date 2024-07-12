@@ -128,8 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-
-    window.editCategory = async function(id) {
+window.editCategory = async function(id) {
         showLoading();
         try {
             const snapshot = await database.ref(`categories/${id}`).once('value');
@@ -204,7 +203,8 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-async function createProductForm(id = null, product = { name: '', category: '' }) {
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -279,118 +279,6 @@ async function createProductForm(id = null, product = { name: '', category: '' }
         }
     }
 
-    // 在庫管理関連の機能
-    const searchInput = document.getElementById('search-input');
-    const categoryFilter = document.getElementById('category-filter');
-    const inventoryList = document.getElementById('inventory-list');
-
-    searchInput.addEventListener('input', filterInventory);
-    categoryFilter.addEventListener('change', filterInventory);
-
-    async function loadInventory() {
-        showLoading();
-        try {
-            const snapshot = await database.ref('inventory').once('value');
-            const inventory = snapshot.val() || {};
-            updateInventoryList(inventory);
-            updateChart(inventory);
-        } catch (error) {
-            console.error('在庫の読み込みに失敗しました:', error);
-            alert('在庫の読み込みに失敗しました。');
-        } finally {
-            hideLoading();
-        }
-    }
-
-    function updateInventoryList(inventory) {
-        inventoryList.innerHTML = '';
-        for (const [id, item] of Object.entries(inventory)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.quantity}</td>
-                <td>
-                    <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            inventoryList.appendChild(row);
-        }
-    }
-
-    function filterInventory() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-        const rows = inventoryList.getElementsByTagName('tr');
-
-        for (const row of rows) {
-            const name = row.cells[0].textContent.toLowerCase();
-            const category = row.cells[1].textContent;
-            const nameMatch = name.includes(searchTerm);
-            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
-            row.style.display = nameMatch && categoryMatch ? '' : 'none';
-        }
-    }
-
-    window.editInventoryItem = async function(id) {
-        showLoading();
-        try {
-            const snapshot = await database.ref(`inventory/${id}`).once('value');
-            const item = snapshot.val();
-            const formContent = await createInventoryForm(id, item);
-            showModal('在庫を編集', formContent);
-            const form = document.getElementById('inventory-form');
-            form.setAttribute('data-id', id);
-        } catch (error) {
-            console.error('在庫項目の編集に失敗しました:', error);
-            alert('在庫項目の編集に失敗しました。');
-        } finally {
-            hideLoading();
-        }
-    }
-
-    window.deleteInventoryItem = async function(id) {
-        if (confirm('この在庫項目を削除してもよろしいですか？')) {
-            showLoading();
-            try {
-                await database.ref(`inventory/${id}`).remove();
-                await loadInventory();
-                alert('在庫項目を削除しました。');
-            } catch (error) {
-                console.error('在庫項目の削除に失敗しました:', error);
-                alert('在庫項目の削除に失敗しました。');
-            } finally {
-                hideLoading();
-            }
-        }
-    }
-
-    async function createInventoryForm(id = null, item = { name: '', category: '', quantity: '' }) {
-        let productOptions = '';
-        try {
-            const snapshot = await database.ref('products').once('value');
-            const products = snapshot.val() || {};
-            for (const [productId, product] of Object.entries(products)) {
-                productOptions += `<option value="${product.name}" data-category="${product.category}" ${item.name === product.name ? 'selected' : ''}>${product.name}</option>`;
-            }
-        } catch (error) {
-            console.error('商品の読み込みに失敗しました:', error);
-            throw error;
-        }
-
-        return `
-            <form id="inventory-form">
-                <select id="inventory-product" name="inventory-product" required>
-                    <option value="">商品を選択</option>
-                    ${productOptions}
-                </select>
-                <input type="number" id="inventory-quantity" name="inventory-quantity" value="${item.quantity}" placeholder="数量" required>
-                <button type="submit">${id ? '更新' : '追加'}</button>
-            </form>
-        `;
-    }
-
     // モーダル関連の機能
     function showModal(title, content) {
         modalTitle.textContent = title;
@@ -420,28 +308,9 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                         } else {
                             await addProduct(data['product-name'], data['product-category']);
                         }
-                    } else if (title.includes('在庫')) {
-                        const productSelect = document.getElementById('inventory-product');
-                        const selectedOption = productSelect.options[productSelect.selectedIndex];
-                        const category = selectedOption.getAttribute('data-category');
-                        
-                        if (title.includes('編集')) {
-                            const id = form.getAttribute('data-id');
-                            await database.ref(`inventory/${id}`).update({
-                                name: data['inventory-product'],
-                                category: category,
-                                quantity: parseInt(data['inventory-quantity'])
-                            });
-                        } else {
-                            await database.ref('inventory').push().set({
-                                name: data['inventory-product'],
-                                category: category,
-                                quantity: parseInt(data['inventory-quantity'])
-                            });
-                        }
                     }
                     closeModal();
-                    await Promise.all([loadCategories(), loadProducts(), loadInventory()]);
+                    await Promise.all([loadCategories(), loadProducts()]);
                 } catch (error) {
                     console.error('操作に失敗しました:', error);
                     alert('操作に失敗しました。');
@@ -472,52 +341,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
         loadingOverlay.style.display = 'none';
     }
 
-    // グラフ関連の機能
-    function setupChart() {
-        const ctx = document.getElementById('stock-chart');
-        if (ctx) {
-            stockChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: '在庫数',
-                        data: [],
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    function updateChart(inventory) {
-        if (stockChart) {
-            const labels = [];
-            const data = [];
-
-            for (const item of Object.values(inventory)) {
-                labels.push(item.name);
-                data.push(item.quantity);
-            }
-
-            stockChart.data.labels = labels;
-            stockChart.data.datasets[0].data = data;
-            stockChart.update();
-        }
-    }
-
     // アプリケーションの初期化
     loadCategories();
     loadProducts();
-    loadInventory();
-    setupChart();
 });
