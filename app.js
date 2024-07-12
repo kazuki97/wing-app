@@ -161,7 +161,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const productList = document.getElementById('product-list');
 
     addProductButton.addEventListener('click', function() {
-        showModal('商品を追加', createProductForm());
+        createProductForm().then(formContent => {
+            showModal('商品を追加', formContent);
+        }).catch(error => {
+            console.error('商品フォームの作成に失敗しました:', error);
+            alert('商品フォームの作成に失敗しました。');
+        });
     });
 
     async function loadProducts() {
@@ -204,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('カテゴリの読み込みに失敗しました:', error);
-            alert('カテゴリの読み込みに失敗しました。');
+            throw error;
         }
 
         return `
@@ -358,7 +363,7 @@ async function addProduct(name, category) {
             }
         } catch (error) {
             console.error('商品の読み込みに失敗しました:', error);
-            alert('商品の読み込みに失敗しました。');
+            throw error;
         }
 
         return `
