@@ -19,17 +19,26 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Firebase接続確認
-database.ref('.info/connected').on('value', function(snapshot) {
-    if (snapshot.val() === true) {
-        console.log('Firebase接続成功');
-    } else {
-        console.error('Firebase接続失敗');
-    }
-});
+function connectToFirebase(retryCount = 0) {
+    database.ref('.info/connected').on('value', function(snapshot) {
+        if (snapshot.val() === true) {
+            console.log('Firebase接続成功');
+            initializeApp();
+        } else {
+            console.error('Firebase接続失敗');
+            if (retryCount < 3) {
+                setTimeout(() => connectToFirebase(retryCount + 1), 1000);
+            } else {
+                alert('Firebaseへの接続に失敗しました。ページをリロードしてください。');
+            }
+        }
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
+    connectToFirebase();
+
     const appContent = document.getElementById('app-content');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
@@ -41,15 +50,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let stockChart = null;
 
-    // ナビゲーション設定
-    sideMenu.addEventListener('click', function(e) {
-        e.preventDefault();
-        const link = e.target.closest('a');
-        if (link) {
-            const targetView = link.getAttribute('data-view');
-            showView(targetView);
+    function initializeApp() {
+        loadCategories();
+        loadProducts();
+        setupEventListeners();
+    }
+
+    function setupEventListeners() {
+        sideMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            const link = e.target.closest('a');
+            if (link) {
+                const targetView = link.getAttribute('data-view');
+                showView(targetView);
+            }
+        });
+
+        const addCategoryButton = document.getElementById('add-category-button');
+        if (addCategoryButton) {
+            addCategoryButton.addEventListener('click', function() {
+                showModal('カテゴリを追加', createCategoryForm());
+            });
         }
-    });
+
+        const addProductButton = document.getElementById('add-product-button');
+        if (addProductButton) {
+            addProductButton.addEventListener('click', async function() {
+                try {
+                    const formContent = await createProductForm();
+                    showModal('商品を追加', formContent);
+                } catch (error) {
+                    console.error('商品フォームの作成に失敗しました:', error);
+                    alert('商品フォームの作成に失敗しました。');
+                }
+            });
+        }
+
+        closeModalButton.onclick = closeModal;
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    }
 
     function showView(viewId) {
         views.forEach(view => view.classList.remove('active'));
@@ -65,14 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(`View with id "${viewId}-view" not found`);
         }
     }
-
-    // カテゴリ関連の機能
-    const addCategoryButton = document.getElementById('add-category-button');
-    const categoryList = document.getElementById('category-list');
-
-    addCategoryButton.addEventListener('click', function() {
-        showModal('カテゴリを追加', createCategoryForm());
-    });
 
     async function loadCategories() {
         showLoading();
@@ -91,21 +127,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCategoryList(categories) {
-        categoryList.innerHTML = '';
-        for (const [id, name] of Object.entries(categories)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${name}</td>
-                <td>
-                    <button onclick="editCategory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteCategory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            categoryList.appendChild(row);
+        const categoryList = document.getElementById('category-list');
+        if (categoryList) {
+            categoryList.innerHTML = '';
+            for (const [id, name] of Object.entries(categories)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>
+                        <button onclick="editCategory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCategory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                categoryList.appendChild(row);
+            }
         }
     }
-
-    function updateCategoryFilter(categories) {
+function updateCategoryFilter(categories) {
         const categoryFilter = document.getElementById('category-filter');
         if (categoryFilter) {
             categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
@@ -146,20 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 商品関連の機能
-    const addProductButton = document.getElementById('add-product-button');
-    const productList = document.getElementById('product-list');
-
-    addProductButton.addEventListener('click', async function() {
-        try {
-            const formContent = await createProductForm();
-            showModal('商品を追加', formContent);
-        } catch (error) {
-            console.error('商品フォームの作成に失敗しました:', error);
-            alert('商品フォームの作成に失敗しました。');
-        }
-    });
-async function loadProducts() {
+    async function loadProducts() {
         showLoading();
         try {
             const snapshot = await database.ref('products').once('value');
@@ -175,18 +200,21 @@ async function loadProducts() {
     }
 
     function updateProductList(products) {
-        productList.innerHTML = '';
-        for (const [id, product] of Object.entries(products)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>
-                    <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            productList.appendChild(row);
+        const productList = document.getElementById('product-list');
+        if (productList) {
+            productList.innerHTML = '';
+            for (const [id, product] of Object.entries(products)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>
+                        <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                productList.appendChild(row);
+            }
         }
     }
 
@@ -234,7 +262,6 @@ async function loadProducts() {
         }
     }
 
-    // モーダル関連の機能
     function showModal(title, content) {
         modalTitle.textContent = title;
         modalForm.innerHTML = content;
@@ -281,14 +308,6 @@ async function loadProducts() {
         modal.style.display = 'none';
     }
 
-    closeModalButton.onclick = closeModal;
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            closeModal();
-        }
-    }
-
     function showLoading() {
         loadingOverlay.style.display = 'flex';
     }
@@ -296,10 +315,6 @@ async function loadProducts() {
     function hideLoading() {
         loadingOverlay.style.display = 'none';
     }
-
-    // アプリケーションの初期化
-    loadCategories();
-    loadProducts();
 
     // グローバルスコープに関数を公開
     window.editCategory = async function(id) {
