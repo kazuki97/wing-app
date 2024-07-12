@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadCategories();
             closeModal();
             alert('カテゴリを追加しました。');
+            showView('category');  // カテゴリビューを表示
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -206,6 +207,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             await loadProducts();
             closeModal();
             alert('商品を追加しました。');
+            showView('product');  // 商品ビューを表示
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -233,6 +235,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                         if (title.includes('編集')) {
                             const id = form.getAttribute('data-id');
                             await database.ref(`categories/${id}`).set(data['category-name']);
+                            await loadCategories();
                         } else {
                             await addCategory(data['category-name']);
                         }
@@ -240,12 +243,12 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                         if (title.includes('編集')) {
                             const id = form.getAttribute('data-id');
                             await database.ref(`products/${id}`).update(data);
+                            await loadProducts();
                         } else {
                             await addProduct(data['product-name'], data['product-category']);
                         }
                     }
                     closeModal();
-                    await Promise.all([loadCategories(), loadProducts()]);
                 } catch (error) {
                     console.error('操作に失敗しました:', error);
                     alert('操作に失敗しました。');
@@ -287,6 +290,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             const snapshot = await database.ref('inventory').once('value');
             const inventory = snapshot.val() || {};
             updateInventoryList(inventory);
+            updateStockChart(inventory);
         } catch (error) {
             console.error('在庫の読み込みに失敗しました:', error);
             alert('在庫の読み込みに失敗しました。');
@@ -389,7 +393,8 @@ async function deleteCategory(id) {
     if (confirm('このカテゴリを削除してもよろしいですか？')) {
         try {
             await database.ref(`categories/${id}`).remove();
-            loadCategories();
+            await loadCategories();
+            alert('カテゴリを削除しました。');
         } catch (error) {
             console.error('カテゴリの削除に失敗しました:', error);
             alert('カテゴリの削除に失敗しました。');
@@ -408,7 +413,8 @@ async function deleteProduct(id) {
     if (confirm('この商品を削除してもよろしいですか？')) {
         try {
             await database.ref(`products/${id}`).remove();
-            loadProducts();
+            await loadProducts();
+            alert('商品を削除しました。');
         } catch (error) {
             console.error('商品の削除に失敗しました:', error);
             alert('商品の削除に失敗しました。');
@@ -426,7 +432,8 @@ async function deleteInventory(id) {
     if (confirm('この在庫アイテムを削除してもよろしいですか？')) {
         try {
             await database.ref(`inventory/${id}`).remove();
-            loadInventory();
+            await loadInventory();
+            alert('在庫アイテムを削除しました。');
         } catch (error) {
             console.error('在庫アイテムの削除に失敗しました:', error);
             alert('在庫アイテムの削除に失敗しました。');
