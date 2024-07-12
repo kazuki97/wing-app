@@ -143,7 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-function updateCategoryFilter(categories) {
+
+    function updateCategoryFilter(categories) {
         const categoryFilter = document.getElementById('category-filter');
         if (categoryFilter) {
             categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
@@ -183,7 +184,6 @@ function updateCategoryFilter(categories) {
             hideLoading();
         }
     }
-
     async function loadProducts() {
         showLoading();
         try {
