@@ -23,7 +23,7 @@ function connectToFirebase(retryCount = 0) {
     database.ref('.info/connected').on('value', function(snapshot) {
         if (snapshot.val() === true) {
             console.log('Firebase接続成功');
-            initializeApp();
+            initializeApp();  // ここでinitializeApp関数を呼び出す
         } else {
             console.error('Firebase接続失敗');
             if (retryCount < 3) {
