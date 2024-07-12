@@ -174,8 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('商品フォームの作成に失敗しました。');
         }
     });
-
-    async function loadProducts() {
+async function loadProducts() {
         showLoading();
         try {
             const snapshot = await database.ref('products').once('value');
@@ -204,7 +203,8 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-async function createProductForm(id = null, product = { name: '', category: '' }) {
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -276,60 +276,6 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             } finally {
                 hideLoading();
             }
-        }
-    }
-
-    // 在庫管理関連の機能
-    const searchInput = document.getElementById('search-input');
-    const categoryFilter = document.getElementById('category-filter');
-    const inventoryList = document.getElementById('inventory-list');
-
-    searchInput.addEventListener('input', filterInventory);
-    categoryFilter.addEventListener('change', filterInventory);
-
-    async function loadInventory() {
-        showLoading();
-        try {
-            const snapshot = await database.ref('inventory').once('value');
-            const inventory = snapshot.val() || {};
-            updateInventoryList(inventory);
-            updateChart(inventory);
-        } catch (error) {
-            console.error('在庫の読み込みに失敗しました:', error);
-            alert('在庫の読み込みに失敗しました。');
-        } finally {
-            hideLoading();
-        }
-    }
-
-    function updateInventoryList(inventory) {
-        inventoryList.innerHTML = '';
-        for (const [id, item] of Object.entries(inventory)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.quantity}</td>
-                <td>
-                    <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            inventoryList.appendChild(row);
-        }
-    }
-
-    function filterInventory() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-        const rows = inventoryList.getElementsByTagName('tr');
-
-        for (const row of rows) {
-            const name = row.cells[0].textContent.toLowerCase();
-            const category = row.cells[1].textContent;
-            const nameMatch = name.includes(searchTerm);
-            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
-            row.style.display = nameMatch && categoryMatch ? '' : 'none';
         }
     }
 
@@ -443,6 +389,5 @@ async function createProductForm(id = null, product = { name: '', category: '' }
     // アプリケーションの初期化
     loadCategories();
     loadProducts();
-    loadInventory();
     setupChart();
 });
