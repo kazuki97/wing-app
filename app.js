@@ -23,7 +23,7 @@ function connectToFirebase(retryCount = 0) {
     database.ref('.info/connected').on('value', function(snapshot) {
         if (snapshot.val() === true) {
             console.log('Firebase接続成功');
-            initializeApp();  // ここでinitializeApp関数を呼び出す
+            initializeApp();
         } else {
             console.error('Firebase接続失敗');
             if (retryCount < 3) {
@@ -33,12 +33,6 @@ function connectToFirebase(retryCount = 0) {
             }
         }
     });
-}
-
-function initializeApp() {
-    loadCategories();
-    loadProducts();
-    setupEventListeners();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -55,6 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingOverlay = document.getElementById('loading-overlay');
 
     let stockChart = null;
+
+    function initializeApp() {
+        loadCategories();
+        loadProducts();
+        setupEventListeners();
+    }
 
     function setupEventListeners() {
         sideMenu.addEventListener('click', function(e) {
@@ -143,8 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    function updateCategoryFilter(categories) {
+function updateCategoryFilter(categories) {
         const categoryFilter = document.getElementById('category-filter');
         if (categoryFilter) {
             categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
@@ -184,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
+
     async function loadProducts() {
         showLoading();
         try {
