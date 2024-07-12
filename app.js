@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-window.editCategory = async function(id) {
+
+    window.editCategory = async function(id) {
         showLoading();
         try {
             const snapshot = await database.ref(`categories/${id}`).once('value');
@@ -203,8 +204,7 @@ window.editCategory = async function(id) {
             productList.appendChild(row);
         }
     }
-
-    async function createProductForm(id = null, product = { name: '', category: '' }) {
+async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -279,6 +279,60 @@ window.editCategory = async function(id) {
         }
     }
 
+    // 在庫管理関連の機能
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const inventoryList = document.getElementById('inventory-list');
+
+    searchInput.addEventListener('input', filterInventory);
+    categoryFilter.addEventListener('change', filterInventory);
+
+    async function loadInventory() {
+        showLoading();
+        try {
+            const snapshot = await database.ref('inventory').once('value');
+            const inventory = snapshot.val() || {};
+            updateInventoryList(inventory);
+            updateChart(inventory);
+        } catch (error) {
+            console.error('在庫の読み込みに失敗しました:', error);
+            alert('在庫の読み込みに失敗しました。');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function updateInventoryList(inventory) {
+        inventoryList.innerHTML = '';
+        for (const [id, item] of Object.entries(inventory)) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.category}</td>
+                <td>${item.quantity}</td>
+                <td>
+                    <button onclick="editInventoryItem('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteInventoryItem('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            inventoryList.appendChild(row);
+        }
+    }
+
+    function filterInventory() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const rows = inventoryList.getElementsByTagName('tr');
+
+        for (const row of rows) {
+            const name = row.cells[0].textContent.toLowerCase();
+            const category = row.cells[1].textContent;
+            const nameMatch = name.includes(searchTerm);
+            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+            row.style.display = nameMatch && categoryMatch ? '' : 'none';
+        }
+    }
+
     // モーダル関連の機能
     function showModal(title, content) {
         modalTitle.textContent = title;
@@ -298,6 +352,7 @@ window.editCategory = async function(id) {
                         if (title.includes('編集')) {
                             const id = form.getAttribute('data-id');
                             await database.ref(`categories/${id}`).set(data['category-name']);
+                            alert('カテゴリを更新しました。');
                         } else {
                             await addCategory(data['category-name']);
                         }
@@ -305,6 +360,7 @@ window.editCategory = async function(id) {
                         if (title.includes('編集')) {
                             const id = form.getAttribute('data-id');
                             await database.ref(`products/${id}`).update(data);
+                            alert('商品を更新しました。');
                         } else {
                             await addProduct(data['product-name'], data['product-category']);
                         }
@@ -341,7 +397,52 @@ window.editCategory = async function(id) {
         loadingOverlay.style.display = 'none';
     }
 
+    // グラフ関連の機能
+    function setupChart() {
+        const ctx = document.getElementById('stock-chart');
+        if (ctx) {
+            stockChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '在庫数',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function updateChart(inventory) {
+        if (stockChart) {
+            const labels = [];
+            const data = [];
+
+            for (const item of Object.values(inventory)) {
+                labels.push(item.name);
+                data.push(item.quantity);
+            }
+
+            stockChart.data.labels = labels;
+            stockChart.data.datasets[0].data = data;
+            stockChart.update();
+        }
+    }
+
     // アプリケーションの初期化
     loadCategories();
     loadProducts();
+    loadInventory();
+    setupChart();
 });
