@@ -20,12 +20,12 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Firebase接続確認
-firebase.database().ref('.info/connected').on('value', function(snapshot) {
-  if (snapshot.val() === true) {
-    console.log('Firebase接続成功');
-  } else {
-    console.error('Firebase接続失敗');
-  }
+database.ref('.info/connected').on('value', function(snapshot) {
+    if (snapshot.val() === true) {
+        console.log('Firebase接続成功');
+    } else {
+        console.error('Firebase接続失敗');
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -145,7 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-// 商品関連の機能
+
+    // 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
@@ -158,8 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('商品フォームの作成に失敗しました。');
         }
     });
-
-    async function loadProducts() {
+async function loadProducts() {
         showLoading();
         try {
             const snapshot = await database.ref('products').once('value');
@@ -303,9 +303,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // グローバルスコープに関数を公開
     window.editCategory = async function(id) {
-        const snapshot = await database.ref(`categories/${id}`).once('value');
-        const name = snapshot.val();
-        showModal('カテゴリを編集', createCategoryForm(id, name));
+        try {
+            const snapshot = await database.ref(`categories/${id}`).once('value');
+            const name = snapshot.val();
+            showModal('カテゴリを編集', createCategoryForm(id, name));
+        } catch (error) {
+            console.error('カテゴリの編集フォーム作成に失敗しました:', error);
+            alert('カテゴリの編集フォーム作成に失敗しました。');
+        }
     };
 
     window.deleteCategory = async function(id) {
@@ -322,10 +327,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.editProduct = async function(id) {
-        const snapshot = await database.ref(`products/${id}`).once('value');
-        const product = snapshot.val();
-        const formContent = await createProductForm(id, product);
-        showModal('商品を編集', formContent);
+        try {
+            const snapshot = await database.ref(`products/${id}`).once('value');
+            const product = snapshot.val();
+            const formContent = await createProductForm(id, product);
+            showModal('商品を編集', formContent);
+        } catch (error) {
+            console.error('商品の編集フォーム作成に失敗しました:', error);
+            alert('商品の編集フォーム作成に失敗しました。');
+        }
     };
 
     window.deleteProduct = async function(id) {
