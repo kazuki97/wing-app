@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createCategoryForm(id = null, name = '') {
         return `
-            <form id="category-form">
+            <form id="category-form" ${id ? `data-id="${id}"` : ''}>
                 <input type="text" id="category-name" name="category-name" value="${name}" placeholder="カテゴリ名" required>
                 <button type="submit">${id ? '更新' : '追加'}</button>
             </form>
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadCategories();
             closeModal();
             alert('カテゴリを追加しました。');
-            showView('category');  // カテゴリビューを表示
+            showView('category');
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -187,7 +187,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
         }
 
         return `
-            <form id="product-form">
+            <form id="product-form" ${id ? `data-id="${id}"` : ''}>
                 <input type="text" id="product-name" name="product-name" value="${product.name}" placeholder="商品名" required>
                 <select id="product-category" name="product-category" required>
                     <option value="">カテゴリを選択</option>
@@ -207,7 +207,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             await loadProducts();
             closeModal();
             alert('商品を追加しました。');
-            showView('product');  // 商品ビューを表示
+            showView('product');
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -279,164 +279,47 @@ async function createProductForm(id = null, product = { name: '', category: '' }
         loadingOverlay.style.display = 'none';
     }
 
-    // 在庫管理機能
-    const inventoryList = document.getElementById('inventory-list');
-    const searchInput = document.getElementById('search-input');
-    const categoryFilter = document.getElementById('category-filter');
-
-    async function loadInventory() {
-        showLoading();
-        try {
-            const snapshot = await database.ref('inventory').once('value');
-            const inventory = snapshot.val() || {};
-            updateInventoryList(inventory);
-            updateStockChart(inventory);
-        } catch (error) {
-            console.error('在庫の読み込みに失敗しました:', error);
-            alert('在庫の読み込みに失敗しました。');
-        } finally {
-            hideLoading();
-        }
-    }
-
-    function updateInventoryList(inventory) {
-        inventoryList.innerHTML = '';
-        for (const [id, item] of Object.entries(inventory)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.quantity}</td>
-                <td>
-                    <button onclick="editInventory('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteInventory('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            inventoryList.appendChild(row);
-        }
-    }
-
-    searchInput.addEventListener('input', filterInventory);
-    categoryFilter.addEventListener('change', filterInventory);
-
-    function filterInventory() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-
-        const rows = inventoryList.getElementsByTagName('tr');
-        for (const row of rows) {
-            const name = row.cells[0].textContent.toLowerCase();
-            const category = row.cells[1].textContent;
-
-            const nameMatch = name.includes(searchTerm);
-            const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
-
-            row.style.display = nameMatch && categoryMatch ? '' : 'none';
-        }
-    }
-
-    // グラフ機能
-    function updateStockChart(inventory) {
-        const ctx = document.getElementById('stock-chart').getContext('2d');
-        const labels = Object.values(inventory).map(item => item.name);
-        const data = Object.values(inventory).map(item => item.quantity);
-
-        if (stockChart) {
-            stockChart.destroy();
-        }
-
-        stockChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '在庫数',
-                    data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-
     // アプリケーションの初期化
     loadCategories();
     loadProducts();
-    loadInventory();
 
     // グローバルスコープに関数を公開
-    window.editCategory = editCategory;
-    window.deleteCategory = deleteCategory;
-    window.editProduct = editProduct;
-    window.deleteProduct = deleteProduct;
-    window.editInventory = editInventory;
-    window.deleteInventory = deleteInventory;
+    window.editCategory = async function(id) {
+        const snapshot = await database.ref(`categories/${id}`).once('value');
+        const name = snapshot.val();
+        showModal('カテゴリを編集', createCategoryForm(id, name));
+    };
+
+    window.deleteCategory = async function(id) {
+        if (confirm('このカテゴリを削除してもよろしいですか？')) {
+            try {
+                await database.ref(`categories/${id}`).remove();
+                await loadCategories();
+                alert('カテゴリを削除しました。');
+            } catch (error) {
+                console.error('カテゴリの削除に失敗しました:', error);
+                alert('カテゴリの削除に失敗しました。');
+            }
+        }
+    };
+
+    window.editProduct = async function(id) {
+        const snapshot = await database.ref(`products/${id}`).once('value');
+        const product = snapshot.val();
+        const formContent = await createProductForm(id, product);
+        showModal('商品を編集', formContent);
+    };
+
+    window.deleteProduct = async function(id) {
+        if (confirm('この商品を削除してもよろしいですか？')) {
+            try {
+                await database.ref(`products/${id}`).remove();
+                await loadProducts();
+                alert('商品を削除しました。');
+            } catch (error) {
+                console.error('商品の削除に失敗しました:', error);
+                alert('商品の削除に失敗しました。');
+            }
+        }
+    };
 });
-
-// グローバル関数の定義
-async function editCategory(id) {
-    const snapshot = await database.ref(`categories/${id}`).once('value');
-    const name = snapshot.val();
-    showModal('カテゴリを編集', createCategoryForm(id, name));
-}
-
-async function deleteCategory(id) {
-    if (confirm('このカテゴリを削除してもよろしいですか？')) {
-        try {
-            await database.ref(`categories/${id}`).remove();
-            await loadCategories();
-            alert('カテゴリを削除しました。');
-        } catch (error) {
-            console.error('カテゴリの削除に失敗しました:', error);
-            alert('カテゴリの削除に失敗しました。');
-        }
-    }
-}
-
-async function editProduct(id) {
-    const snapshot = await database.ref(`products/${id}`).once('value');
-    const product = snapshot.val();
-    const formContent = await createProductForm(id, product);
-    showModal('商品を編集', formContent);
-}
-
-async function deleteProduct(id) {
-    if (confirm('この商品を削除してもよろしいですか？')) {
-        try {
-            await database.ref(`products/${id}`).remove();
-            await loadProducts();
-            alert('商品を削除しました。');
-        } catch (error) {
-            console.error('商品の削除に失敗しました:', error);
-            alert('商品の削除に失敗しました。');
-        }
-    }
-}
-
-async function editInventory(id) {
-    const snapshot = await database.ref(`inventory/${id}`).once('value');
-    const item = snapshot.val();
-    showModal('在庫を編集', createInventoryForm(id, item));
-}
-
-async function deleteInventory(id) {
-    if (confirm('この在庫アイテムを削除してもよろしいですか？')) {
-        try {
-            await database.ref(`inventory/${id}`).remove();
-            await loadInventory();
-            alert('在庫アイテムを削除しました。');
-        } catch (error) {
-            console.error('在庫アイテムの削除に失敗しました:', error);
-            alert('在庫アイテムの削除に失敗しました。');
-        }
-    }
-}
