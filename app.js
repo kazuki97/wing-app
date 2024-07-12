@@ -19,6 +19,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// Firebase接続確認
+firebase.database().ref('.info/connected').on('value', function(snapshot) {
+  if (snapshot.val() === true) {
+    console.log('Firebase接続成功');
+  } else {
+    console.error('Firebase接続失敗');
+  }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
     const appContent = document.getElementById('app-content');
@@ -47,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetView = document.getElementById(`${viewId}-view`);
         if (targetView) {
             targetView.classList.add('active');
+            if (viewId === 'category') {
+                loadCategories();
+            } else if (viewId === 'product') {
+                loadProducts();
+            }
         } else {
             console.error(`View with id "${viewId}-view" not found`);
         }
@@ -65,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const snapshot = await database.ref('categories').once('value');
             const categories = snapshot.val() || {};
+            console.log('読み込まれたカテゴリ:', categories);
             updateCategoryList(categories);
             updateCategoryFilter(categories);
         } catch (error) {
@@ -118,19 +133,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const newCategoryRef = await database.ref('categories').push();
             await newCategoryRef.set(name);
             console.log('カテゴリを追加しました:', name);
+            console.log('新しいカテゴリのID:', newCategoryRef.key);
             await loadCategories();
             closeModal();
             alert('カテゴリを追加しました。');
             showView('category');
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
-            alert('カテゴリの追加に失敗しました。');
+            alert('カテゴリの追加に失敗しました。エラー: ' + error.message);
         } finally {
             hideLoading();
         }
     }
-
-    // 商品関連の機能
+// 商品関連の機能
     const addProductButton = document.getElementById('add-product-button');
     const productList = document.getElementById('product-list');
 
@@ -149,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const snapshot = await database.ref('products').once('value');
             const products = snapshot.val() || {};
+            console.log('読み込まれた商品:', products);
             updateProductList(products);
         } catch (error) {
             console.error('商品の読み込みに失敗しました:', error);
@@ -173,7 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-async function createProductForm(id = null, product = { name: '', category: '' }) {
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
         let categoryOptions = '';
         try {
             const snapshot = await database.ref('categories').once('value');
@@ -204,13 +221,14 @@ async function createProductForm(id = null, product = { name: '', category: '' }
             const newProductRef = await database.ref('products').push();
             await newProductRef.set({ name, category });
             console.log('商品を追加しました:', { name, category });
+            console.log('新しい商品のID:', newProductRef.key);
             await loadProducts();
             closeModal();
             alert('商品を追加しました。');
             showView('product');
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
-            alert('商品の追加に失敗しました。');
+            alert('商品の追加に失敗しました。エラー: ' + error.message);
         } finally {
             hideLoading();
         }
@@ -251,7 +269,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                     closeModal();
                 } catch (error) {
                     console.error('操作に失敗しました:', error);
-                    alert('操作に失敗しました。');
+                    alert('操作に失敗しました。エラー: ' + error.message);
                 } finally {
                     hideLoading();
                 }
@@ -298,7 +316,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                 alert('カテゴリを削除しました。');
             } catch (error) {
                 console.error('カテゴリの削除に失敗しました:', error);
-                alert('カテゴリの削除に失敗しました。');
+                alert('カテゴリの削除に失敗しました。エラー: ' + error.message);
             }
         }
     };
@@ -318,7 +336,7 @@ async function createProductForm(id = null, product = { name: '', category: '' }
                 alert('商品を削除しました。');
             } catch (error) {
                 console.error('商品の削除に失敗しました:', error);
-                alert('商品の削除に失敗しました。');
+                alert('商品の削除に失敗しました。エラー: ' + error.message);
             }
         }
     };
