@@ -2,7 +2,7 @@
 if (typeof firebase === 'undefined') {
     console.error('Firebase SDK is not loaded. Check your script tags.');
 }
-// Firebase設定
+// Firebase設定（既存のコードを使用）
 const firebaseConfig = {
     apiKey: "AIzaSyD0MKQvTt3NIL5FNLeEe6V0sWI8toTx51g",
     authDomain: "wing-3be9c.firebaseapp.com",
@@ -14,55 +14,63 @@ const firebaseConfig = {
     measurementId: "G-F81ZH8X0JW"
 };
 
-// Firebase初期化
+// Firebase初期化（既存のコードを使用）
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 document.addEventListener('DOMContentLoaded', function() {
-    const addCategoryButton = document.getElementById('add-category-button');
-    const addProductButton = document.getElementById('add-product-button');
-    const categoryList = document.getElementById('category-list');
-    const productList = document.getElementById('product-list');
+    console.log("DOM fully loaded and parsed");
+    const appContent = document.getElementById('app-content');
+    const sideMenu = document.getElementById('side-menu');
+    const views = document.querySelectorAll('.view');
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
-    const modalContent = document.getElementById('modal-content');
-    const closeModal = document.getElementsByClassName('close')[0];
+    const modalForm = document.getElementById('modal-form');
+    const closeModalButton = document.getElementsByClassName('close')[0];
+    const loadingOverlay = document.getElementById('loading-overlay');
 
-    // カテゴリ追加機能
+    let stockChart = null;
+
+    // ナビゲーション設定（既存のコードを使用）
+    sideMenu.addEventListener('click', function(e) {
+        e.preventDefault();
+        const link = e.target.closest('a');
+        if (link) {
+            const targetView = link.getAttribute('data-view');
+            showView(targetView);
+        }
+    });
+
+    function showView(viewId) {
+        views.forEach(view => view.classList.remove('active'));
+        const targetView = document.getElementById(`${viewId}-view`);
+        if (targetView) {
+            targetView.classList.add('active');
+        } else {
+            console.error(`View with id "${viewId}-view" not found`);
+        }
+    }
+
+    // カテゴリ関連の機能
+    const addCategoryButton = document.getElementById('add-category-button');
+    const categoryList = document.getElementById('category-list');
+
     addCategoryButton.addEventListener('click', function() {
         showModal('カテゴリを追加', createCategoryForm());
     });
 
-    function createCategoryForm() {
-        return `
-            <form id="category-form">
-                <input type="text" id="category-name" name="category-name" placeholder="カテゴリ名" required>
-                <button type="submit">追加</button>
-            </form>
-        `;
-    }
-
-    async function addCategory(name) {
-        try {
-            const newCategoryRef = await database.ref('categories').push();
-            await newCategoryRef.set(name);
-            console.log('カテゴリを追加しました:', name);
-            loadCategories();
-            closeModalWindow();
-            alert('カテゴリを追加しました。');
-        } catch (error) {
-            console.error('カテゴリの追加に失敗しました:', error);
-            alert('カテゴリの追加に失敗しました。');
-        }
-    }
-
     async function loadCategories() {
+        showLoading();
         try {
             const snapshot = await database.ref('categories').once('value');
             const categories = snapshot.val() || {};
             updateCategoryList(categories);
+            updateCategoryFilter(categories);
         } catch (error) {
             console.error('カテゴリの読み込みに失敗しました:', error);
+            alert('カテゴリの読み込みに失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
 
@@ -81,56 +89,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 商品追加機能
-    addProductButton.addEventListener('click', function() {
-        showModal('商品を追加', createProductForm());
-    });
-
-    async function createProductForm() {
-        let categoryOptions = '';
-        try {
-            const snapshot = await database.ref('categories').once('value');
-            const categories = snapshot.val() || {};
-            for (const [categoryId, categoryName] of Object.entries(categories)) {
-                categoryOptions += `<option value="${categoryName}">${categoryName}</option>`;
+    function updateCategoryFilter(categories) {
+        const categoryFilter = document.getElementById('category-filter');
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+            for (const [id, name] of Object.entries(categories)) {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                categoryFilter.appendChild(option);
             }
-        } catch (error) {
-            console.error('カテゴリの読み込みに失敗しました:', error);
         }
+    }
 
+    function createCategoryForm(id = null, name = '') {
         return `
-            <form id="product-form">
-                <input type="text" id="product-name" name="product-name" placeholder="商品名" required>
-                <select id="product-category" name="product-category" required>
-                    <option value="">カテゴリを選択</option>
-                    ${categoryOptions}
-                </select>
-                <button type="submit">追加</button>
+            <form id="category-form">
+                <input type="text" id="category-name" name="category-name" value="${name}" placeholder="カテゴリ名" required>
+                <button type="submit">${id ? '更新' : '追加'}</button>
             </form>
         `;
     }
 
-    async function addProduct(name, category) {
+    async function addCategory(name) {
+        showLoading();
         try {
-            const newProductRef = await database.ref('products').push();
-            await newProductRef.set({ name, category });
-            console.log('商品を追加しました:', { name, category });
-            loadProducts();
-            closeModalWindow();
-            alert('商品を追加しました。');
+            const newCategoryRef = await database.ref('categories').push();
+            await newCategoryRef.set(name);
+            console.log('カテゴリを追加しました:', name);
+            await loadCategories();
+            closeModal();
+            alert('カテゴリを追加しました。');
         } catch (error) {
-            console.error('商品の追加に失敗しました:', error);
-            alert('商品の追加に失敗しました。');
+            console.error('カテゴリの追加に失敗しました:', error);
+            alert('カテゴリの追加に失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
+// 商品関連の機能
+    const addProductButton = document.getElementById('add-product-button');
+    const productList = document.getElementById('product-list');
+
+    addProductButton.addEventListener('click', async function() {
+        try {
+            const formContent = await createProductForm();
+            showModal('商品を追加', formContent);
+        } catch (error) {
+            console.error('商品フォームの作成に失敗しました:', error);
+            alert('商品フォームの作成に失敗しました。');
+        }
+    });
 
     async function loadProducts() {
+        showLoading();
         try {
             const snapshot = await database.ref('products').once('value');
             const products = snapshot.val() || {};
             updateProductList(products);
         } catch (error) {
             console.error('商品の読み込みに失敗しました:', error);
+            alert('商品の読み込みに失敗しました。');
+        } finally {
+            hideLoading();
         }
     }
 
@@ -149,113 +170,118 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.appendChild(row);
         }
     }
-// モーダル関連の機能
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
+        let categoryOptions = '';
+        try {
+            const snapshot = await database.ref('categories').once('value');
+            const categories = snapshot.val() || {};
+            for (const [categoryId, categoryName] of Object.entries(categories)) {
+                categoryOptions += `<option value="${categoryName}" ${product.category === categoryName ? 'selected' : ''}>${categoryName}</option>`;
+            }
+        } catch (error) {
+            console.error('カテゴリの読み込みに失敗しました:', error);
+            throw error;
+        }
+
+        return `
+            <form id="product-form">
+                <input type="text" id="product-name" name="product-name" value="${product.name}" placeholder="商品名" required>
+                <select id="product-category" name="product-category" required>
+                    <option value="">カテゴリを選択</option>
+                    ${categoryOptions}
+                </select>
+                <button type="submit">${id ? '更新' : '追加'}</button>
+            </form>
+        `;
+    }
+
+    async function addProduct(name, category) {
+        showLoading();
+        try {
+            const newProductRef = await database.ref('products').push();
+            await newProductRef.set({ name, category });
+            console.log('商品を追加しました:', { name, category });
+            await loadProducts();
+            closeModal();
+            alert('商品を追加しました。');
+        } catch (error) {
+            console.error('商品の追加に失敗しました:', error);
+            alert('商品の追加に失敗しました。');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // モーダル関連の機能
     function showModal(title, content) {
         modalTitle.textContent = title;
-        modalContent.innerHTML = content;
+        modalForm.innerHTML = content;
         modal.style.display = 'block';
 
-        const form = modalContent.querySelector('form');
+        const form = modalForm.querySelector('form');
         if (form) {
             form.onsubmit = async function(e) {
                 e.preventDefault();
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
-                if (title.includes('カテゴリ')) {
-                    await addCategory(data['category-name']);
-                } else if (title.includes('商品')) {
-                    await addProduct(data['product-name'], data['product-category']);
+                showLoading();
+                try {
+                    if (title.includes('カテゴリ')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`categories/${id}`).set(data['category-name']);
+                        } else {
+                            await addCategory(data['category-name']);
+                        }
+                    } else if (title.includes('商品')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`products/${id}`).update(data);
+                        } else {
+                            await addProduct(data['product-name'], data['product-category']);
+                        }
+                    }
+                    closeModal();
+                    await Promise.all([loadCategories(), loadProducts()]);
+                } catch (error) {
+                    console.error('操作に失敗しました:', error);
+                    alert('操作に失敗しました。');
+                } finally {
+                    hideLoading();
                 }
             };
         }
     }
 
-    function closeModalWindow() {
+    function closeModal() {
         modal.style.display = 'none';
     }
 
-    closeModal.onclick = closeModalWindow;
+    closeModalButton.onclick = closeModal;
 
     window.onclick = function(event) {
         if (event.target == modal) {
-            closeModalWindow();
+            closeModal();
         }
+    }
+
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
     }
 
     // アプリケーションの初期化
     loadCategories();
     loadProducts();
 
-    // グローバルスコープに関数を公開
-    window.editCategory = async function(id) {
-        try {
-            const snapshot = await database.ref(`categories/${id}`).once('value');
-            const name = snapshot.val();
-            showModal('カテゴリを編集', createCategoryForm());
-            document.getElementById('category-name').value = name;
-            const form = document.getElementById('category-form');
-            form.onsubmit = async function(e) {
-                e.preventDefault();
-                const updatedName = document.getElementById('category-name').value;
-                await database.ref(`categories/${id}`).set(updatedName);
-                loadCategories();
-                closeModalWindow();
-                alert('カテゴリを更新しました。');
-            };
-        } catch (error) {
-            console.error('カテゴリの編集に失敗しました:', error);
-            alert('カテゴリの編集に失敗しました。');
-        }
-    }
-
-    window.deleteCategory = async function(id) {
-        if (confirm('このカテゴリを削除してもよろしいですか？')) {
-            try {
-                await database.ref(`categories/${id}`).remove();
-                loadCategories();
-                alert('カテゴリを削除しました。');
-            } catch (error) {
-                console.error('カテゴリの削除に失敗しました:', error);
-                alert('カテゴリの削除に失敗しました。');
-            }
-        }
-    }
-
-    window.editProduct = async function(id) {
-        try {
-            const snapshot = await database.ref(`products/${id}`).once('value');
-            const product = snapshot.val();
-            const formContent = await createProductForm();
-            showModal('商品を編集', formContent);
-            document.getElementById('product-name').value = product.name;
-            document.getElementById('product-category').value = product.category;
-            const form = document.getElementById('product-form');
-            form.onsubmit = async function(e) {
-                e.preventDefault();
-                const updatedName = document.getElementById('product-name').value;
-                const updatedCategory = document.getElementById('product-category').value;
-                await database.ref(`products/${id}`).update({ name: updatedName, category: updatedCategory });
-                loadProducts();
-                closeModalWindow();
-                alert('商品を更新しました。');
-            };
-        } catch (error) {
-            console.error('商品の編集に失敗しました:', error);
-            alert('商品の編集に失敗しました。');
-        }
-    }
-
-    window.deleteProduct = async function(id) {
-        if (confirm('この商品を削除してもよろしいですか？')) {
-            try {
-                await database.ref(`products/${id}`).remove();
-                loadProducts();
-                alert('商品を削除しました。');
-            } catch (error) {
-                console.error('商品の削除に失敗しました:', error);
-                alert('商品の削除に失敗しました。');
-            }
-        }
-    }
+    // グローバルスコープに関数を公開（既存の機能を維持）
+    window.editCategory = editCategory;
+    window.deleteCategory = deleteCategory;
+    window.editProduct = editProduct;
+    window.deleteProduct = deleteProduct;
 });
