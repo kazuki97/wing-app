@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
             categoryFilter.innerHTML = '<option value="all">すべてのカテゴリ</option>';
             for (const [id, name] of Object.entries(categories)) {
                 const option = document.createElement('option');
-                option.value = id;
+                option.value = name;
                 option.textContent = name;
                 categoryFilter.appendChild(option);
             }
