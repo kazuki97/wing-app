@@ -23,7 +23,7 @@ function connectToFirebase(retryCount = 0) {
     database.ref('.info/connected').on('value', function(snapshot) {
         if (snapshot.val() === true) {
             console.log('Firebase接続成功');
-            initializeApp();
+            initializeApp(); // ここでinitializeApp関数を呼び出す
         } else {
             console.error('Firebase接続失敗');
             if (retryCount < 3) {
@@ -184,6 +184,151 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
+                showView('category');
+                        } else {
+                            await addCategory(data['category-name']);
+                        }
+                    } else if (title.includes('商品')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`products/${id}`).update(data);
+                            await loadProducts();
+                        } else {
+                            await addProduct(data['product-name'], data['product-category']);
+                        }
+                    }
+                    closeModal();
+                } catch (error) {
+                    console.error('操作に失敗しました:', error);
+                    alert('操作に失敗しました。エラー: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            };
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
+    }
+
+    // グローバルスコープに関数を公開
+    window.editCategory = async function(id) {
+        try {
+            const snapshot = await database.ref(`categories/${id}`).once('value');
+            const name = snapshot.val();
+            showModal('カテゴリを編集', createCategoryForm(id, name));
+        } catch (error) {
+            console.error('カテゴリの編集フォーム作成に失敗しました:', error);
+            alert('カテゴリの編集フォーム作成に失敗しました。');
+        }
+    };
+
+    window.deleteCategory = async function(id) {
+        if (confirm('このカテゴリを削除してもよろしいですか？')) {
+            try {
+                await database.ref(`categories/${id}`).remove();
+                await loadCategories();
+                alert('カテゴリを削除しました。');
+            } catch (error) {
+                console.error('カテゴリの削除に失敗しました:', error);
+                alert('カテゴリの削除に失敗しました。エラー: ' + error.message);
+            }
+        }
+    };
+
+    window.editProduct = async function(id) {
+        try {
+            const snapshot = await database.ref(`products/${id}`).once('value');
+            const product = snapshot.val();
+            const formContent = await createProductForm(id, product);
+            showModal('商品を編集', formContent);
+        } catch (error) {
+            console.error('商品の編集フォーム作成に失敗しました:', error);
+            alert('商品の編集フォーム作成に失敗しました。');
+        }
+    };
+
+    window.deleteProduct = async function(id) {
+        if (confirm('この商品を削除してもよろしいですか？')) {
+            try {
+                await database.ref(`products/${id}`).remove();
+                await loadProducts();
+                alert('商品を削除しました。');
+            } catch (error) {
+                console.error('商品の削除に失敗しました:', error);
+                alert('商品の削除に失敗しました。エラー: ' + error.message);
+            }
+        }
+    };
+
+    async function loadProducts() {
+        showLoading();
+        try {
+            const snapshot = await database.ref('products').once('value');
+            const products = snapshot.val() || {};
+            console.log('読み込まれた商品:', products);
+            updateProductList(products);
+        } catch (error) {
+            console.error('商品の読み込みに失敗しました:', error);
+            alert('商品の読み込みに失敗しました。');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function updateProductList(products) {
+        const productList = document.getElementById('product-list');
+        if (productList) {
+            productList.innerHTML = '';
+            for (const [id, product] of Object.entries(products)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>
+                        <button onclick="editProduct('${id}')" class="action-button"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct('${id}')" class="action-button"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                productList.appendChild(row);
+            }
+        }
+    }
+
+    async function createProductForm(id = null, product = { name: '', category: '' }) {
+        let categoryOptions = '';
+        try {
+            const snapshot = await database.ref('categories').once('value');
+            const categories = snapshot.val() || {};
+            for (const [categoryId, categoryName] of Object.entries(categories)) {
+                categoryOptions += `<option value="${categoryName}" ${product.category === categoryName ? 'selected' : ''}>${categoryName}</option>`;
+            }
+        } catch (error) {
+            console.error('カテゴリの読み込みに失敗しました:', error);
+            throw error;
+        }
+
+        return `
+            <form id="product-form" ${id ? `data-id="${id}"` : ''}>
+                <input type="text" id="product-name" name="product-name" value="${product.name}" placeholder="商品名" required>
+                <select id="product-category" name="product-category" required>
+                    <option value="">カテゴリを選択</option>
+                    ${categoryOptions}
+                </select>
+                <button type="submit">${id ? '更新' : '追加'}</button>
+            </form>
+        `;
+    }
+
     async function addProduct(name, category) {
         showLoading();
         try {
