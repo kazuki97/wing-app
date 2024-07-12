@@ -117,8 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const newCategoryRef = await database.ref('categories').push();
             await newCategoryRef.set(name);
+            console.log('カテゴリを追加しました:', name);
             alert('カテゴリを追加しました。');
-            loadCategories();
+            await loadCategories();
         } catch (error) {
             console.error('カテゴリの追加に失敗しました:', error);
             alert('カテゴリの追加に失敗しました。');
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const updatedName = document.getElementById('category-name').value;
                 await database.ref(`categories/${id}`).set(updatedName);
                 closeModal();
-                loadCategories();
+                await loadCategories();
             };
         } catch (error) {
             console.error('カテゴリの編集に失敗しました:', error);
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await database.ref(`categories/${id}`).remove();
                 alert('カテゴリを削除しました。');
-                loadCategories();
+                await loadCategories();
             } catch (error) {
                 console.error('カテゴリの削除に失敗しました:', error);
                 alert('カテゴリの削除に失敗しました。');
@@ -233,12 +234,15 @@ document.addEventListener('DOMContentLoaded', function() {
             </form>
         `;
     }
-async function addProduct(name, category) {
+
+    async function addProduct(name, category) {
         showLoading();
         try {
-            await database.ref('products').push().set({ name, category });
+            const newProductRef = await database.ref('products').push();
+            await newProductRef.set({ name, category });
+            console.log('商品を追加しました:', { name, category });
             alert('商品を追加しました。');
-            loadProducts();
+            await loadProducts();
         } catch (error) {
             console.error('商品の追加に失敗しました:', error);
             alert('商品の追加に失敗しました。');
@@ -246,8 +250,7 @@ async function addProduct(name, category) {
             hideLoading();
         }
     }
-
-    window.editProduct = async function(id) {
+window.editProduct = async function(id) {
         showLoading();
         try {
             const snapshot = await database.ref(`products/${id}`).once('value');
@@ -261,7 +264,7 @@ async function addProduct(name, category) {
                 const updatedCategory = document.getElementById('product-category').value;
                 await database.ref(`products/${id}`).update({ name: updatedName, category: updatedCategory });
                 closeModal();
-                loadProducts();
+                await loadProducts();
             };
         } catch (error) {
             console.error('商品の編集に失敗しました:', error);
@@ -277,7 +280,7 @@ async function addProduct(name, category) {
             try {
                 await database.ref(`products/${id}`).remove();
                 alert('商品を削除しました。');
-                loadProducts();
+                await loadProducts();
             } catch (error) {
                 console.error('商品の削除に失敗しました:', error);
                 alert('商品の削除に失敗しました。');
@@ -358,7 +361,7 @@ async function addProduct(name, category) {
                 const category = productData[Object.keys(productData)[0]].category;
                 await database.ref(`inventory/${id}`).update({ name: updatedProduct, category: category, quantity: updatedQuantity });
                 closeModal();
-                loadInventory();
+                await loadInventory();
             };
         } catch (error) {
             console.error('在庫項目の編集に失敗しました:', error);
@@ -374,7 +377,7 @@ async function addProduct(name, category) {
             try {
                 await database.ref(`inventory/${id}`).remove();
                 alert('在庫項目を削除しました。');
-                loadInventory();
+                await loadInventory();
             } catch (error) {
                 console.error('在庫項目の削除に失敗しました:', error);
                 alert('在庫項目の削除に失敗しました。');
@@ -459,9 +462,7 @@ async function addProduct(name, category) {
                         }
                     }
                     closeModal();
-                    loadCategories();
-                    loadProducts();
-                    loadInventory();
+                    await Promise.all([loadCategories(), loadProducts(), loadInventory()]);
                 } catch (error) {
                     console.error('操作に失敗しました:', error);
                     alert('操作に失敗しました。');
