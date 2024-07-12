@@ -23,7 +23,7 @@ function connectToFirebase(retryCount = 0) {
     database.ref('.info/connected').on('value', function(snapshot) {
         if (snapshot.val() === true) {
             console.log('Firebase接続成功');
-            initializeApp(); // ここでinitializeApp関数を呼び出す
+            initializeApp();  // ここでinitializeApp関数を呼び出す
         } else {
             console.error('Firebase接続失敗');
             if (retryCount < 3) {
@@ -33,6 +33,12 @@ function connectToFirebase(retryCount = 0) {
             }
         }
     });
+}
+
+function initializeApp() {
+    loadCategories();
+    loadProducts();
+    setupEventListeners();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -49,12 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingOverlay = document.getElementById('loading-overlay');
 
     let stockChart = null;
-
-    function initializeApp() {
-        loadCategories();
-        loadProducts();
-        setupEventListeners();
-    }
 
     function setupEventListeners() {
         sideMenu.addEventListener('click', function(e) {
@@ -184,92 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-                showView('category');
-                        } else {
-                            await addCategory(data['category-name']);
-                        }
-                    } else if (title.includes('商品')) {
-                        if (title.includes('編集')) {
-                            const id = form.getAttribute('data-id');
-                            await database.ref(`products/${id}`).update(data);
-                            await loadProducts();
-                        } else {
-                            await addProduct(data['product-name'], data['product-category']);
-                        }
-                    }
-                    closeModal();
-                } catch (error) {
-                    console.error('操作に失敗しました:', error);
-                    alert('操作に失敗しました。エラー: ' + error.message);
-                } finally {
-                    hideLoading();
-                }
-            };
-        }
-    }
-
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-
-    function showLoading() {
-        loadingOverlay.style.display = 'flex';
-    }
-
-    function hideLoading() {
-        loadingOverlay.style.display = 'none';
-    }
-
-    // グローバルスコープに関数を公開
-    window.editCategory = async function(id) {
-        try {
-            const snapshot = await database.ref(`categories/${id}`).once('value');
-            const name = snapshot.val();
-            showModal('カテゴリを編集', createCategoryForm(id, name));
-        } catch (error) {
-            console.error('カテゴリの編集フォーム作成に失敗しました:', error);
-            alert('カテゴリの編集フォーム作成に失敗しました。');
-        }
-    };
-
-    window.deleteCategory = async function(id) {
-        if (confirm('このカテゴリを削除してもよろしいですか？')) {
-            try {
-                await database.ref(`categories/${id}`).remove();
-                await loadCategories();
-                alert('カテゴリを削除しました。');
-            } catch (error) {
-                console.error('カテゴリの削除に失敗しました:', error);
-                alert('カテゴリの削除に失敗しました。エラー: ' + error.message);
-            }
-        }
-    };
-
-    window.editProduct = async function(id) {
-        try {
-            const snapshot = await database.ref(`products/${id}`).once('value');
-            const product = snapshot.val();
-            const formContent = await createProductForm(id, product);
-            showModal('商品を編集', formContent);
-        } catch (error) {
-            console.error('商品の編集フォーム作成に失敗しました:', error);
-            alert('商品の編集フォーム作成に失敗しました。');
-        }
-    };
-
-    window.deleteProduct = async function(id) {
-        if (confirm('この商品を削除してもよろしいですか？')) {
-            try {
-                await database.ref(`products/${id}`).remove();
-                await loadProducts();
-                alert('商品を削除しました。');
-            } catch (error) {
-                console.error('商品の削除に失敗しました:', error);
-                alert('商品の削除に失敗しました。エラー: ' + error.message);
-            }
-        }
-    };
-
     async function loadProducts() {
         showLoading();
         try {
