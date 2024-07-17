@@ -31,9 +31,6 @@ database.ref('.info/connected').on('value', function(snapshot) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded and parsed");
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM fully loaded and parsed");
-
     const appContent = document.getElementById('app-content');
     const sideMenu = document.getElementById('side-menu');
     const views = document.querySelectorAll('.view');
@@ -94,8 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hideLoading();
         }
     }
-
-    function updateCategoryList(categories) {
+function updateCategoryList(categories) {
         categoryList.innerHTML = '';
         for (const [id, name] of Object.entries(categories)) {
             const row = document.createElement('tr');
@@ -132,25 +128,25 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-   async function addCategory(name) {
-    showLoading();
-    try {
-        console.log('カテゴリ追加開始:', name);
-        const newCategoryRef = database.ref('categories').push();
-        await newCategoryRef.set(name);
-        console.log('カテゴリを追加しました:', name);
-        console.log('新しいカテゴリのID:', newCategoryRef.key);
-        await loadCategories();
-        closeModal();
-        alert('カテゴリを追加しました。');
-        showView('category');
-    } catch (error) {
-        console.error('カテゴリの追加に失敗しました:', error);
-        alert('カテゴリの追加に失敗しました。エラー: ' + error.message);
-    } finally {
-        hideLoading();
+    async function addCategory(name) {
+        showLoading();
+        try {
+            console.log('カテゴリ追加開始:', name);
+            const newCategoryRef = database.ref('categories').push();
+            await newCategoryRef.set(name);
+            console.log('カテゴリを追加しました:', name);
+            console.log('新しいカテゴリのID:', newCategoryRef.key);
+            await loadCategories();
+            closeModal();
+            alert('カテゴリを追加しました。');
+            showView('category');
+        } catch (error) {
+            console.error('カテゴリの追加に失敗しました:', error);
+            alert('カテゴリの追加に失敗しました。エラー: ' + error.message);
+        } finally {
+            hideLoading();
+        }
     }
-}
 
     // 商品関連の機能
     addProductButton.addEventListener('click', async function() {
@@ -162,7 +158,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('商品フォームの作成に失敗しました。');
         }
     });
-async function loadProducts() {
+
+    async function loadProducts() {
         showLoading();
         try {
             const snapshot = await database.ref('products').once('value');
@@ -245,23 +242,23 @@ async function loadProducts() {
         const form = modalForm.querySelector('form');
         if (form) {
             form.onsubmit = async function(e) {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
 
-    showLoading();
-    try {
-        if (title.includes('カテゴリ')) {
-            if (title.includes('編集')) {
-                const id = form.getAttribute('data-id');
-                await database.ref(`categories/${id}`).set(data['category-name']);
-                await loadCategories();
-            } else {
-                console.log('カテゴリ追加処理開始');
-                await addCategory(data['category-name']);
-                console.log('カテゴリ追加処理完了');
-            }
-        } else if (title.includes('商品')) {
+                showLoading();
+                try {
+                    if (title.includes('カテゴリ')) {
+                        if (title.includes('編集')) {
+                            const id = form.getAttribute('data-id');
+                            await database.ref(`categories/${id}`).set(data['category-name']);
+                            await loadCategories();
+                        } else {
+                            console.log('カテゴリ追加処理開始');
+                            await addCategory(data['category-name']);
+                            console.log('カテゴリ追加処理完了');
+                        }
+                    } else if (title.includes('商品')) {
                         if (title.includes('編集')) {
                             const id = form.getAttribute('data-id');
                             await database.ref(`products/${id}`).update(data);
