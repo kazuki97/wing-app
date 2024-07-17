@@ -1,23 +1,59 @@
-// カテゴリと商品のデータを保存する配列
+// Firebaseの設定
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+// Firebaseの初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// カテゴリを保存する配列
 let categories = [];
-let inventory = [];
 
 // DOM要素の取得
 const categoryForm = document.getElementById('categoryForm');
-const productForm = document.getElementById('productForm');
-const categorySelect = document.getElementById('productCategory');
-const inventoryList = document.getElementById('inventoryList');
+const categoryList = document.getElementById('categoryList');
+
+// ページロード時にカテゴリを読み込む
+document.addEventListener('DOMContentLoaded', loadCategories);
+
+// カテゴリの読み込み
+function loadCategories() {
+    db.collection("categories").get().then((querySnapshot) => {
+        categories = [];
+        querySnapshot.forEach((doc) => {
+            categories.push(doc.data().name);
+        });
+        updateCategoryList();
+    });
+}
 
 // カテゴリフォームの送信イベント
 categoryForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const categoryNameInput = document.getElementById('categoryName');
     const categoryName = categoryNameInput.value.trim();
+    
     if (categoryName && !categories.includes(categoryName)) {
-        categories.push(categoryName);
-        updateCategorySelect();
-        categoryNameInput.value = '';
-        alert('カテゴリが追加されました：' + categoryName);
+        // Firebaseにカテゴリを追加
+        db.collection("categories").add({
+            name: categoryName
+        })
+        .then(() => {
+            categories.push(categoryName);
+            updateCategoryList();
+            categoryNameInput.value = '';
+            alert('カテゴリが追加されました：' + categoryName);
+        })
+        .catch((error) => {
+            console.error("Error adding category: ", error);
+            alert('カテゴリの追加に失敗しました。');
+        });
     } else if (categories.includes(categoryName)) {
         alert('このカテゴリは既に存在します。');
     } else {
@@ -25,44 +61,12 @@ categoryForm.addEventListener('submit', function(e) {
     }
 });
 
-// 商品フォームの送信イベント
-productForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const category = categorySelect.value;
-    const name = document.getElementById('productName').value.trim();
-    const quantity = document.getElementById('productQuantity').value;
-    const unit = document.getElementById('productUnit').value;
-
-    if (category && name && quantity && unit) {
-        inventory.push({ category, name, quantity, unit });
-        updateInventoryList();
-        productForm.reset();
-        alert('商品が追加されました。');
-    } else {
-        alert('全ての項目を入力してください。');
-    }
-});
-
-// カテゴリ選択肢の更新
-function updateCategorySelect() {
-    categorySelect.innerHTML = '<option value="">カテゴリを選択</option>';
+// カテゴリリストの更新
+function updateCategoryList() {
+    categoryList.innerHTML = '';
     categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category;
-        option.textContent = category;
-        categorySelect.appendChild(option);
-    });
-}
-
-// 在庫リストの更新
-function updateInventoryList() {
-    inventoryList.innerHTML = '';
-    inventory.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `${item.category} - ${item.name}: ${item.quantity}${item.unit}`;
-        inventoryList.appendChild(li);
+        li.textContent = category;
+        categoryList.appendChild(li);
     });
 }
-
-// 初期化時にカテゴリ選択肢を更新
-updateCategorySelect();
