@@ -1,99 +1,226 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高級在庫管理システム</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="/manifest.json">
-</head>
-<body>
-    <div id="app-content">
-        <nav id="side-menu" aria-label="サイドメニュー">
-            <ul>
-                <li><a href="#" data-view="home"><i class="fas fa-home"></i> トップページ</a></li>
-                <li><a href="#" data-view="category"><i class="fas fa-tags"></i> カテゴリ設定</a></li>
-                <li><a href="#" data-view="product"><i class="fas fa-box"></i> 商品設定</a></li>
-                <li><a href="#" data-view="inventory"><i class="fas fa-warehouse"></i> 在庫管理</a></li>
-            </ul>
-        </nav>
-        <main id="main-content">
-            <div id="home-view" class="view active">
-                <h2>トップページ</h2>
-                <p>高級在庫管理システムへようこそ。左のメニューから操作を選択してください。</p>
-                <div id="stock-chart-container">
-                    <canvas id="stock-chart"></canvas>
-                </div>
-            </div>
-            <div id="category-view" class="view">
-                <h2>カテゴリ設定</h2>
-                <button id="add-category-button" class="action-button"><i class="fas fa-plus"></i> カテゴリを追加</button>
-                <table id="category-table">
-                    <thead>
-                        <tr>
-                            <th>カテゴリ名</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="category-list"></tbody>
-                </table>
-            </div>
-            <div id="product-view" class="view">
-                <h2>商品設定</h2>
-                <button id="add-product-button" class="action-button"><i class="fas fa-plus"></i> 商品を追加</button>
-                <table id="product-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-list"></tbody>
-                </table>
-            </div>
-            <div id="inventory-view" class="view">
-                <h2>在庫管理</h2>
-                <div id="inventory-controls">
-                    <input type="text" id="search-input" placeholder="商品を検索" aria-label="商品を検索">
-                    <select id="category-filter" aria-label="カテゴリでフィルター">
-                        <option value="all">すべてのカテゴリ</option>
-                    </select>
-                </div>
-                <table id="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>在庫数</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-list"></tbody>
-                </table>
-            </div>
-        </main>
-    </div>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap');
 
-    <div id="modal" class="modal" aria-hidden="true">
-        <div class="modal-content">
-            <button class="close" aria-label="閉じる">&times;</button>
-            <h2 id="modal-title"></h2>
-            <form id="modal-form">
-                <!-- フォームの内容はJavaScriptで動的に生成 -->
-            </form>
-        </div>
-    </div>
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2c3e50;
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --border-color: #ddd;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
 
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-    </div>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-    <script src="app.js"></script>
-</body>
-</html> 
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+#app-content {
+    display: flex;
+    height: 100vh;
+}
+
+#side-menu {
+    width: 200px;
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 20px 0;
+}
+
+#side-menu ul {
+    list-style-type: none;
+}
+
+#side-menu li {
+    margin-bottom: 10px;
+}
+
+#side-menu a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+
+#side-menu a:hover {
+    background-color: #34495e;
+}
+
+#main-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.view {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: none;
+}
+
+.view.active {
+    display: block;
+}
+
+h2 {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.action-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.action-button:hover {
+    background-color: #45a049;
+}
+
+#inventory-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#search-input, #category-filter {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#search-input {
+    flex-grow: 1;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#modal-form input,
+#modal-form select {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#modal-form button {
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#modal-form button:hover {
+    background-color: #45a049;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
