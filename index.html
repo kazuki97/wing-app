@@ -3,97 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高級在庫管理システム</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <title>在庫管理アプリ</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-    <div id="app-content">
-        <nav id="side-menu" aria-label="サイドメニュー">
-            <ul>
-                <li><a href="#" data-view="home"><i class="fas fa-home"></i> トップページ</a></li>
-                <li><a href="#" data-view="category"><i class="fas fa-tags"></i> カテゴリ設定</a></li>
-                <li><a href="#" data-view="product"><i class="fas fa-box"></i> 商品設定</a></li>
-                <li><a href="#" data-view="inventory"><i class="fas fa-warehouse"></i> 在庫管理</a></li>
-            </ul>
-        </nav>
-        <main id="main-content">
-            <div id="home-view" class="view active">
-                <h2>トップページ</h2>
-                <p>高級在庫管理システムへようこそ。左のメニューから操作を選択してください。</p>
-                <div id="stock-chart-container">
-                    <canvas id="stock-chart"></canvas>
-                </div>
-            </div>
-            <div id="category-view" class="view">
-                <h2>カテゴリ設定</h2>
-                <button id="add-category-button" class="action-button"><i class="fas fa-plus"></i> カテゴリを追加</button>
-                <table id="category-table">
-                    <thead>
-                        <tr>
-                            <th>カテゴリ名</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="category-list"></tbody>
-                </table>
-            </div>
-            <div id="product-view" class="view">
-                <h2>商品設定</h2>
-                <button id="add-product-button" class="action-button"><i class="fas fa-plus"></i> 商品を追加</button>
-                <table id="product-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-list"></tbody>
-                </table>
-            </div>
-            <div id="inventory-view" class="view">
-                <h2>在庫管理</h2>
-                <div id="inventory-controls">
-                    <input type="text" id="search-input" placeholder="商品を検索" aria-label="商品を検索">
-                    <select id="category-filter" aria-label="カテゴリでフィルター">
-                        <option value="all">すべてのカテゴリ</option>
-                    </select>
-                </div>
-                <table id="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>商品名</th>
-                            <th>カテゴリ</th>
-                            <th>在庫数</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-list"></tbody>
-                </table>
-            </div>
-        </main>
+    <div class="container">
+        <h1>在庫管理アプリ</h1>
+        
+        <h2>カテゴリ追加</h2>
+        <form id="categoryForm">
+            <input type="text" id="categoryName" placeholder="カテゴリ名" required>
+            <button type="submit">カテゴリを追加</button>
+        </form>
+
+        <h2>商品追加</h2>
+        <form id="productForm">
+            <select id="productCategory" required>
+                <option value="">カテゴリを選択</option>
+            </select>
+            <input type="text" id="productName" placeholder="商品名" required>
+            <input type="number" id="productQuantity" placeholder="数量" required min="1">
+            <select id="productUnit" required>
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+                <option value="個">個</option>
+            </select>
+            <button type="submit">商品を追加</button>
+        </form>
+
+        <h2>在庫リスト</h2>
+        <ul id="inventoryList"></ul>
     </div>
 
-    <div id="modal" class="modal" aria-hidden="true">
-        <div class="modal-content">
-            <button class="close" aria-label="閉じる">&times;</button>
-            <h2 id="modal-title"></h2>
-            <form id="modal-form">
-                <!-- フォームの内容はJavaScriptで動的に生成 -->
-            </form>
-        </div>
-    </div>
-
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
