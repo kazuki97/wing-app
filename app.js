@@ -11,11 +11,16 @@ const inventoryList = document.getElementById('inventoryList');
 // カテゴリフォームの送信イベント
 categoryForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const categoryName = document.getElementById('categoryName').value;
+    const categoryName = document.getElementById('categoryName').value.trim();
     if (categoryName && !categories.includes(categoryName)) {
         categories.push(categoryName);
         updateCategorySelect();
         categoryForm.reset();
+        alert('カテゴリが追加されました：' + categoryName);
+    } else if (categories.includes(categoryName)) {
+        alert('このカテゴリは既に存在します。');
+    } else {
+        alert('カテゴリ名を入力してください。');
     }
 });
 
@@ -23,7 +28,7 @@ categoryForm.addEventListener('submit', function(e) {
 productForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const category = document.getElementById('productCategory').value;
-    const name = document.getElementById('productName').value;
+    const name = document.getElementById('productName').value.trim();
     const quantity = document.getElementById('productQuantity').value;
     const unit = document.getElementById('productUnit').value;
 
@@ -31,6 +36,9 @@ productForm.addEventListener('submit', function(e) {
         inventory.push({ category, name, quantity, unit });
         updateInventoryList();
         productForm.reset();
+        alert('商品が追加されました。');
+    } else {
+        alert('全ての項目を入力してください。');
     }
 });
 
@@ -54,3 +62,6 @@ function updateInventoryList() {
         inventoryList.appendChild(li);
     });
 }
+
+// 初期化時にカテゴリ選択肢を更新
+updateCategorySelect();
