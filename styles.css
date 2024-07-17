@@ -8,9 +8,12 @@ body {
 
 .container {
     width: 80%;
-    margin: auto;
-    overflow: hidden;
+    max-width: 600px;
+    margin: 20px auto;
     padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 h1, h2 {
@@ -18,12 +21,10 @@ h1, h2 {
 }
 
 form {
-    background: #fff;
-    padding: 20px;
     margin-bottom: 20px;
 }
 
-input, select, button {
+input, button {
     display: block;
     width: 100%;
     padding: 10px;
@@ -41,13 +42,14 @@ button:hover {
     background: #555;
 }
 
-#inventoryList {
+#categoryList {
     list-style-type: none;
     padding: 0;
 }
 
-#inventoryList li {
-    background: #fff;
+#categoryList li {
+    background: #f4f4f4;
     padding: 10px;
     margin-bottom: 5px;
+    border-radius: 3px;
 }
