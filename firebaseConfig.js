@@ -1,9 +1,9 @@
-// firebaseConfig.js
-export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+const firebaseConfig = {
+    apiKey: "AIzaSyBND1iUtwW9-D3wisl5-wO_-Sfahab0zmA",
+    authDomain: "wing-system.firebaseapp.com",
+    projectId: "wing-system",
+    storageBucket: "wing-system.appspot.com",
+    messagingSenderId: "308022918518",
+    appId: "1:308022918518:web:ebdfe5deb82fa32a3f4e57",
+    measurementId: "G-806S4XB84E"
+  };
