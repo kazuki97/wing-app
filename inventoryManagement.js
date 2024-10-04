@@ -56,10 +56,3 @@ export async function getAllOverallInventories() {
     throw error;
   }
 }
-
-// 必要なエクスポートを追加
-export default {
-  updateOverallInventory,
-  getOverallInventory,
-  getAllOverallInventories,
-};
