@@ -1,11 +1,32 @@
-// eventListeners.js（続き）
-
+// eventListeners.js
 import {
   addProduct,
   getProducts,
   updateProduct,
   deleteProduct,
+  getAllProducts,
+  getProductById,
 } from './products.js';
+
+import {
+  getParentCategories,
+  getSubcategories,
+} from './categories.js';
+
+import {
+  updateInventory,
+  deleteInventory,
+} from './inventoryManagement.js';
+
+// エラーメッセージ表示関数
+function showError(message) {
+  const errorDiv = document.getElementById('error-message');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+  setTimeout(() => {
+    errorDiv.style.display = 'none';
+  }, 5000);
+}
 
 // 商品追加フォームのイベントリスナー
 document
@@ -24,7 +45,7 @@ document
       unit: document.getElementById('productUnit').value,
     };
     try {
-      await addProduct(productData);
+      const productId = await addProduct(productData);
       // フォームをリセット
       document.getElementById('addProductForm').reset();
       alert('商品が追加されました');
@@ -56,17 +77,18 @@ async function displayProducts() {
       // 削除ボタン
       const deleteButton = document.createElement('button');
       deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', () => {
+      deleteButton.addEventListener('click', async () => {
         if (confirm('本当に削除しますか？')) {
-          deleteProduct(product.id)
-            .then(() => {
-              alert('商品が削除されました');
-              displayProducts();
-            })
-            .catch((error) => {
-              console.error(error);
-              showError('商品の削除に失敗しました');
-            });
+          try {
+            await deleteProduct(product.id);
+            alert('商品が削除されました');
+            await displayProducts();
+            // 在庫も削除
+            await deleteInventory(product.id);
+          } catch (error) {
+            console.error(error);
+            showError('商品の削除に失敗しました');
+          }
         }
       });
       listItem.appendChild(editButton);
@@ -152,7 +174,8 @@ document
 window.addEventListener('DOMContentLoaded', async () => {
   await updateProductParentCategorySelect();
   await updateFilterParentCategorySelect();
-  await updateFilterSubcategorySelect();
+  const initialParentCategoryId = document.getElementById('filterParentCategory').value;
+  await updateFilterSubcategorySelect(initialParentCategoryId);
   await displayProducts();
 });
 
@@ -168,6 +191,9 @@ async function updateProductParentCategorySelect() {
       option.textContent = category.name;
       select.appendChild(option);
     });
+    // 初期選択された親カテゴリに対応するサブカテゴリを更新
+    const initialParentCategoryId = select.value;
+    await updateProductSubcategorySelect(initialParentCategoryId);
   } catch (error) {
     console.error(error);
     showError('親カテゴリの取得に失敗しました');
