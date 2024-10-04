@@ -25,6 +25,12 @@ import {
   getAllOverallInventories,
 } from './inventoryManagement.js';
 
+import {
+  addPricingRule,
+  getPricingRules,
+  deletePricingRule,
+} from './pricing.js';
+
 import { getDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db } from './db.js';
 
@@ -37,6 +43,8 @@ function showError(message) {
     errorDiv.style.display = 'none';
   }, 5000);
 }
+
+// 既存のイベントリスナーと関数はここに含まれます（省略せずに全て記載しています）
 
 // 親カテゴリ追加フォームのイベントリスナー
 document
@@ -145,7 +153,12 @@ async function updateSubcategorySelect(parentCategoryId, subcategorySelectId) {
 }
 
 // 各親カテゴリセレクトボックスのイベントリスナー
-['productParentCategorySelect', 'filterParentCategorySelect', 'inventoryParentCategorySelect', 'overallInventoryParentCategorySelect'].forEach((id) => {
+[
+  'productParentCategorySelect',
+  'filterParentCategorySelect',
+  'inventoryParentCategorySelect',
+  'overallInventoryParentCategorySelect',
+].forEach((id) => {
   document.getElementById(id).addEventListener('change', async () => {
     const parentCategoryId = document.getElementById(id).value;
     const subcategorySelectId = {
@@ -165,7 +178,12 @@ async function updateSubcategorySelect(parentCategoryId, subcategorySelectId) {
 });
 
 // サブカテゴリセレクトボックスのイベントリスナー
-['productSubcategorySelect', 'filterSubcategorySelect', 'inventorySubcategorySelect', 'overallInventorySubcategorySelect'].forEach((id) => {
+[
+  'productSubcategorySelect',
+  'filterSubcategorySelect',
+  'inventorySubcategorySelect',
+  'overallInventorySubcategorySelect',
+].forEach((id) => {
   document.getElementById(id).addEventListener('change', async () => {
     if (id === 'inventorySubcategorySelect') {
       await displayInventoryProducts();
@@ -502,11 +520,114 @@ async function displayOverallInventory() {
   }
 }
 
+// 単価設定セクションの親カテゴリセレクトボックスの更新
+async function updatePricingParentCategorySelect() {
+  try {
+    const parentCategories = await getParentCategories();
+    const select = document.getElementById('pricingParentCategorySelect');
+    select.innerHTML = '<option value="">親カテゴリを選択</option>';
+    parentCategories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('親カテゴリの取得に失敗しました');
+  }
+}
+
+// 単価設定セクションのサブカテゴリセレクトボックスの更新
+document.getElementById('pricingParentCategorySelect').addEventListener('change', async () => {
+  const parentCategoryId = document.getElementById('pricingParentCategorySelect').value;
+  await updateSubcategorySelect(parentCategoryId, 'pricingSubcategorySelect');
+  // サブカテゴリが変更されたら単価ルールを表示
+  await displayPricingRules();
+});
+
+// 単価ルール追加フォームのイベントリスナー
+document
+  .getElementById('addPricingRuleForm')
+  .addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subcategoryId = document.getElementById('pricingSubcategorySelect').value;
+    const minQuantity = parseFloat(document.getElementById('minQuantity').value);
+    const maxQuantity = parseFloat(document.getElementById('maxQuantity').value);
+    const unitPrice = parseFloat(document.getElementById('unitPrice').value);
+
+    if (minQuantity > maxQuantity) {
+      showError('最小数量は最大数量以下である必要があります');
+      return;
+    }
+
+    try {
+      await addPricingRule(subcategoryId, minQuantity, maxQuantity, unitPrice);
+      alert('単価ルールが追加されました');
+      await displayPricingRules();
+      document.getElementById('addPricingRuleForm').reset();
+    } catch (error) {
+      console.error(error);
+      showError('単価ルールの追加に失敗しました');
+    }
+  });
+
+// 単価ルールの表示
+async function displayPricingRules() {
+  try {
+    const subcategoryId = document.getElementById('pricingSubcategorySelect').value;
+    if (!subcategoryId) {
+      // サブカテゴリが選択されていない場合は何もしない
+      return;
+    }
+    const pricingRules = await getPricingRules(subcategoryId);
+    const pricingRulesList = document.getElementById('pricingRulesList').querySelector('tbody');
+    pricingRulesList.innerHTML = '';
+    for (const rule of pricingRules) {
+      const subcategory = await getSubcategoryById(rule.subcategoryId);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
+        <td>${rule.minQuantity}</td>
+        <td>${rule.maxQuantity}</td>
+        <td>${rule.unitPrice}</td>
+        <td><button class="delete-pricing-rule" data-id="${rule.id}">削除</button></td>
+      `;
+      pricingRulesList.appendChild(row);
+    }
+    // 削除ボタンのイベントリスナー
+    document.querySelectorAll('.delete-pricing-rule').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const ruleId = e.target.dataset.id;
+        if (confirm('本当に削除しますか？')) {
+          try {
+            await deletePricingRule(ruleId);
+            alert('単価ルールが削除されました');
+            await displayPricingRules();
+          } catch (error) {
+            console.error(error);
+            showError('単価ルールの削除に失敗しました');
+          }
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    showError('単価ルールの表示に失敗しました');
+  }
+}
+
+// 単価設定セクションのサブカテゴリセレクトボックスのイベントリスナー
+document.getElementById('pricingSubcategorySelect').addEventListener('change', async () => {
+  await displayPricingRules();
+});
+
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
   await updateAllParentCategorySelects();
+  await updatePricingParentCategorySelect();
   await displayParentCategories();
   await displayProducts();
   await displayOverallInventory();
-  await displayInventoryProducts(); // 在庫管理セクションの初期表示を追加
+  await displayInventoryProducts();
 });
