@@ -51,6 +51,11 @@ export async function deleteParentCategory(id) {
   try {
     const docRef = doc(db, 'parentCategories', id);
     await deleteDoc(docRef);
+    // 対応するサブカテゴリも削除
+    const subcategories = await getSubcategories(id);
+    for (const subcategory of subcategories) {
+      await deleteSubcategory(subcategory.id);
+    }
   } catch (error) {
     console.error('親カテゴリの削除エラー:', error);
     throw error;
