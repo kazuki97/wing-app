@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -40,47 +39,100 @@
       </form>
       <!-- サブカテゴリ追加フォーム -->
       <form id="addSubcategoryForm">
-        <select id="parentCategorySelect" required></select>
+        <select id="parentCategorySelect" class="parentCategorySelect" required></select>
         <input type="text" id="subcategoryName" placeholder="サブカテゴリ名" required />
         <button type="submit">追加</button>
       </form>
       <!-- カテゴリ一覧表示エリア -->
-      <div id="categoryList"></div>
+      <div id="categoryList">
+        <ul id="parentCategoryList"></ul>
+      </div>
     </section>
 
-    <!-- 他のセクションも同様に追加 -->
+    <!-- 商品設定 -->
+    <section id="products">
+      <h1>商品設定</h1>
+      <!-- 商品追加フォーム -->
+      <form id="addProductForm">
+        <select id="productParentCategory" class="parentCategorySelect" required></select>
+        <select id="productSubcategory" required></select>
+        <input type="text" id="productName" placeholder="商品名" required />
+        <input type="number" id="productPrice" placeholder="価格" required />
+        <input type="number" id="productCost" placeholder="原価" required />
+        <input type="text" id="productBarcode" placeholder="バーコード" />
+        <input type="number" id="productSize" placeholder="サイズ（量）" required />
+        <input type="text" id="productUnit" placeholder="単位" required />
+        <button type="submit">追加</button>
+      </form>
+      <!-- 商品フィルタリング -->
+      <div>
+        <select id="filterParentCategory">
+          <option value="">すべての親カテゴリ</option>
+        </select>
+        <select id="filterSubcategory">
+          <option value="">すべてのサブカテゴリ</option>
+        </select>
+      </div>
+      <!-- 商品一覧表示エリア -->
+      <ul id="productList"></ul>
+    </section>
+
+    <!-- 在庫管理 -->
+    <section id="inventory">
+      <h1>在庫管理</h1>
+      <!-- 在庫管理の内容は後ほど追加します -->
+    </section>
+
+    <!-- バーコードスキャン -->
+    <section id="barcode">
+      <h1>バーコードスキャン</h1>
+      <!-- バーコードスキャンの内容は後ほど追加します -->
+    </section>
+
+    <!-- 売上管理 -->
+    <section id="transactions">
+      <h1>売上管理</h1>
+      <!-- 売上管理の内容は後ほど追加します -->
+    </section>
+
+    <!-- 単価設定 -->
+    <section id="pricing">
+      <h1>単価設定</h1>
+      <!-- 単価設定の内容は後ほど追加します -->
+    </section>
 
   </main>
 
   <!-- JavaScript ファイルの読み込み -->
   <script type="module" src="main.js"></script>
-<!-- Firebase SDKのスクリプトタグを追加 -->
+
+  <!-- Firebase SDKのスクリプトタグを追加 -->
   <script type="module">
     // Firebase SDKのインポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-analytics.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
     // 必要なFirebaseプロダクトのSDKを追加
-    // 例: Firestoreを使用する場合
-    // import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+    // 他のFirebaseサービスを使用する場合は、ここにインポートを追加
+    // 例: import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-analytics.js";
 
     // Firebaseの設定情報
     const firebaseConfig = {
-  　 apiKey: "AIzaSyBND1iUtwW9-D3wisl5-wO_-Sfahab0zmA",
+    apiKey: "AIzaSyBND1iUtwW9-D3wisl5-wO_-Sfahab0zmA",
     authDomain: "wing-system.firebaseapp.com",
     projectId: "wing-system",
     storageBucket: "wing-system.appspot.com",
     messagingSenderId: "308022918518",
     appId: "1:308022918518:web:ebdfe5deb82fa32a3f4e57",
     measurementId: "G-806S4XB84E"
-    };
+  };
 
     // Firebaseの初期化
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    // Firestoreの初期化（必要に応じて他のサービスも初期化）
+    const db = getFirestore(app);
+    // 例: const analytics = getAnalytics(app);
+
     // 必要に応じて他のサービスを初期化
-    // const db = getFirestore(app);
   </script>
-</body>
-</html>
 </body>
 </html>
