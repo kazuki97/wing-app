@@ -25,12 +25,12 @@
   <!-- 各セクションのコンテナ -->
   <main>
     <!-- ホーム -->
-    <section id="home">
+    <section id="home" class="content-section">
       <h1>ホーム</h1>
     </section>
 
     <!-- カテゴリ設定 -->
-    <section id="categories">
+    <section id="categories" class="content-section" style="display: none;">
       <h1>カテゴリ設定</h1>
       <!-- 親カテゴリ追加フォーム -->
       <form id="addParentCategoryForm">
@@ -39,7 +39,7 @@
       </form>
       <!-- サブカテゴリ追加フォーム -->
       <form id="addSubcategoryForm">
-        <select id="parentCategorySelect" required></select>
+        <select id="subcategoryParentCategorySelect" required></select>
         <input type="text" id="subcategoryName" placeholder="サブカテゴリ名" required />
         <button type="submit">追加</button>
       </form>
@@ -50,12 +50,12 @@
     </section>
 
     <!-- 商品設定 -->
-    <section id="products">
+    <section id="products" class="content-section" style="display: none;">
       <h1>商品設定</h1>
       <!-- 商品追加フォーム -->
       <form id="addProductForm">
-        <select id="productParentCategory" required></select>
-        <select id="productSubcategory" required></select>
+        <select id="productParentCategorySelect" required></select>
+        <select id="productSubcategorySelect" required></select>
         <input type="text" id="productName" placeholder="商品名" required />
         <input type="number" id="productPrice" placeholder="価格" required />
         <input type="number" id="productCost" placeholder="原価" required />
@@ -66,10 +66,10 @@
       </form>
       <!-- 商品フィルタリング -->
       <div>
-        <select id="filterParentCategory">
+        <select id="filterParentCategorySelect">
           <option value="">すべての親カテゴリ</option>
         </select>
-        <select id="filterSubcategory">
+        <select id="filterSubcategorySelect">
           <option value="">すべてのサブカテゴリ</option>
         </select>
       </div>
@@ -78,11 +78,11 @@
     </section>
 
     <!-- 在庫管理 -->
-    <section id="inventory">
+    <section id="inventory" class="content-section" style="display: none;">
       <h1>在庫管理</h1>
       <!-- 在庫更新フォーム -->
       <form id="updateInventoryForm">
-        <select id="inventoryProduct" required></select>
+        <select id="inventoryProductSelect" required></select>
         <input type="number" id="inventoryQuantity" placeholder="在庫数" required />
         <button type="submit">更新</button>
       </form>
@@ -91,19 +91,19 @@
     </section>
 
     <!-- バーコードスキャン -->
-    <section id="barcode">
+    <section id="barcode" class="content-section" style="display: none;">
       <h1>バーコードスキャン</h1>
       <!-- バーコードスキャンの内容は後ほど追加します -->
     </section>
 
     <!-- 売上管理 -->
-    <section id="transactions">
+    <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
       <!-- 売上管理の内容は後ほど追加します -->
     </section>
 
     <!-- 単価設定 -->
-    <section id="pricing">
+    <section id="pricing" class="content-section" style="display: none;">
       <h1>単価設定</h1>
       <!-- 単価設定の内容は後ほど追加します -->
     </section>
