@@ -1,42 +1,73 @@
 // pricing.js
-import { db } from "./db.js";
+import { db } from './db.js';
 import {
   collection,
   addDoc,
-  getDocs,
   updateDoc,
   deleteDoc,
   doc,
+  getDocs,
   query,
   where,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  orderBy,
+} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
-// 単価の追加
-export async function addPricing(pricingData) {
+// 単価ルールの追加
+export async function addPricingRule(subcategoryId, minQuantity, maxQuantity, unitPrice) {
   try {
-    const docRef = await addDoc(collection(db, "pricing"), pricingData);
+    const docRef = await addDoc(collection(db, 'pricingRules'), {
+      subcategoryId,
+      minQuantity,
+      maxQuantity,
+      unitPrice,
+    });
     return docRef.id;
   } catch (error) {
-    console.error("単価の追加エラー:", error);
+    console.error('単価ルールの追加エラー:', error);
     throw error;
   }
 }
 
-// 単価の取得
-export async function getPricing(parentCategoryId, subcategoryId) {
+// 単価ルールの取得（サブカテゴリごと）
+export async function getPricingRules(subcategoryId) {
   try {
     const q = query(
-      collection(db, "pricing"),
-      where("parentCategoryId", "==", parentCategoryId),
-      where("subcategoryId", "==", subcategoryId)
+      collection(db, 'pricingRules'),
+      where('subcategoryId', '==', subcategoryId),
+      orderBy('minQuantity', 'asc')
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error("単価の取得エラー:", error);
+    console.error('単価ルールの取得エラー:', error);
     throw error;
   }
 }
 
-// 単価の編集、削除関数も同様に実装
+// 単価ルールの削除
+export async function deletePricingRule(id) {
+  try {
+    const docRef = doc(db, 'pricingRules', id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('単価ルールの削除エラー:', error);
+    throw error;
+  }
+}
 
+// 購入数量に応じた単価の取得
+export async function getUnitPrice(subcategoryId, totalQuantity) {
+  try {
+    const pricingRules = await getPricingRules(subcategoryId);
+    for (const rule of pricingRules) {
+      if (totalQuantity >= rule.minQuantity && totalQuantity <= rule.maxQuantity) {
+        return rule.unitPrice;
+      }
+    }
+    // 適用可能なルールがない場合は null を返す
+    return null;
+  } catch (error) {
+    console.error('単価の取得エラー:', error);
+    throw error;
+  }
+}
