@@ -112,3 +112,4 @@ export async function deleteSubcategory(id) {
     throw error;
   }
 }
+
