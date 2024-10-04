@@ -31,10 +31,52 @@
     </section>
 
     <!-- カテゴリ設定 -->
-    <!-- （変更なし、省略） -->
+    <section id="categories" class="content-section" style="display: none;">
+      <h1>カテゴリ設定</h1>
+      <!-- 親カテゴリ追加フォーム -->
+      <form id="addParentCategoryForm">
+        <input type="text" id="parentCategoryName" placeholder="親カテゴリ名" required />
+        <button type="submit">追加</button>
+      </form>
+      <!-- サブカテゴリ追加フォーム -->
+      <form id="addSubcategoryForm">
+        <select id="subcategoryParentCategorySelect" required></select>
+        <input type="text" id="subcategoryName" placeholder="サブカテゴリ名" required />
+        <button type="submit">追加</button>
+      </form>
+      <!-- カテゴリ一覧表示エリア -->
+      <div id="categoryList">
+        <ul id="parentCategoryList"></ul>
+      </div>
+    </section>
 
     <!-- 商品設定 -->
-    <!-- （変更なし、省略） -->
+    <section id="products" class="content-section" style="display: none;">
+      <h1>商品設定</h1>
+      <!-- 商品追加フォーム -->
+      <form id="addProductForm">
+        <select id="productParentCategorySelect" required></select>
+        <select id="productSubcategorySelect" required></select>
+        <input type="text" id="productName" placeholder="商品名" required />
+        <input type="number" id="productPrice" placeholder="価格" required />
+        <input type="number" id="productCost" placeholder="原価" required />
+        <input type="text" id="productBarcode" placeholder="バーコード" />
+        <input type="number" id="productSize" placeholder="サイズ（量）" required />
+        <input type="text" id="productUnit" placeholder="単位" required />
+        <button type="submit">追加</button>
+      </form>
+      <!-- 商品フィルタリング -->
+      <div>
+        <select id="filterParentCategorySelect">
+          <option value="">すべての親カテゴリ</option>
+        </select>
+        <select id="filterSubcategorySelect">
+          <option value="">すべてのサブカテゴリ</option>
+        </select>
+      </div>
+      <!-- 商品一覧表示エリア -->
+      <ul id="productList"></ul>
+    </section>
 
     <!-- 在庫管理 -->
     <section id="inventory" class="content-section" style="display: none;">
@@ -91,13 +133,22 @@
     </section>
 
     <!-- バーコードスキャン -->
-    <!-- （変更なし、省略） -->
+    <section id="barcode" class="content-section" style="display: none;">
+      <h1>バーコードスキャン</h1>
+      <!-- バーコードスキャンの内容は後ほど追加します -->
+    </section>
 
     <!-- 売上管理 -->
-    <!-- （変更なし、省略） -->
+    <section id="transactions" class="content-section" style="display: none;">
+      <h1>売上管理</h1>
+      <!-- 売上管理の内容は後ほど追加します -->
+    </section>
 
     <!-- 単価設定 -->
-    <!-- （変更なし、省略） -->
+    <section id="pricing" class="content-section" style="display: none;">
+      <h1>単価設定</h1>
+      <!-- 単価設定の内容は後ほど追加します -->
+    </section>
 
   </main>
 
