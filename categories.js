@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
@@ -85,6 +86,23 @@ export async function getSubcategories(parentCategoryId) {
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('サブカテゴリの取得エラー:', error);
+    throw error;
+  }
+}
+
+// サブカテゴリIDからサブカテゴリ情報を取得
+export async function getSubcategoryById(subcategoryId) {
+  try {
+    const docRef = doc(db, 'subcategories', subcategoryId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      console.error('サブカテゴリが見つかりません');
+      return null;
+    }
   } catch (error) {
     console.error('サブカテゴリの取得エラー:', error);
     throw error;
