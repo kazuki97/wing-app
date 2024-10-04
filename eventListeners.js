@@ -19,9 +19,9 @@ import {
 } from './products.js';
 
 import {
-  updateInventory,
-  getInventory,
-  deleteInventory,
+  updateOverallInventory,
+  getOverallInventory,
+  getAllOverallInventories,
 } from './inventoryManagement.js';
 
 // エラーメッセージ表示関数
@@ -63,6 +63,7 @@ document
       await addSubcategory(name, parentCategoryId);
       document.getElementById('subcategoryName').value = '';
       await displayParentCategories();
+      await updateAllParentCategorySelects();
       alert('サブカテゴリが追加されました');
     } catch (error) {
       console.error(error);
@@ -80,6 +81,7 @@ async function updateAllParentCategorySelects() {
       'productParentCategorySelect',
       'filterParentCategorySelect',
       'inventoryParentCategorySelect',
+      'overallInventoryParentCategorySelect',
     ];
     selectIds.forEach((id) => {
       const select = document.getElementById(id);
@@ -96,97 +98,35 @@ async function updateAllParentCategorySelects() {
         select.value = selectedValue;
       }
     });
-    // 商品追加フォームのサブカテゴリセレクトボックスを更新
-    const productParentCategoryId = document.getElementById('productParentCategorySelect').value;
-    await updateProductSubcategorySelect(productParentCategoryId);
-
-    // 商品フィルタリング用のサブカテゴリセレクトボックスを更新
-    const filterParentCategoryId = document.getElementById('filterParentCategorySelect').value;
-    await updateFilterSubcategorySelect(filterParentCategoryId);
-
-    // 在庫管理セクションのサブカテゴリセレクトボックスを更新
-    const inventoryParentCategoryId = document.getElementById('inventoryParentCategorySelect').value;
-    await updateInventorySubcategorySelect(inventoryParentCategoryId);
+    // サブカテゴリセレクトボックスの更新
+    await updateSubcategorySelects();
   } catch (error) {
     console.error(error);
     showError('親カテゴリの取得に失敗しました');
   }
 }
 
-// 商品追加フォームのサブカテゴリセレクトボックスの更新
-async function updateProductSubcategorySelect(parentCategoryId) {
-  try {
-    const subcategories = await getSubcategories(parentCategoryId);
-    const select = document.getElementById('productSubcategorySelect');
-    select.innerHTML = '';
-    subcategories.forEach((subcategory) => {
-      const option = document.createElement('option');
-      option.value = subcategory.id;
-      option.textContent = subcategory.name;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error(error);
-    showError('サブカテゴリの取得に失敗しました');
+// サブカテゴリセレクトボックスの更新
+async function updateSubcategorySelects() {
+  const parentCategorySelectIds = {
+    productParentCategorySelect: 'productSubcategorySelect',
+    filterParentCategorySelect: 'filterSubcategorySelect',
+    inventoryParentCategorySelect: 'inventorySubcategorySelect',
+    overallInventoryParentCategorySelect: 'overallInventorySubcategorySelect',
+  };
+
+  for (const parentSelectId in parentCategorySelectIds) {
+    const parentCategoryId = document.getElementById(parentSelectId).value;
+    const subcategorySelectId = parentCategorySelectIds[parentSelectId];
+    await updateSubcategorySelect(parentCategoryId, subcategorySelectId);
   }
 }
 
-// 商品追加フォームの親カテゴリセレクトボックスのイベントリスナー
-document
-  .getElementById('productParentCategorySelect')
-  .addEventListener('change', async () => {
-    const parentCategoryId = document.getElementById('productParentCategorySelect').value;
-    await updateProductSubcategorySelect(parentCategoryId);
-  });
-
-// 商品フィルタリング用のサブカテゴリセレクトボックスの更新
-async function updateFilterSubcategorySelect(parentCategoryId) {
+// サブカテゴリセレクトボックスの個別更新関数
+async function updateSubcategorySelect(parentCategoryId, subcategorySelectId) {
   try {
     const subcategories = await getSubcategories(parentCategoryId);
-    const select = document.getElementById('filterSubcategorySelect');
-    select.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
-    subcategories.forEach((subcategory) => {
-      const option = document.createElement('option');
-      option.value = subcategory.id;
-      option.textContent = subcategory.name;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error(error);
-    showError('サブカテゴリの取得に失敗しました');
-  }
-}
-
-// 商品フィルタリング用の親カテゴリセレクトボックスのイベントリスナー
-document
-  .getElementById('filterParentCategorySelect')
-  .addEventListener('change', async () => {
-    const parentCategoryId = document.getElementById('filterParentCategorySelect').value;
-    await updateFilterSubcategorySelect(parentCategoryId);
-    await displayProducts();
-  });
-
-// 商品フィルタリング用のサブカテゴリセレクトボックスのイベントリスナー
-document
-  .getElementById('filterSubcategorySelect')
-  .addEventListener('change', async () => {
-    await displayProducts();
-  });
-
-// 在庫管理セクションの親カテゴリセレクトボックスのイベントリスナー
-document
-  .getElementById('inventoryParentCategorySelect')
-  .addEventListener('change', async () => {
-    const parentCategoryId = document.getElementById('inventoryParentCategorySelect').value;
-    await updateInventorySubcategorySelect(parentCategoryId);
-    await displayInventoryProducts();
-  });
-
-// 在庫管理セクションのサブカテゴリセレクトボックスの更新関数
-async function updateInventorySubcategorySelect(parentCategoryId) {
-  try {
-    const subcategories = await getSubcategories(parentCategoryId);
-    const select = document.getElementById('inventorySubcategorySelect');
+    const select = document.getElementById(subcategorySelectId);
     select.innerHTML = '<option value="">サブカテゴリを選択</option>';
     subcategories.forEach((subcategory) => {
       const option = document.createElement('option');
@@ -200,12 +140,19 @@ async function updateInventorySubcategorySelect(parentCategoryId) {
   }
 }
 
-// 在庫管理セクションのサブカテゴリセレクトボックスのイベントリスナー
-document
-  .getElementById('inventorySubcategorySelect')
-  .addEventListener('change', async () => {
-    await displayInventoryProducts();
+// 各親カテゴリセレクトボックスのイベントリスナー
+['productParentCategorySelect', 'filterParentCategorySelect', 'inventoryParentCategorySelect', 'overallInventoryParentCategorySelect'].forEach((id) => {
+  document.getElementById(id).addEventListener('change', async () => {
+    const parentCategoryId = document.getElementById(id).value;
+    const subcategorySelectId = {
+      productParentCategorySelect: 'productSubcategorySelect',
+      filterParentCategorySelect: 'filterSubcategorySelect',
+      inventoryParentCategorySelect: 'inventorySubcategorySelect',
+      overallInventoryParentCategorySelect: 'overallInventorySubcategorySelect',
+    }[id];
+    await updateSubcategorySelect(parentCategoryId, subcategorySelectId);
   });
+});
 
 // 親カテゴリ一覧の表示
 async function displayParentCategories() {
@@ -271,7 +218,7 @@ async function displaySubcategories(parentCategoryId) {
   try {
     const subcategories = await getSubcategories(parentCategoryId);
     const subcategoryList = document.createElement('ul');
-    subcategories.forEach((subcategory) => {
+    for (const subcategory of subcategories) {
       const listItem = document.createElement('li');
       listItem.textContent = subcategory.name;
       // 編集ボタン
@@ -312,7 +259,7 @@ async function displaySubcategories(parentCategoryId) {
       listItem.appendChild(editButton);
       listItem.appendChild(deleteButton);
       subcategoryList.appendChild(listItem);
-    });
+    }
     return subcategoryList;
   } catch (error) {
     console.error(error);
@@ -334,8 +281,8 @@ document
       price: parseFloat(document.getElementById('productPrice').value),
       cost: parseFloat(document.getElementById('productCost').value),
       barcode: document.getElementById('productBarcode').value,
+      quantity: parseInt(document.getElementById('productQuantity').value, 10),
       size: parseFloat(document.getElementById('productSize').value),
-      unit: document.getElementById('productUnit').value,
     };
     try {
       await addProduct(productData);
@@ -361,12 +308,11 @@ async function displayProducts() {
       const listItem = document.createElement('li');
       listItem.textContent = `
         商品名: ${product.name},
-        在庫数: ${product.quantity || 0},
+        数量: ${product.quantity || 0},
         価格: ${product.price},
         原価: ${product.cost},
         バーコード: ${product.barcode},
-        サイズ: ${product.size},
-        単位: ${product.unit}
+        サイズ: ${product.size}
       `;
       // 編集ボタン
       const editButton = document.createElement('button');
@@ -383,8 +329,6 @@ async function displayProducts() {
             await deleteProduct(product.id);
             alert('商品が削除されました');
             await displayProducts();
-            // 在庫も削除
-            await deleteInventory(product.id);
           } catch (error) {
             console.error(error);
             showError('商品の削除に失敗しました');
@@ -410,8 +354,8 @@ function editProduct(product) {
     <input type="number" name="price" value="${product.price}" required />
     <input type="number" name="cost" value="${product.cost}" required />
     <input type="text" name="barcode" value="${product.barcode}" />
+    <input type="number" name="quantity" value="${product.quantity}" required />
     <input type="number" name="size" value="${product.size}" required />
-    <input type="text" name="unit" value="${product.unit}" required />
     <button type="submit">更新</button>
     <button type="button" id="cancelEdit">キャンセル</button>
   `;
@@ -423,8 +367,8 @@ function editProduct(product) {
       price: parseFloat(editForm.price.value),
       cost: parseFloat(editForm.cost.value),
       barcode: editForm.barcode.value,
+      quantity: parseInt(editForm.quantity.value, 10),
       size: parseFloat(editForm.size.value),
-      unit: editForm.unit.value,
     };
     try {
       await updateProduct(product.id, updatedData);
@@ -446,72 +390,58 @@ function editProduct(product) {
   productList.appendChild(editForm);
 }
 
-// 在庫管理セクションの商品一覧表示関数
-async function displayInventoryProducts() {
-  try {
-    const parentCategoryId = document.getElementById('inventoryParentCategorySelect').value;
-    const subcategoryId = document.getElementById('inventorySubcategorySelect').value;
-    const products = await getProducts(parentCategoryId, subcategoryId);
-    const inventoryList = document.getElementById('inventoryList').querySelector('tbody');
-    inventoryList.innerHTML = '';
-    for (const product of products) {
-      const inventory = await getInventory(product.id);
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${product.name}</td>
-        <td><input type="number" value="${inventory.quantity || 0}" data-product-id="${product.id}" class="inventory-quantity" /></td>
-        <td>${product.price}</td>
-        <td>${product.cost}</td>
-        <td>${product.barcode}</td>
-        <td>${product.size}</td>
-        <td>${product.unit}</td>
-        <td><button class="update-inventory">更新</button></td>
-      `;
-      inventoryList.appendChild(row);
+// 全体在庫更新フォームのイベントリスナー
+document
+  .getElementById('updateOverallInventoryForm')
+  .addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subcategoryId = document.getElementById('overallInventorySubcategorySelect').value;
+    const quantity = parseInt(document.getElementById('overallInventoryQuantity').value, 10);
+    try {
+      await updateOverallInventory(subcategoryId, quantity);
+      alert('全体在庫が更新されました');
+      await displayOverallInventory();
+    } catch (error) {
+      console.error(error);
+      showError('全体在庫の更新に失敗しました');
     }
-    // 在庫数更新ボタンのイベントリスナー
-    document.querySelectorAll('.update-inventory').forEach((button) => {
-      button.addEventListener('click', async (e) => {
-        const row = e.target.closest('tr');
-        const productId = row.querySelector('.inventory-quantity').dataset.productId;
-        const quantity = parseInt(row.querySelector('.inventory-quantity').value, 10);
-        try {
-          await updateInventory(productId, quantity);
-          alert('在庫数が更新されました');
-        } catch (error) {
-          console.error(error);
-          showError('在庫数の更新に失敗しました');
-        }
-      });
-    });
-  } catch (error) {
-    console.error(error);
-    showError('在庫情報の表示に失敗しました');
-  }
-}
+  });
 
-// 全体在庫セクションの表示関数
+// 全体在庫の表示
 async function displayOverallInventory() {
   try {
-    const products = await getAllProducts();
+    const overallInventories = await getAllOverallInventories();
     const overallInventoryList = document.getElementById('overallInventoryList').querySelector('tbody');
     overallInventoryList.innerHTML = '';
-    for (const product of products) {
+    for (const inventory of overallInventories) {
+      const subcategory = await getSubcategoryById(inventory.id);
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${product.name}</td>
-        <td>${product.quantity || 0}</td>
-        <td>${product.price}</td>
-        <td>${product.cost}</td>
-        <td>${product.barcode}</td>
-        <td>${product.size}</td>
-        <td>${product.unit}</td>
+        <td>${subcategory.name}</td>
+        <td>${inventory.quantity || 0}</td>
       `;
       overallInventoryList.appendChild(row);
     }
   } catch (error) {
     console.error(error);
     showError('全体在庫の表示に失敗しました');
+  }
+}
+
+// サブカテゴリIDからサブカテゴリ情報を取得
+async function getSubcategoryById(subcategoryId) {
+  try {
+    const docRef = doc(db, 'subcategories', subcategoryId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      console.error('サブカテゴリが見つかりません');
+      return null;
+    }
+  } catch (error) {
+    console.error('サブカテゴリの取得エラー:', error);
+    throw error;
   }
 }
 
