@@ -61,8 +61,8 @@
         <input type="number" id="productPrice" placeholder="価格" required />
         <input type="number" id="productCost" placeholder="原価" required />
         <input type="text" id="productBarcode" placeholder="バーコード" />
-        <input type="number" id="productSize" placeholder="サイズ（量）" required />
-        <input type="text" id="productUnit" placeholder="単位" required />
+        <input type="number" id="productQuantity" placeholder="数量" required />
+        <input type="number" id="productSize" placeholder="サイズ" required />
         <button type="submit">追加</button>
       </form>
       <!-- 商品フィルタリング -->
@@ -95,12 +95,11 @@
         <thead>
           <tr>
             <th>商品名</th>
-            <th>在庫数</th>
+            <th>数量</th>
             <th>価格</th>
             <th>原価</th>
             <th>バーコード</th>
             <th>サイズ</th>
-            <th>単位</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -113,21 +112,27 @@
     <!-- 全体在庫 -->
     <section id="overall-inventory" class="content-section" style="display: none;">
       <h1>全体在庫</h1>
-      <!-- 全在庫一覧表示エリア -->
+      <!-- 全体在庫更新フォーム -->
+      <form id="updateOverallInventoryForm">
+        <select id="overallInventoryParentCategorySelect" required>
+          <option value="">親カテゴリを選択</option>
+        </select>
+        <select id="overallInventorySubcategorySelect" required>
+          <option value="">サブカテゴリを選択</option>
+        </select>
+        <input type="number" id="overallInventoryQuantity" placeholder="在庫数" required />
+        <button type="submit">更新</button>
+      </form>
+      <!-- 全体在庫一覧表示エリア -->
       <table id="overallInventoryList">
         <thead>
           <tr>
-            <th>商品名</th>
+            <th>サブカテゴリ名</th>
             <th>在庫数</th>
-            <th>価格</th>
-            <th>原価</th>
-            <th>バーコード</th>
-            <th>サイズ</th>
-            <th>単位</th>
           </tr>
         </thead>
         <tbody>
-          <!-- 全在庫情報がここに表示されます -->
+          <!-- 全体在庫情報がここに表示されます -->
         </tbody>
       </table>
     </section>
