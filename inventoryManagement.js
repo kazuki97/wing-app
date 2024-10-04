@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 在庫の追加または更新
@@ -46,6 +47,17 @@ export async function getAllInventories() {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('在庫一覧の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 在庫の削除
+export async function deleteInventory(productId) {
+  try {
+    const docRef = doc(db, 'inventory', productId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('在庫の削除エラー:', error);
     throw error;
   }
 }
