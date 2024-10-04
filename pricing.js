@@ -39,3 +39,4 @@ export async function getPricing(parentCategoryId, subcategoryId) {
 }
 
 // 単価の編集、削除関数も同様に実装
+
