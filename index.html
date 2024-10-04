@@ -140,13 +140,68 @@
     <!-- バーコードスキャン -->
     <section id="barcode" class="content-section" style="display: none;">
       <h1>バーコードスキャン</h1>
-      <!-- バーコードスキャンの内容は後ほど追加します -->
+      <!-- バーコード入力フィールドと追加ボタン -->
+      <div id="barcodeScanner">
+        <input type="text" id="barcodeInput" placeholder="バーコードをスキャンまたは入力" autofocus />
+        <button id="addBarcodeButton">追加</button>
+      </div>
+      <!-- 販売カート -->
+      <table id="salesCart">
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>数量</th>
+            <th>単価</th>
+            <th>小計</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- カート内の商品がここに表示されます -->
+        </tbody>
+      </table>
+      <!-- 合計金額表示と販売完了ボタン -->
+      <div id="totalAmount">合計金額: ¥0</div>
+      <button id="completeSaleButton">販売完了</button>
     </section>
 
     <!-- 売上管理 -->
     <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
-      <!-- 売上管理の内容は後ほど追加します -->
+      <!-- 売上データの表示エリア -->
+      <table id="transactionList">
+        <thead>
+          <tr>
+            <th>取引ID</th>
+            <th>日時</th>
+            <th>合計金額</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 売上データがここに表示されます -->
+        </tbody>
+      </table>
+      <!-- 取引の詳細表示エリア -->
+      <div id="transactionDetails" style="display: none;">
+        <h2>取引詳細</h2>
+        <p>取引ID: <span id="detailTransactionId"></span></p>
+        <p>日時: <span id="detailTimestamp"></span></p>
+        <table>
+          <thead>
+            <tr>
+              <th>商品名</th>
+              <th>数量</th>
+              <th>単価</th>
+              <th>小計</th>
+            </tr>
+          </thead>
+          <tbody id="detailProductList">
+            <!-- 商品詳細がここに表示されます -->
+          </tbody>
+        </table>
+        <button id="closeTransactionDetails">閉じる</button>
+      </div>
     </section>
 
     <!-- 単価設定 -->
