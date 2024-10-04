@@ -8,12 +8,14 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
+  query,
+  where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
-// 在庫の追加または更新
-export async function updateInventory(productId, quantity) {
+// 全体在庫の更新（サブカテゴリごと）
+export async function updateOverallInventory(subcategoryId, quantity) {
   try {
-    const docRef = doc(db, 'inventory', productId);
+    const docRef = doc(db, 'overallInventory', subcategoryId);
     await setDoc(
       docRef,
       {
@@ -23,15 +25,15 @@ export async function updateInventory(productId, quantity) {
       { merge: true }
     );
   } catch (error) {
-    console.error('在庫の更新エラー:', error);
+    console.error('全体在庫の更新エラー:', error);
     throw error;
   }
 }
 
-// 在庫の取得
-export async function getInventory(productId) {
+// 全体在庫の取得（サブカテゴリごと）
+export async function getOverallInventory(subcategoryId) {
   try {
-    const docRef = doc(db, 'inventory', productId);
+    const docRef = doc(db, 'overallInventory', subcategoryId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       return { id: docSnap.id, ...docSnap.data() };
@@ -39,29 +41,25 @@ export async function getInventory(productId) {
       return { quantity: 0 };
     }
   } catch (error) {
-    console.error('在庫の取得エラー:', error);
+    console.error('全体在庫の取得エラー:', error);
     throw error;
   }
 }
 
-// 全商品の在庫一覧を取得
-export async function getAllInventories() {
+// 全体在庫の一覧取得
+export async function getAllOverallInventories() {
   try {
-    const snapshot = await getDocs(collection(db, 'inventory'));
+    const snapshot = await getDocs(collection(db, 'overallInventory'));
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error('在庫一覧の取得エラー:', error);
+    console.error('全体在庫一覧の取得エラー:', error);
     throw error;
   }
 }
 
-// 在庫の削除
-export async function deleteInventory(productId) {
-  try {
-    const docRef = doc(db, 'inventory', productId);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error('在庫の削除エラー:', error);
-    throw error;
-  }
-}
+// 必要なエクスポートを追加
+export default {
+  updateOverallInventory,
+  getOverallInventory,
+  getAllOverallInventories,
+};
