@@ -27,12 +27,11 @@ export async function addProduct(productData) {
 export async function getProducts(parentCategoryId, subcategoryId) {
   try {
     let q = collection(db, 'products');
-    if (parentCategoryId && subcategoryId) {
-      q = query(
-        q,
-        where('parentCategoryId', '==', parentCategoryId),
-        where('subcategoryId', '==', subcategoryId)
-      );
+    if (parentCategoryId) {
+      q = query(q, where('parentCategoryId', '==', parentCategoryId));
+    }
+    if (subcategoryId) {
+      q = query(q, where('subcategoryId', '==', subcategoryId));
     }
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
