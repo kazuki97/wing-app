@@ -34,7 +34,7 @@ export async function getInventory(productId) {
     const docRef = doc(db, 'inventory', productId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return docSnap.data();
+      return { id: docSnap.id, ...docSnap.data() };
     } else {
       return { quantity: 0 };
     }
