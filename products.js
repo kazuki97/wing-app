@@ -62,6 +62,24 @@ export async function getProductById(productId) {
   }
 }
 
+// バーコードから商品を取得
+export async function getProductByBarcode(barcode) {
+  try {
+    const q = query(collection(db, 'products'), where('barcode', '==', barcode));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      console.error('バーコードに対応する商品が見つかりません');
+      return null;
+    }
+  } catch (error) {
+    console.error('商品の取得エラー:', error);
+    throw error;
+  }
+}
+
 // すべての商品の取得
 export async function getAllProducts() {
   try {
