@@ -24,6 +24,9 @@ import {
   getAllOverallInventories,
 } from './inventoryManagement.js';
 
+import { getDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { db } from './db.js';
+
 // エラーメッセージ表示関数
 function showError(message) {
   const errorDiv = document.getElementById('error-message');
