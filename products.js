@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
@@ -37,6 +38,34 @@ export async function getProducts(parentCategoryId, subcategoryId) {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('商品の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 商品IDから商品情報を取得
+export async function getProductById(productId) {
+  try {
+    const docRef = doc(db, 'products', productId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      console.error('商品が見つかりません');
+      return null;
+    }
+  } catch (error) {
+    console.error('商品の取得エラー:', error);
+    throw error;
+  }
+}
+
+// すべての商品の取得
+export async function getAllProducts() {
+  try {
+    const snapshot = await getDocs(collection(db, 'products'));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('すべての商品の取得エラー:', error);
     throw error;
   }
 }
