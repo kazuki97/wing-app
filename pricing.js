@@ -9,7 +9,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 単価ルールの追加
@@ -33,11 +32,14 @@ export async function getPricingRules(subcategoryId) {
   try {
     const q = query(
       collection(db, 'pricingRules'),
-      where('subcategoryId', '==', subcategoryId),
-      orderBy('minQuantity', 'asc')
+      where('subcategoryId', '==', subcategoryId)
+      // orderBy('minQuantity', 'asc') は削除しました
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // 手動でソート
+    const pricingRules = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    pricingRules.sort((a, b) => a.minQuantity - b.minQuantity);
+    return pricingRules;
   } catch (error) {
     console.error('単価ルールの取得エラー:', error);
     throw error;
