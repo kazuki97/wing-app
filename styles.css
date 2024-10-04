@@ -1,5 +1,7 @@
 /* styles.css */
 
+/* 共通スタイルは既存のコード */
+
 body {
   font-family: 'Noto Sans JP', sans-serif;
   margin: 0;
@@ -101,20 +103,42 @@ table th {
   text-align: left;
 }
 
-/* 単価設定テーブルのスタイル */
-#pricingRulesList {
-  width: 100%;
-  border-collapse: collapse;
+/* バーコードスキャンセクションのスタイル */
+#barcodeScanner {
   margin-bottom: 20px;
 }
 
-#pricingRulesList th,
-#pricingRulesList td {
-  border: 1px solid #ddd;
-  padding: 8px;
+#barcodeScanner input {
+  width: 300px;
+  padding: 5px;
 }
 
-#pricingRulesList th {
-  background-color: #f2f2f2;
-  text-align: left;
+#barcodeScanner button {
+  padding: 5px 10px;
+}
+
+/* 合計金額のスタイル */
+#totalAmount {
+  font-size: 1.5em;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* 売上管理セクションのスタイル */
+#transactionDetails {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+}
+
+#transactionDetails h2 {
+  margin-top: 0;
+}
+
+#transactionDetails table {
+  margin-top: 10px;
+}
+
+#transactionDetails button {
+  margin-top: 10px;
 }
