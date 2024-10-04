@@ -6,6 +6,7 @@ import {
   deleteParentCategory,
   addSubcategory,
   getSubcategories,
+  getSubcategoryById,
   updateSubcategory,
   deleteSubcategory,
 } from './categories.js';
@@ -154,6 +155,23 @@ async function updateSubcategorySelect(parentCategoryId, subcategorySelectId) {
       overallInventoryParentCategorySelect: 'overallInventorySubcategorySelect',
     }[id];
     await updateSubcategorySelect(parentCategoryId, subcategorySelectId);
+    // 追加: カテゴリ変更時に関連する商品や在庫情報を更新
+    if (id === 'inventoryParentCategorySelect') {
+      await displayInventoryProducts();
+    } else if (id === 'filterParentCategorySelect') {
+      await displayProducts();
+    }
+  });
+});
+
+// サブカテゴリセレクトボックスのイベントリスナー
+['productSubcategorySelect', 'filterSubcategorySelect', 'inventorySubcategorySelect', 'overallInventorySubcategorySelect'].forEach((id) => {
+  document.getElementById(id).addEventListener('change', async () => {
+    if (id === 'inventorySubcategorySelect') {
+      await displayInventoryProducts();
+    } else if (id === 'filterSubcategorySelect') {
+      await displayProducts();
+    }
   });
 });
 
@@ -393,6 +411,59 @@ function editProduct(product) {
   productList.appendChild(editForm);
 }
 
+// 在庫管理セクションの商品一覧表示関数
+async function displayInventoryProducts() {
+  try {
+    const parentCategoryId = document.getElementById('inventoryParentCategorySelect').value;
+    const subcategoryId = document.getElementById('inventorySubcategorySelect').value;
+    const products = await getProducts(parentCategoryId, subcategoryId);
+    const inventoryList = document.getElementById('inventoryList').querySelector('tbody');
+    inventoryList.innerHTML = '';
+    for (const product of products) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${product.name}</td>
+        <td><input type="number" value="${product.quantity || 0}" data-product-id="${product.id}" class="inventory-quantity" /></td>
+        <td>${product.price}</td>
+        <td>${product.cost}</td>
+        <td>${product.barcode}</td>
+        <td>${product.size}</td>
+        <td><button class="update-inventory">更新</button></td>
+      `;
+      inventoryList.appendChild(row);
+    }
+    // 在庫数更新ボタンのイベントリスナー
+    document.querySelectorAll('.update-inventory').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const productId = row.querySelector('.inventory-quantity').dataset.productId;
+        const quantity = parseInt(row.querySelector('.inventory-quantity').value, 10);
+        try {
+          await updateProductQuantity(productId, quantity);
+          alert('在庫数が更新されました');
+          await displayInventoryProducts();
+        } catch (error) {
+          console.error(error);
+          showError('在庫数の更新に失敗しました');
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    showError('在庫情報の表示に失敗しました');
+  }
+}
+
+// 商品の在庫数（数量）を更新する関数
+async function updateProductQuantity(productId, quantity) {
+  try {
+    await updateProduct(productId, { quantity: quantity });
+  } catch (error) {
+    console.error('在庫数の更新エラー:', error);
+    throw error;
+  }
+}
+
 // 全体在庫更新フォームのイベントリスナー
 document
   .getElementById('updateOverallInventoryForm')
@@ -420,7 +491,7 @@ async function displayOverallInventory() {
       const subcategory = await getSubcategoryById(inventory.id);
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${subcategory.name}</td>
+        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td>${inventory.quantity || 0}</td>
       `;
       overallInventoryList.appendChild(row);
@@ -431,27 +502,11 @@ async function displayOverallInventory() {
   }
 }
 
-// サブカテゴリIDからサブカテゴリ情報を取得
-async function getSubcategoryById(subcategoryId) {
-  try {
-    const docRef = doc(db, 'subcategories', subcategoryId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
-    } else {
-      console.error('サブカテゴリが見つかりません');
-      return null;
-    }
-  } catch (error) {
-    console.error('サブカテゴリの取得エラー:', error);
-    throw error;
-  }
-}
-
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
   await updateAllParentCategorySelects();
   await displayParentCategories();
   await displayProducts();
   await displayOverallInventory();
+  await displayInventoryProducts(); // 在庫管理セクションの初期表示を追加
 });
