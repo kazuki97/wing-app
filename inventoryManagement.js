@@ -14,10 +14,14 @@ import {
 export async function updateInventory(productId, quantity) {
   try {
     const docRef = doc(db, 'inventory', productId);
-    await setDoc(docRef, {
-      quantity: quantity,
-      updatedAt: new Date(),
-    }, { merge: true });
+    await setDoc(
+      docRef,
+      {
+        quantity: quantity,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     console.error('在庫の更新エラー:', error);
     throw error;
