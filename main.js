@@ -1,5 +1,4 @@
 // main.js
-// 必要なモジュールをインポート
 import './eventListeners.js';
 
 // スムーズスクロールとセクションの表示制御
