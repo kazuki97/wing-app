@@ -72,3 +72,13 @@ ul li {
 ul li button {
   margin-left: 5px;
 }
+
+/* コンテンツセクションのスタイル */
+.content-section {
+  display: none;
+}
+
+/* ホームセクションはデフォルトで表示 */
+#home {
+  display: block;
+}
