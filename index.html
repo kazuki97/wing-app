@@ -152,7 +152,34 @@
     <!-- 単価設定 -->
     <section id="pricing" class="content-section" style="display: none;">
       <h1>単価設定</h1>
-      <!-- 単価設定の内容は後ほど追加します -->
+      <!-- 単価ルール追加フォーム -->
+      <form id="addPricingRuleForm">
+        <select id="pricingParentCategorySelect" required>
+          <option value="">親カテゴリを選択</option>
+        </select>
+        <select id="pricingSubcategorySelect" required>
+          <option value="">サブカテゴリを選択</option>
+        </select>
+        <input type="number" id="minQuantity" placeholder="最小数量" required step="any" min="0" />
+        <input type="number" id="maxQuantity" placeholder="最大数量" required step="any" min="0" />
+        <input type="number" id="unitPrice" placeholder="単価" required step="any" min="0" />
+        <button type="submit">追加</button>
+      </form>
+      <!-- 単価ルール一覧表示エリア -->
+      <table id="pricingRulesList">
+        <thead>
+          <tr>
+            <th>サブカテゴリ名</th>
+            <th>最小数量</th>
+            <th>最大数量</th>
+            <th>単価</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 単価ルール情報がここに表示されます -->
+        </tbody>
+      </table>
     </section>
 
   </main>
