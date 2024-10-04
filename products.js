@@ -11,11 +11,14 @@ import {
   query,
   where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { updateInventory, getInventory } from './inventoryManagement.js';
 
 // 商品の追加
 export async function addProduct(productData) {
   try {
     const docRef = await addDoc(collection(db, 'products'), productData);
+    // 初期在庫数を0で設定
+    await updateInventory(docRef.id, 0);
     return docRef.id;
   } catch (error) {
     console.error('商品の追加エラー:', error);
@@ -34,7 +37,14 @@ export async function getProducts(parentCategoryId, subcategoryId) {
       q = query(q, where('subcategoryId', '==', subcategoryId));
     }
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const products = [];
+    for (const docSnap of snapshot.docs) {
+      const product = { id: docSnap.id, ...docSnap.data() };
+      const inventory = await getInventory(product.id);
+      product.quantity = inventory.quantity || 0;
+      products.push(product);
+    }
+    return products;
   } catch (error) {
     console.error('商品の取得エラー:', error);
     throw error;
@@ -62,7 +72,14 @@ export async function getProductById(productId) {
 export async function getAllProducts() {
   try {
     const snapshot = await getDocs(collection(db, 'products'));
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const products = [];
+    for (const docSnap of snapshot.docs) {
+      const product = { id: docSnap.id, ...docSnap.data() };
+      const inventory = await getInventory(product.id);
+      product.quantity = inventory.quantity || 0;
+      products.push(product);
+    }
+    return products;
   } catch (error) {
     console.error('すべての商品の取得エラー:', error);
     throw error;
