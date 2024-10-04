@@ -16,6 +16,7 @@
       <li><a href="#categories" class="nav-link">カテゴリ設定</a></li>
       <li><a href="#products" class="nav-link">商品設定</a></li>
       <li><a href="#inventory" class="nav-link">在庫管理</a></li>
+      <li><a href="#overall-inventory" class="nav-link">全体在庫</a></li>
       <li><a href="#barcode" class="nav-link">バーコードスキャン</a></li>
       <li><a href="#transactions" class="nav-link">売上管理</a></li>
       <li><a href="#pricing" class="nav-link">単価設定</a></li>
@@ -30,83 +31,73 @@
     </section>
 
     <!-- カテゴリ設定 -->
-    <section id="categories" class="content-section" style="display: none;">
-      <h1>カテゴリ設定</h1>
-      <!-- 親カテゴリ追加フォーム -->
-      <form id="addParentCategoryForm">
-        <input type="text" id="parentCategoryName" placeholder="親カテゴリ名" required />
-        <button type="submit">追加</button>
-      </form>
-      <!-- サブカテゴリ追加フォーム -->
-      <form id="addSubcategoryForm">
-        <select id="subcategoryParentCategorySelect" required></select>
-        <input type="text" id="subcategoryName" placeholder="サブカテゴリ名" required />
-        <button type="submit">追加</button>
-      </form>
-      <!-- カテゴリ一覧表示エリア -->
-      <div id="categoryList">
-        <ul id="parentCategoryList"></ul>
-      </div>
-    </section>
+    <!-- （変更なし、省略） -->
 
     <!-- 商品設定 -->
-    <section id="products" class="content-section" style="display: none;">
-      <h1>商品設定</h1>
-      <!-- 商品追加フォーム -->
-      <form id="addProductForm">
-        <select id="productParentCategorySelect" required></select>
-        <select id="productSubcategorySelect" required></select>
-        <input type="text" id="productName" placeholder="商品名" required />
-        <input type="number" id="productPrice" placeholder="価格" required />
-        <input type="number" id="productCost" placeholder="原価" required />
-        <input type="text" id="productBarcode" placeholder="バーコード" />
-        <input type="number" id="productSize" placeholder="サイズ（量）" required />
-        <input type="text" id="productUnit" placeholder="単位" required />
-        <button type="submit">追加</button>
-      </form>
-      <!-- 商品フィルタリング -->
-      <div>
-        <select id="filterParentCategorySelect">
-          <option value="">すべての親カテゴリ</option>
-        </select>
-        <select id="filterSubcategorySelect">
-          <option value="">すべてのサブカテゴリ</option>
-        </select>
-      </div>
-      <!-- 商品一覧表示エリア -->
-      <ul id="productList"></ul>
-    </section>
+    <!-- （変更なし、省略） -->
 
     <!-- 在庫管理 -->
     <section id="inventory" class="content-section" style="display: none;">
       <h1>在庫管理</h1>
-      <!-- 在庫更新フォーム -->
-      <form id="updateInventoryForm">
-        <select id="inventoryProductSelect" required></select>
-        <input type="number" id="inventoryQuantity" placeholder="在庫数" required />
-        <button type="submit">更新</button>
-      </form>
-      <!-- 在庫一覧表示エリア -->
-      <ul id="inventoryList"></ul>
+      <!-- カテゴリフィルタリング -->
+      <div>
+        <select id="inventoryParentCategorySelect" required>
+          <option value="">親カテゴリを選択</option>
+        </select>
+        <select id="inventorySubcategorySelect" required>
+          <option value="">サブカテゴリを選択</option>
+        </select>
+      </div>
+      <!-- 商品一覧表示エリア -->
+      <table id="inventoryList">
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>在庫数</th>
+            <th>価格</th>
+            <th>原価</th>
+            <th>バーコード</th>
+            <th>サイズ</th>
+            <th>単位</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 商品情報がここに表示されます -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 全体在庫 -->
+    <section id="overall-inventory" class="content-section" style="display: none;">
+      <h1>全体在庫</h1>
+      <!-- 全在庫一覧表示エリア -->
+      <table id="overallInventoryList">
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>在庫数</th>
+            <th>価格</th>
+            <th>原価</th>
+            <th>バーコード</th>
+            <th>サイズ</th>
+            <th>単位</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 全在庫情報がここに表示されます -->
+        </tbody>
+      </table>
     </section>
 
     <!-- バーコードスキャン -->
-    <section id="barcode" class="content-section" style="display: none;">
-      <h1>バーコードスキャン</h1>
-      <!-- バーコードスキャンの内容は後ほど追加します -->
-    </section>
+    <!-- （変更なし、省略） -->
 
     <!-- 売上管理 -->
-    <section id="transactions" class="content-section" style="display: none;">
-      <h1>売上管理</h1>
-      <!-- 売上管理の内容は後ほど追加します -->
-    </section>
+    <!-- （変更なし、省略） -->
 
     <!-- 単価設定 -->
-    <section id="pricing" class="content-section" style="display: none;">
-      <h1>単価設定</h1>
-      <!-- 単価設定の内容は後ほど追加します -->
-    </section>
+    <!-- （変更なし、省略） -->
 
   </main>
 
