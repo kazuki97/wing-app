@@ -10,23 +10,19 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 
-// 全体在庫の更新（サブカテゴリごと）
-export async function updateOverallInventory(subcategoryId, quantity) {
+// 全体在庫の更新関数を追加
+export async function updateOverallInventory(productId, quantityChange) {
   try {
-    const docRef = doc(db, 'overallInventory', subcategoryId);
-    await setDoc(
-      docRef,
-      {
-        quantity: quantity,
-        updatedAt: new Date(),
-      },
-      { merge: true }
-    );
+    const docRef = doc(db, 'overallInventory', productId);
+    await updateDoc(docRef, {
+      quantity: increment(quantityChange),
+    });
   } catch (error) {
     console.error('全体在庫の更新エラー:', error);
     throw error;
   }
 }
+
 
 // 全体在庫の取得（サブカテゴリごと）
 export async function getOverallInventory(subcategoryId) {
