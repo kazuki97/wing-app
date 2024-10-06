@@ -27,7 +27,7 @@ import { getUnitPrice } from './pricing.js'; // 単価取得
 
 import { updateOverallInventory } from './inventoryManagement.js';
 
-import { getCategories, getSubcategories } from './categories.js'; // カテゴリ取得
+import { getParentCategories, getSubcategories } from './categories.js'; // カテゴリ取得
 
 // エラーメッセージ表示関数
 function showError(message) {
