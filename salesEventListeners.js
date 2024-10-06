@@ -211,6 +211,10 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     const feeAmount = Math.round((totalAmount * feeRate) / 100);
     const netAmount = totalAmount - feeAmount;
 
+    // 原価と利益の計算
+    let totalCost = 0;
+    let totalProfit = 0;
+
     // 販売データの作成
     const transactionData = {
       timestamp: new Date(),
@@ -219,26 +223,42 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       netAmount: netAmount,
       paymentMethodId: paymentMethodId,
       paymentMethodName: paymentMethod.name,
-      items: salesCart.map((item) => ({
-        productId: item.product.id,
-        productName: item.product.name,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        size: item.product.size,
-        subtotal: item.product.price * item.product.size * item.quantity,
-      })),
+      items: [],
+      manuallyAdded: false,
     };
 
-    // 取引の保存
-    await addTransaction(transactionData);
-
-    // 在庫の更新
     for (const item of salesCart) {
       const product = item.product;
       const quantity = item.quantity;
       const requiredQuantity = product.size * quantity;
+      const cost = product.cost * requiredQuantity;
+      const unitPrice = await getUnitPrice(product.subcategoryId, requiredQuantity);
+      const subtotal = unitPrice * requiredQuantity;
+      const profit = subtotal - cost;
+
+      totalCost += cost;
+      totalProfit += profit;
+
+      transactionData.items.push({
+        productId: product.id,
+        productName: product.name,
+        quantity: quantity,
+        unitPrice: unitPrice,
+        size: product.size,
+        subtotal: subtotal,
+        cost: cost,
+        profit: profit,
+      });
+
+      // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
     }
+
+    transactionData.cost = totalCost;
+    transactionData.profit = totalProfit;
+
+    // 取引の保存
+    await addTransaction(transactionData);
 
     // カートをクリア
     salesCart = [];
@@ -253,9 +273,23 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
 });
 
 // 売上管理セクションの表示
-async function displayTransactions() {
+async function displayTransactions(filter = {}) {
   try {
-    const transactions = await getTransactions();
+    let transactions = await getTransactions();
+
+    // フィルタの適用
+    if (filter.onlyReturned) {
+      transactions = transactions.filter((t) => t.isReturned);
+    }
+    if (filter.month || filter.year) {
+      transactions = transactions.filter((t) => {
+        const date = t.timestamp.toDate();
+        const monthMatch = filter.month ? date.getMonth() + 1 === filter.month : true;
+        const yearMatch = filter.year ? date.getFullYear() === filter.year : true;
+        return monthMatch && yearMatch;
+      });
+    }
+
     const transactionList = document.getElementById('transactionList').querySelector('tbody');
     transactionList.innerHTML = '';
     for (const transaction of transactions) {
@@ -300,6 +334,8 @@ async function displayTransactionDetails(transactionId) {
     document.getElementById('detailPaymentMethod').textContent = transaction.paymentMethodName;
     document.getElementById('detailFeeAmount').textContent = transaction.feeAmount;
     document.getElementById('detailNetAmount').textContent = transaction.netAmount;
+    document.getElementById('detailTotalCost').textContent = transaction.cost || 0;
+    document.getElementById('detailTotalProfit').textContent = transaction.profit || 0;
 
     const detailProductList = document.getElementById('detailProductList');
     detailProductList.innerHTML = '';
@@ -312,13 +348,15 @@ async function displayTransactionDetails(transactionId) {
           <td>${item.quantity}</td>
           <td>${item.unitPrice}</td>
           <td>${item.subtotal}</td>
+          <td>${item.cost}</td>
+          <td>${item.profit}</td>
         `;
         detailProductList.appendChild(row);
       }
     } else {
       // 手動追加のため、商品明細が無い
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="4">商品情報はありません</td>';
+      row.innerHTML = '<td colspan="6">商品情報はありません</td>';
       detailProductList.appendChild(row);
     }
 
@@ -541,6 +579,8 @@ document.getElementById('addTransactionForm').addEventListener('submit', async (
       paymentMethodName: paymentMethod.name,
       items: [], // 手動追加の場合、商品明細は無し
       manuallyAdded: true, // 手動追加フラグ
+      cost: 0,
+      profit: netAmount,
     };
 
     // 取引の保存
@@ -557,6 +597,25 @@ document.getElementById('addTransactionForm').addEventListener('submit', async (
     console.error(error);
     showError('売上の追加に失敗しました');
   }
+});
+
+// 月次・年次フィルタの実装
+document.getElementById('filterTransactionsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const month = parseInt(document.getElementById('filterMonth').value, 10);
+  const year = parseInt(document.getElementById('filterYear').value, 10);
+  const onlyReturned = document.getElementById('filterOnlyReturned').checked;
+
+  const filter = {};
+  if (!isNaN(month)) {
+    filter.month = month;
+  }
+  if (!isNaN(year)) {
+    filter.year = year;
+  }
+  filter.onlyReturned = onlyReturned;
+
+  await displayTransactions(filter);
 });
 
 // 初期化処理
