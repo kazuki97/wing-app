@@ -63,9 +63,14 @@ export async function getAllOverallInventories() {
 export async function updateOverallInventory(productId, quantityChange) {
   try {
     const docRef = doc(db, 'overallInventory', productId);
-    await updateDoc(docRef, {
-      quantity: increment(quantityChange),
-    });
+    await setDoc(
+      docRef,
+      {
+        quantity: increment(quantityChange),
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     console.error('全体在庫の更新エラー:', error);
     throw error;
