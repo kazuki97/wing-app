@@ -20,7 +20,6 @@
       <li><a href="#barcode" class="nav-link">バーコードスキャン</a></li>
       <li><a href="#transactions" class="nav-link">売上管理</a></li>
       <li><a href="#pricing" class="nav-link">単価設定</a></li>
-      <!-- 新しく支払い方法設定セクションを追加 -->
       <li><a href="#payment-methods" class="nav-link">支払い方法設定</a></li>
     </ul>
   </nav>
@@ -177,6 +176,22 @@
     <!-- 売上管理 -->
     <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
+      <!-- 手動で売上を追加するボタン -->
+      <button id="manualAddTransactionButton">手動で売上を追加</button>
+      <!-- 手動で売上を追加するフォーム（初期状態は非表示） -->
+      <div id="manualAddTransactionForm" style="display: none;">
+        <h2>売上の手動追加</h2>
+        <form id="addTransactionForm">
+          <label for="transactionTotalAmount">合計金額:</label>
+          <input type="number" id="transactionTotalAmount" required>
+          <label for="transactionPaymentMethod">支払い方法:</label>
+          <select id="transactionPaymentMethod" required>
+            <!-- 支払い方法がここに表示されます -->
+          </select>
+          <button type="submit">追加</button>
+          <button type="button" id="cancelAddTransaction">キャンセル</button>
+        </form>
+      </div>
       <!-- 売上データの表示エリア -->
       <table id="transactionList">
         <thead>
@@ -200,8 +215,8 @@
         <p>支払い方法: <span id="detailPaymentMethod"></span></p>
         <p>手数料: ¥<span id="detailFeeAmount"></span></p>
         <p>純売上金額: ¥<span id="detailNetAmount"></span></p>
-         <!-- 返品情報 -->
-    <p id="returnInfo"></p>
+        <!-- 返品情報 -->
+        <p id="returnInfo"></p>
         <table>
           <thead>
             <tr>
@@ -215,8 +230,8 @@
             <!-- 商品詳細がここに表示されます -->
           </tbody>
         </table>
-       <button id="returnTransactionButton">返品</button>
-       <button id="closeTransactionDetails">閉じる</button>
+        <button id="returnTransactionButton">返品</button>
+        <button id="closeTransactionDetails">閉じる</button>
       </div>
     </section>
 
