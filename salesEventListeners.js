@@ -24,9 +24,7 @@ import {
 
 import { getUnitPrice } from './pricing.js'; // 単価取得
 
-import {
-  updateOverallInventory, // 追加
-} from './overallInventory.js'; // 全体在庫の更新に使用
+import { updateOverallInventory } from './inventoryManagement.js'; // 追加
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -218,7 +216,6 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
 
     // 原価と利益の計算
     let totalCost = 0;
-    let totalProfit = netAmount;
 
     // 販売データの作成
     const transactionData = {
@@ -241,7 +238,6 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       const cost = product.cost * requiredQuantity;
       const unitPrice = await getUnitPrice(product.subcategoryId, requiredQuantity);
       const subtotal = unitPrice * requiredQuantity;
-      const profit = subtotal - cost;
 
       totalCost += cost;
 
@@ -253,17 +249,17 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
         size: product.size,
         subtotal: subtotal,
         cost: cost,
-        profit: profit,
+        profit: subtotal - cost,
       });
 
       // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
       // 全体在庫の更新
-      await updateOverallInventory(product.overallInventoryId, -requiredQuantity);
+      await updateOverallInventory(product.id, -requiredQuantity);
     }
 
     transactionData.cost = totalCost;
-    transactionData.profit = netAmount - totalCost; // 総利益 = 純売上金額 - 原価合計
+    transactionData.profit = netAmount - totalCost;
 
     // 取引の保存
     await addTransaction(transactionData);
@@ -404,35 +400,13 @@ async function displayTransactionDetails(transactionId) {
   }
 }
 
-// 取引の削除処理
+// 取引の削除
 async function handleDeleteTransaction(transactionId) {
-  if (confirm('この取引を削除しますか？この操作は元に戻せません。')) {
+  if (confirm('この取引を削除しますか？')) {
     try {
-      const transaction = await getTransactionById(transactionId);
-      if (!transaction) {
-        showError('取引が見つかりません');
-        return;
-      }
-
-      // 在庫を元に戻す（返品と同様の処理）
-      if (transaction.items && transaction.items.length > 0) {
-        for (const item of transaction.items) {
-          const productId = item.productId;
-          const quantity = item.quantity;
-          const size = item.size;
-          const product = await getProductById(productId);
-          const updatedQuantity = product.quantity + quantity * size;
-          await updateProduct(productId, { quantity: updatedQuantity });
-          // 全体在庫の更新
-          await updateOverallInventory(product.overallInventoryId, quantity * size);
-        }
-      }
-
-      // 取引の削除
       await deleteTransaction(transactionId);
       alert('取引が削除されました');
       document.getElementById('transactionDetails').style.display = 'none';
-      // 売上管理セクションを更新
       await displayTransactions();
     } catch (error) {
       console.error(error);
@@ -455,11 +429,13 @@ async function handleReturnTransaction(transaction) {
         const productId = item.productId;
         const quantity = item.quantity;
         const size = item.size;
+        const requiredQuantity = quantity * size;
+
         const product = await getProductById(productId);
-        const updatedQuantity = product.quantity + quantity * size;
+        const updatedQuantity = product.quantity + requiredQuantity;
         await updateProduct(productId, { quantity: updatedQuantity });
         // 全体在庫の更新
-        await updateOverallInventory(product.overallInventoryId, quantity * size);
+        await updateOverallInventory(productId, requiredQuantity);
       }
     }
     // 取引を返品済みに更新
