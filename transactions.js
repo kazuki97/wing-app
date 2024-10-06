@@ -8,6 +8,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  deleteDoc, // 追加
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 売上データの追加
@@ -55,6 +56,17 @@ export async function updateTransaction(transactionId, updatedData) {
     await updateDoc(docRef, updatedData);
   } catch (error) {
     console.error('取引の更新エラー:', error);
+    throw error;
+  }
+}
+
+// 取引データの削除
+export async function deleteTransaction(transactionId) {
+  try {
+    const docRef = doc(db, 'transactions', transactionId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('取引の削除エラー:', error);
     throw error;
   }
 }
