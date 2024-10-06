@@ -213,7 +213,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
 
     // 原価と利益の計算
     let totalCost = 0;
-    let totalProfit = 0;
+    let totalProfit = netAmount;
 
     // 販売データの作成
     const transactionData = {
@@ -225,6 +225,8 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       paymentMethodName: paymentMethod.name,
       items: [],
       manuallyAdded: false,
+      cost: 0,
+      profit: 0,
     };
 
     for (const item of salesCart) {
@@ -237,7 +239,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       const profit = subtotal - cost;
 
       totalCost += cost;
-      totalProfit += profit;
+      // 手数料は全体で計算しているので、各商品の利益計算では含めない
 
       transactionData.items.push({
         productId: product.id,
@@ -255,7 +257,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     }
 
     transactionData.cost = totalCost;
-    transactionData.profit = totalProfit;
+    transactionData.profit = netAmount - totalCost; // 総利益 = 純売上金額 - 原価合計
 
     // 取引の保存
     await addTransaction(transactionData);
@@ -298,11 +300,20 @@ async function displayTransactions(filter = {}) {
       if (transaction.isReturned) {
         row.style.color = 'red';
       }
+      // 商品名の一覧をカンマ区切りで取得
+      const productNames = transaction.items.map((item) => item.productName).join(', ');
+      // 総数量を計算
+      const totalQuantity = transaction.items.reduce((sum, item) => sum + item.quantity, 0);
+
       row.innerHTML = `
         <td>${transaction.id}</td>
         <td>${transaction.timestamp.toDate().toLocaleString()}</td>
         <td>${transaction.paymentMethodName}</td>
+        <td>${productNames || '手動追加'}</td>
+        <td>${totalQuantity || '-'}</td>
         <td>¥${transaction.totalAmount}</td>
+        <td>¥${transaction.cost || 0}</td>
+        <td>¥${transaction.profit || 0}</td>
         <td><button class="view-transaction-details" data-id="${transaction.id}">詳細</button></td>
       `;
       transactionList.appendChild(row);
@@ -384,24 +395,22 @@ async function displayTransactionDetails(transactionId) {
 
 // 返品処理
 async function handleReturnTransaction(transaction) {
-  if (!transaction.items || transaction.items.length === 0) {
-    showError('この取引には返品できる商品がありません');
-    return;
-  }
   const reason = prompt('返品理由を入力してください');
   if (!reason) {
     showError('返品理由を入力してください');
     return;
   }
   try {
-    // 在庫を元に戻す
-    for (const item of transaction.items) {
-      const productId = item.productId;
-      const quantity = item.quantity;
-      const size = item.size;
-      const product = await getProductById(productId);
-      const updatedQuantity = product.quantity + quantity * size;
-      await updateProduct(productId, { quantity: updatedQuantity });
+    if (transaction.items && transaction.items.length > 0) {
+      // 在庫を元に戻す
+      for (const item of transaction.items) {
+        const productId = item.productId;
+        const quantity = item.quantity;
+        const size = item.size;
+        const product = await getProductById(productId);
+        const updatedQuantity = product.quantity + quantity * size;
+        await updateProduct(productId, { quantity: updatedQuantity });
+      }
     }
     // 取引を返品済みに更新
     await updateTransaction(transaction.id, {
