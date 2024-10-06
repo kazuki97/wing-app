@@ -1,6 +1,12 @@
 // main.js
+
+// 各セクションのイベントリスナーをインポート
 import './eventListeners.js';
-import './salesEventListeners.js'; // 新たに追加
+import './productsEventListeners.js';
+import './inventoryEventListeners.js';
+import './salesEventListeners.js';
+import './pricingEventListeners.js';
+import './consumablesEventListeners.js'; // 追加
 
 // スムーズスクロールとセクションの表示制御
 document.querySelectorAll('.nav-link').forEach((link) => {
