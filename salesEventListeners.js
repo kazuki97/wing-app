@@ -4,14 +4,14 @@
 import {
   getProductByBarcode,
   updateProduct,
-  getProductById, // 返品時に使用
+  getProductById,
 } from './products.js';
 
 import {
   addTransaction,
   getTransactions,
   getTransactionById,
-  updateTransaction, // 返品機能で使用
+  updateTransaction,
 } from './transactions.js';
 
 import {
@@ -303,22 +303,34 @@ async function displayTransactionDetails(transactionId) {
 
     const detailProductList = document.getElementById('detailProductList');
     detailProductList.innerHTML = '';
-    for (const item of transaction.items) {
+
+    if (transaction.items && transaction.items.length > 0) {
+      for (const item of transaction.items) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.productName}</td>
+          <td>${item.quantity}</td>
+          <td>${item.unitPrice}</td>
+          <td>${item.subtotal}</td>
+        `;
+        detailProductList.appendChild(row);
+      }
+    } else {
+      // 手動追加のため、商品明細が無い
       const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${item.productName}</td>
-        <td>${item.quantity}</td>
-        <td>${item.unitPrice}</td>
-        <td>${item.subtotal}</td>
-      `;
+      row.innerHTML = '<td colspan="4">商品情報はありません</td>';
       detailProductList.appendChild(row);
     }
 
-    // 返品ボタンの表示（既に返品済みの場合は非表示にする）
+    // 返品ボタンの表示（手動追加の場合は非表示にする）
     const returnButton = document.getElementById('returnTransactionButton');
-    if (transaction.isReturned) {
+    if (transaction.isReturned || transaction.manuallyAdded) {
       returnButton.style.display = 'none';
-      document.getElementById('returnInfo').textContent = `返品理由: ${transaction.returnReason}`;
+      if (transaction.isReturned) {
+        document.getElementById('returnInfo').textContent = `返品理由: ${transaction.returnReason}`;
+      } else {
+        document.getElementById('returnInfo').textContent = '';
+      }
     } else {
       returnButton.style.display = 'block';
       document.getElementById('returnInfo').textContent = '';
@@ -334,6 +346,10 @@ async function displayTransactionDetails(transactionId) {
 
 // 返品処理
 async function handleReturnTransaction(transaction) {
+  if (!transaction.items || transaction.items.length === 0) {
+    showError('この取引には返品できる商品がありません');
+    return;
+  }
   const reason = prompt('返品理由を入力してください');
   if (!reason) {
     showError('返品理由を入力してください');
@@ -458,6 +474,90 @@ async function displayPaymentMethods() {
     showError('支払い方法の表示に失敗しました');
   }
 }
+
+// 手動で売上を追加する機能の実装
+
+// 手動で売上を追加するボタンのイベントリスナー
+document.getElementById('manualAddTransactionButton').addEventListener('click', async () => {
+  // 支払い方法の選択肢を更新
+  await updateTransactionPaymentMethodSelect();
+  // フォームを表示
+  document.getElementById('manualAddTransactionForm').style.display = 'block';
+});
+
+// キャンセルボタンのイベントリスナー
+document.getElementById('cancelAddTransaction').addEventListener('click', () => {
+  document.getElementById('manualAddTransactionForm').style.display = 'none';
+});
+
+// 支払い方法選択セレクトボックスの更新（手動売上追加用）
+async function updateTransactionPaymentMethodSelect() {
+  try {
+    const paymentMethods = await getPaymentMethods();
+    const select = document.getElementById('transactionPaymentMethod');
+    select.innerHTML = '<option value="">支払い方法を選択</option>';
+    paymentMethods.forEach((method) => {
+      const option = document.createElement('option');
+      option.value = method.id;
+      option.textContent = method.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('支払い方法の取得に失敗しました');
+  }
+}
+
+// 手動で売上を追加するフォームのイベントリスナー
+document.getElementById('addTransactionForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const totalAmount = parseFloat(document.getElementById('transactionTotalAmount').value);
+  const paymentMethodId = document.getElementById('transactionPaymentMethod').value;
+  if (!paymentMethodId || isNaN(totalAmount) || totalAmount <= 0) {
+    showError('有効な合計金額と支払い方法を入力してください');
+    return;
+  }
+  try {
+    // 支払い方法情報の取得
+    const paymentMethods = await getPaymentMethods();
+    const paymentMethod = paymentMethods.find((method) => method.id === paymentMethodId);
+    if (!paymentMethod) {
+      showError('無効な支払い方法です');
+      return;
+    }
+    const feeRate = paymentMethod.feeRate;
+
+    // 手数料の計算
+    const feeAmount = Math.round((totalAmount * feeRate) / 100);
+    const netAmount = totalAmount - feeAmount;
+
+    // 販売データの作成（手動入力なので items は空）
+    const transactionData = {
+      timestamp: new Date(),
+      totalAmount: totalAmount,
+      feeAmount: feeAmount,
+      netAmount: netAmount,
+      paymentMethodId: paymentMethodId,
+      paymentMethodName: paymentMethod.name,
+      items: [], // 手動追加の場合、商品明細は無し
+      manuallyAdded: true, // 手動追加フラグ
+    };
+
+    // 取引の保存
+    await addTransaction(transactionData);
+
+    // フォームをクリアして非表示に
+    document.getElementById('addTransactionForm').reset();
+    document.getElementById('manualAddTransactionForm').style.display = 'none';
+
+    alert('売上が手動で追加されました');
+    // 売上管理セクションを更新
+    await displayTransactions();
+  } catch (error) {
+    console.error(error);
+    showError('売上の追加に失敗しました');
+  }
+});
 
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
