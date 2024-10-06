@@ -5,6 +5,7 @@ import {
   getProductByBarcode,
   updateProduct,
   getProductById,
+  getProducts,
 } from './products.js';
 
 import {
@@ -12,7 +13,7 @@ import {
   getTransactions,
   getTransactionById,
   updateTransaction,
-  deleteTransaction, // 追加
+  deleteTransaction,
 } from './transactions.js';
 
 import {
@@ -24,7 +25,9 @@ import {
 
 import { getUnitPrice } from './pricing.js'; // 単価取得
 
-import { updateOverallInventory } from './inventoryManagement.js'; // 追加
+import { updateOverallInventory } from './inventoryManagement.js';
+
+import { getCategories, getSubcategories } from './categories.js'; // カテゴリ取得
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -250,12 +253,14 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
         subtotal: subtotal,
         cost: cost,
         profit: subtotal - cost,
+        subcategoryId: product.subcategoryId, // 追加
+        categoryId: product.categoryId,       // 追加
       });
 
       // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
       // 全体在庫の更新
-      await updateOverallInventory(product.id, -requiredQuantity);
+      await updateOverallInventory(product.subcategoryId, -requiredQuantity); // 修正
     }
 
     transactionData.cost = totalCost;
@@ -292,6 +297,21 @@ async function displayTransactions(filter = {}) {
         const yearMatch = filter.year ? date.getFullYear() === filter.year : true;
         return monthMatch && yearMatch;
       });
+    }
+    if (filter.categoryId) {
+      transactions = transactions.filter((t) =>
+        t.items.some((item) => item.categoryId === filter.categoryId)
+      );
+    }
+    if (filter.subcategoryId) {
+      transactions = transactions.filter((t) =>
+        t.items.some((item) => item.subcategoryId === filter.subcategoryId)
+      );
+    }
+    if (filter.productId) {
+      transactions = transactions.filter((t) =>
+        t.items.some((item) => item.productId === filter.productId)
+      );
     }
 
     const transactionList = document.getElementById('transactionList').querySelector('tbody');
@@ -435,7 +455,7 @@ async function handleReturnTransaction(transaction) {
         const updatedQuantity = product.quantity + requiredQuantity;
         await updateProduct(productId, { quantity: updatedQuantity });
         // 全体在庫の更新
-        await updateOverallInventory(productId, requiredQuantity);
+        await updateOverallInventory(product.subcategoryId, requiredQuantity); // 修正
       }
     }
     // 取引を返品済みに更新
@@ -634,12 +654,15 @@ document.getElementById('addTransactionForm').addEventListener('submit', async (
   }
 });
 
-// 月次・年次フィルタの実装
+// フィルタリングフォームのイベントリスナー
 document.getElementById('filterTransactionsForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const month = parseInt(document.getElementById('filterMonth').value, 10);
   const year = parseInt(document.getElementById('filterYear').value, 10);
   const onlyReturned = document.getElementById('filterOnlyReturned').checked;
+  const categoryId = document.getElementById('filterCategory').value;
+  const subcategoryId = document.getElementById('filterSubcategory').value;
+  const productId = document.getElementById('filterProduct').value;
 
   const filter = {};
   if (!isNaN(month)) {
@@ -649,13 +672,67 @@ document.getElementById('filterTransactionsForm').addEventListener('submit', asy
     filter.year = year;
   }
   filter.onlyReturned = onlyReturned;
+  if (categoryId) {
+    filter.categoryId = categoryId;
+  }
+  if (subcategoryId) {
+    filter.subcategoryId = subcategoryId;
+  }
+  if (productId) {
+    filter.productId = productId;
+  }
 
   await displayTransactions(filter);
 });
+
+// フィルタリングフォームの選択肢を更新する関数
+async function updateFilterOptions() {
+  try {
+    // カテゴリ、サブカテゴリ、商品名の選択肢を更新
+    const categories = await getCategories();
+    const subcategories = await getSubcategories();
+    const products = await getProducts();
+
+    const categorySelect = document.getElementById('filterCategory');
+    const subcategorySelect = document.getElementById('filterSubcategory');
+    const productSelect = document.getElementById('filterProduct');
+
+    // カテゴリの選択肢を設定
+    categorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
+    categories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.name;
+      categorySelect.appendChild(option);
+    });
+
+    // サブカテゴリの選択肢を設定
+    subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+    subcategories.forEach((subcategory) => {
+      const option = document.createElement('option');
+      option.value = subcategory.id;
+      option.textContent = subcategory.name;
+      subcategorySelect.appendChild(option);
+    });
+
+    // 商品名の選択肢を設定
+    productSelect.innerHTML = '<option value="">すべての商品</option>';
+    products.forEach((product) => {
+      const option = document.createElement('option');
+      option.value = product.id;
+      option.textContent = product.name;
+      productSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('フィルタリングオプションの更新に失敗しました');
+  }
+}
 
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
   await displayTransactions(); // 売上管理セクションの初期表示
   await displayPaymentMethods();
   await updatePaymentMethodSelect();
+  await updateFilterOptions(); // フィルタリングオプションを更新
 });
