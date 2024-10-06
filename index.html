@@ -176,6 +176,16 @@
     <!-- 売上管理 -->
     <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
+      <!-- フィルタリングフォーム -->
+      <form id="filterTransactionsForm">
+        <label for="filterYear">年:</label>
+        <input type="number" id="filterYear" min="2000" max="2100" />
+        <label for="filterMonth">月:</label>
+        <input type="number" id="filterMonth" min="1" max="12" />
+        <label for="filterOnlyReturned">返品のみ:</label>
+        <input type="checkbox" id="filterOnlyReturned" />
+        <button type="submit">フィルタ</button>
+      </form>
       <!-- 手動で売上を追加するボタン -->
       <button id="manualAddTransactionButton">手動で売上を追加</button>
       <!-- 手動で売上を追加するフォーム（初期状態は非表示） -->
@@ -215,6 +225,8 @@
         <p>支払い方法: <span id="detailPaymentMethod"></span></p>
         <p>手数料: ¥<span id="detailFeeAmount"></span></p>
         <p>純売上金額: ¥<span id="detailNetAmount"></span></p>
+        <p>総原価: ¥<span id="detailTotalCost"></span></p>
+        <p>総利益: ¥<span id="detailTotalProfit"></span></p>
         <!-- 返品情報 -->
         <p id="returnInfo"></p>
         <table>
@@ -223,7 +235,9 @@
               <th>商品名</th>
               <th>数量</th>
               <th>単価</th>
-              <th>小計</th>
+              <th>売上金額</th>
+              <th>原価</th>
+              <th>利益</th>
             </tr>
           </thead>
           <tbody id="detailProductList">
