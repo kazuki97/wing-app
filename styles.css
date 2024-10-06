@@ -117,6 +117,19 @@ table th {
   padding: 5px 10px;
 }
 
+/* 支払い方法選択のスタイル */
+#paymentMethodSelection {
+  margin-bottom: 20px;
+}
+
+#paymentMethodSelection select {
+  padding: 5px;
+}
+
+#paymentMethodSelection label {
+  margin-right: 10px;
+}
+
 /* 合計金額のスタイル */
 #totalAmount {
   font-size: 1.5em;
@@ -141,4 +154,22 @@ table th {
 
 #transactionDetails button {
   margin-top: 10px;
+}
+
+/* 支払い方法設定セクションのスタイル */
+#paymentMethodList {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+#paymentMethodList th,
+#paymentMethodList td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#paymentMethodList th {
+  background-color: #f2f2f2;
+  text-align: left;
 }
