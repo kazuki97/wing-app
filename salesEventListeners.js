@@ -4,6 +4,7 @@
 import {
   getProductByBarcode,
   updateProduct,
+  getProductById, // 返品時に使用
 } from './products.js';
 
 import {
@@ -20,12 +21,9 @@ import {
   deletePaymentMethod,
 } from './paymentMethods.js';
 
-// 返品機能で在庫を更新するために必要
-import {
-  updateProductQuantity,
-} from './inventoryManagement.js';
+import { getUnitPrice } from './pricing.js'; // 単価取得
 
-// エラーメッセージ表示関数（eventListeners.js からコピー）
+// エラーメッセージ表示関数
 function showError(message) {
   const errorDiv = document.getElementById('error-message');
   errorDiv.textContent = message;
@@ -262,6 +260,10 @@ async function displayTransactions() {
     transactionList.innerHTML = '';
     for (const transaction of transactions) {
       const row = document.createElement('tr');
+      // 返品済みの場合は赤文字にする
+      if (transaction.isReturned) {
+        row.style.color = 'red';
+      }
       row.innerHTML = `
         <td>${transaction.id}</td>
         <td>${transaction.timestamp.toDate().toLocaleString()}</td>
@@ -311,10 +313,56 @@ async function displayTransactionDetails(transactionId) {
       `;
       detailProductList.appendChild(row);
     }
+
+    // 返品ボタンの表示（既に返品済みの場合は非表示にする）
+    const returnButton = document.getElementById('returnTransactionButton');
+    if (transaction.isReturned) {
+      returnButton.style.display = 'none';
+      document.getElementById('returnInfo').textContent = `返品理由: ${transaction.returnReason}`;
+    } else {
+      returnButton.style.display = 'block';
+      document.getElementById('returnInfo').textContent = '';
+      returnButton.onclick = () => handleReturnTransaction(transaction);
+    }
+
     document.getElementById('transactionDetails').style.display = 'block';
   } catch (error) {
     console.error(error);
     showError('取引詳細の表示に失敗しました');
+  }
+}
+
+// 返品処理
+async function handleReturnTransaction(transaction) {
+  const reason = prompt('返品理由を入力してください');
+  if (!reason) {
+    showError('返品理由を入力してください');
+    return;
+  }
+  try {
+    // 在庫を元に戻す
+    for (const item of transaction.items) {
+      const productId = item.productId;
+      const quantity = item.quantity;
+      const size = item.size;
+      const product = await getProductById(productId);
+      const updatedQuantity = product.quantity + quantity * size;
+      await updateProduct(productId, { quantity: updatedQuantity });
+    }
+    // 取引を返品済みに更新
+    await updateTransaction(transaction.id, {
+      isReturned: true,
+      returnReason: reason,
+      returnedAt: new Date(),
+    });
+    alert('返品が完了しました');
+    // 取引詳細を再表示
+    await displayTransactionDetails(transaction.id);
+    // 売上管理セクションを更新
+    await displayTransactions();
+  } catch (error) {
+    console.error(error);
+    showError('返品処理に失敗しました');
   }
 }
 
