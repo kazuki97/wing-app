@@ -21,6 +21,17 @@ export async function addTransaction(transactionData) {
   }
 }
 
+// 取引の更新（返品処理で使用）
+export async function updateTransaction(transactionId, updatedData) {
+  try {
+    const docRef = doc(db, 'transactions', transactionId);
+    await updateDoc(docRef, updatedData);
+  } catch (error) {
+    console.error('取引の更新エラー:', error);
+    throw error;
+  }
+}
+
 // 売上データの取得
 export async function getTransactions() {
   try {
