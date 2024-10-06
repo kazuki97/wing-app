@@ -1,4 +1,6 @@
 // eventListeners.js
+
+// インポート
 import {
   addParentCategory,
   getParentCategories,
@@ -39,6 +41,13 @@ import {
   getTransactions,
   getTransactionById,
 } from './transactions.js';
+
+import {
+  addPaymentMethod,
+  getPaymentMethods,
+  updatePaymentMethod,
+  deletePaymentMethod,
+} from './paymentMethods.js';
 
 import { getDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db } from './db.js';
@@ -624,6 +633,24 @@ document.getElementById('pricingSubcategorySelect').addEventListener('change', a
 // バーコードスキャンセクションのイベントリスナーと関数
 let salesCart = [];
 
+// 支払い方法選択セレクトボックスの更新
+async function updatePaymentMethodSelect() {
+  try {
+    const paymentMethods = await getPaymentMethods();
+    const select = document.getElementById('paymentMethodSelect');
+    select.innerHTML = '<option value="">支払い方法を選択</option>';
+    paymentMethods.forEach((method) => {
+      const option = document.createElement('option');
+      option.value = method.id;
+      option.textContent = method.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('支払い方法の取得に失敗しました');
+  }
+}
+
 document.getElementById('addBarcodeButton').addEventListener('click', async () => {
   const barcodeInput = document.getElementById('barcodeInput');
   const barcode = barcodeInput.value.trim();
@@ -740,13 +767,27 @@ function removeFromCart(productId) {
   displaySalesCart();
 }
 
-// 販売完了ボタンのイベントリスナー
+// 販売完了ボタンのイベントリスナーを修正
 document.getElementById('completeSaleButton').addEventListener('click', async () => {
   if (salesCart.length === 0) {
     showError('カートに商品がありません');
     return;
   }
+  const paymentMethodId = document.getElementById('paymentMethodSelect').value;
+  if (!paymentMethodId) {
+    showError('支払い方法を選択してください');
+    return;
+  }
   try {
+    // 支払い方法情報の取得
+    const paymentMethods = await getPaymentMethods();
+    const paymentMethod = paymentMethods.find((method) => method.id === paymentMethodId);
+    if (!paymentMethod) {
+      showError('無効な支払い方法です');
+      return;
+    }
+    const feeRate = paymentMethod.feeRate;
+
     // 在庫のチェックと更新
     for (const item of salesCart) {
       const product = item.product;
@@ -760,10 +801,21 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       }
     }
 
+    // 手数料の計算
+    const totalAmount = Math.round(
+      parseFloat(document.getElementById('totalAmount').textContent.replace('合計金額: ¥', ''))
+    );
+    const feeAmount = Math.round((totalAmount * feeRate) / 100);
+    const netAmount = totalAmount - feeAmount;
+
     // 販売データの作成
     const transactionData = {
       timestamp: new Date(),
-      totalAmount: Math.round(parseFloat(document.getElementById('totalAmount').textContent.replace('合計金額: ¥', ''))),
+      totalAmount: totalAmount,
+      feeAmount: feeAmount,
+      netAmount: netAmount,
+      paymentMethodId: paymentMethodId,
+      paymentMethodName: paymentMethod.name,
       items: salesCart.map((item) => ({
         productId: item.product.id,
         productName: item.product.name,
@@ -808,6 +860,7 @@ async function displayTransactions() {
       row.innerHTML = `
         <td>${transaction.id}</td>
         <td>${transaction.timestamp.toDate().toLocaleString()}</td>
+        <td>${transaction.paymentMethodName}</td>
         <td>¥${transaction.totalAmount}</td>
         <td><button class="view-transaction-details" data-id="${transaction.id}">詳細</button></td>
       `;
@@ -837,6 +890,9 @@ async function displayTransactionDetails(transactionId) {
     }
     document.getElementById('detailTransactionId').textContent = transaction.id;
     document.getElementById('detailTimestamp').textContent = transaction.timestamp.toDate().toLocaleString();
+    document.getElementById('detailPaymentMethod').textContent = transaction.paymentMethodName;
+    document.getElementById('detailFeeAmount').textContent = transaction.feeAmount;
+    document.getElementById('detailNetAmount').textContent = transaction.netAmount;
 
     const detailProductList = document.getElementById('detailProductList');
     detailProductList.innerHTML = '';
@@ -862,6 +918,94 @@ document.getElementById('closeTransactionDetails').addEventListener('click', () 
   document.getElementById('transactionDetails').style.display = 'none';
 });
 
+// 支払い方法設定セクションのイベントリスナーと関数
+
+// 支払い方法追加フォームのイベントリスナー
+document.getElementById('addPaymentMethodForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('paymentMethodName').value.trim();
+  const feeRate = parseFloat(document.getElementById('paymentMethodFee').value);
+  if (!name || isNaN(feeRate)) {
+    showError('支払い方法名と手数料率を正しく入力してください');
+    return;
+  }
+  try {
+    await addPaymentMethod(name, feeRate);
+    alert('支払い方法が追加されました');
+    document.getElementById('addPaymentMethodForm').reset();
+    await displayPaymentMethods();
+    await updatePaymentMethodSelect(); // 支払い方法セレクトボックスを更新
+  } catch (error) {
+    console.error(error);
+    showError('支払い方法の追加に失敗しました');
+  }
+});
+
+// 支払い方法の表示
+async function displayPaymentMethods() {
+  try {
+    const paymentMethods = await getPaymentMethods();
+    const paymentMethodList = document.getElementById('paymentMethodList').querySelector('tbody');
+    paymentMethodList.innerHTML = '';
+    for (const method of paymentMethods) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${method.name}</td>
+        <td>${method.feeRate}%</td>
+        <td>
+          <button class="edit-payment-method" data-id="${method.id}">編集</button>
+          <button class="delete-payment-method" data-id="${method.id}">削除</button>
+        </td>
+      `;
+      paymentMethodList.appendChild(row);
+    }
+
+    // 編集ボタンのイベントリスナー
+    document.querySelectorAll('.edit-payment-method').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const methodId = e.target.dataset.id;
+        const method = paymentMethods.find((m) => m.id === methodId);
+        if (method) {
+          const newName = prompt('新しい支払い方法名を入力してください', method.name);
+          const newFeeRate = parseFloat(prompt('新しい手数料率(%)を入力してください', method.feeRate));
+          if (newName && !isNaN(newFeeRate)) {
+            try {
+              await updatePaymentMethod(methodId, newName, newFeeRate);
+              alert('支払い方法が更新されました');
+              await displayPaymentMethods();
+              await updatePaymentMethodSelect(); // 支払い方法セレクトボックスを更新
+            } catch (error) {
+              console.error(error);
+              showError('支払い方法の更新に失敗しました');
+            }
+          }
+        }
+      });
+    });
+
+    // 削除ボタンのイベントリスナー
+    document.querySelectorAll('.delete-payment-method').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const methodId = e.target.dataset.id;
+        if (confirm('本当に削除しますか？')) {
+          try {
+            await deletePaymentMethod(methodId);
+            alert('支払い方法が削除されました');
+            await displayPaymentMethods();
+            await updatePaymentMethodSelect(); // 支払い方法セレクトボックスを更新
+          } catch (error) {
+            console.error(error);
+            showError('支払い方法の削除に失敗しました');
+          }
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    showError('支払い方法の表示に失敗しました');
+  }
+}
+
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
   await updateAllParentCategorySelects();
@@ -871,4 +1015,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayOverallInventory();
   await displayInventoryProducts();
   await displayTransactions(); // 売上管理セクションの初期表示
+  await displayPaymentMethods();
+  await updatePaymentMethodSelect();
 });
