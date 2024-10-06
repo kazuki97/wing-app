@@ -1,16 +1,14 @@
-// inventoryManagement.js
 import { db } from './db.js';
 import {
   collection,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
+  addDoc,
   updateDoc,
   deleteDoc,
-  query,
-  where,
+  doc,
+  getDocs,
+  increment,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+
 
 // 全体在庫の更新（サブカテゴリごと）
 export async function updateOverallInventory(subcategoryId, quantity) {
@@ -53,6 +51,19 @@ export async function getAllOverallInventories() {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('全体在庫一覧の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 全体在庫の更新関数を追加
+export async function updateOverallInventory(productId, quantityChange) {
+  try {
+    const docRef = doc(db, 'overallInventory', productId);
+    await updateDoc(docRef, {
+      quantity: increment(quantityChange),
+    });
+  } catch (error) {
+    console.error('全体在庫の更新エラー:', error);
     throw error;
   }
 }
