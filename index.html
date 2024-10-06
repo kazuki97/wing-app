@@ -176,28 +176,16 @@
     <!-- 売上管理 -->
     <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
-     <!-- フィルタリングフォーム -->
-<form id="filterTransactionsForm">
-  <label for="filterYear">年:</label>
-  <input type="number" id="filterYear" min="2000" max="2100" />
-  <label for="filterMonth">月:</label>
-  <input type="number" id="filterMonth" min="1" max="12" />
-  <label for="filterCategory">カテゴリ:</label>
-  <select id="filterCategory">
-    <!-- カテゴリの選択肢が動的に追加されます -->
-  </select>
-  <label for="filterSubcategory">サブカテゴリ:</label>
-  <select id="filterSubcategory">
-    <!-- サブカテゴリの選択肢が動的に追加されます -->
-  </select>
-  <label for="filterProduct">商品名:</label>
-  <select id="filterProduct">
-    <!-- 商品名の選択肢が動的に追加されます -->
-  </select>
-  <label for="filterOnlyReturned">返品のみ:</label>
-  <input type="checkbox" id="filterOnlyReturned" />
-  <button type="submit">フィルタ</button>
-</form>
+      <!-- フィルタリングフォーム -->
+      <form id="filterTransactionsForm">
+        <label for="filterYear">年:</label>
+        <input type="number" id="filterYear" min="2000" max="2100" />
+        <label for="filterMonth">月:</label>
+        <input type="number" id="filterMonth" min="1" max="12" />
+        <label for="filterOnlyReturned">返品のみ:</label>
+        <input type="checkbox" id="filterOnlyReturned" />
+        <button type="submit">フィルタ</button>
+      </form>
       <!-- 手動で売上を追加するボタン -->
       <button id="manualAddTransactionButton">手動で売上を追加</button>
       <!-- 手動で売上を追加するフォーム（初期状態は非表示） -->
@@ -261,8 +249,8 @@
           </tbody>
         </table>
        <button id="returnTransactionButton">返品</button>
-       <button id="deleteTransactionButton">取引を削除する</button> <!-- 追加 -->
-       <button id="closeTransactionDetails">閉じる</button>
+  <button id="deleteTransactionButton">取引を削除する</button> <!-- 追加 -->
+  <button id="closeTransactionDetails">閉じる</button>
       </div>
     </section>
 
@@ -299,85 +287,6 @@
       </table>
     </section>
 
-<!-- 消耗品管理 -->
-<section id="consumables" class="content-section" style="display: none;">
-  <h1>消耗品管理</h1>
-  <!-- 消耗品の登録フォーム -->
-  <h2>消耗品の登録</h2>
-  <form id="addConsumableForm">
-    <label for="consumableName">消耗品名:</label>
-    <input type="text" id="consumableName" required />
-    <label for="consumableCost">原価:</label>
-    <input type="number" id="consumableCost" required />
-    <button type="submit">追加</button>
-  </form>
-  <!-- 消耗品の一覧表示 -->
-  <h2>消耗品一覧</h2>
-  <table id="consumableList">
-    <thead>
-      <tr>
-        <th>消耗品名</th>
-        <th>原価</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- 消耗品データがここに表示されます -->
-    </tbody>
-  </table>
-  <!-- 商品ごとの消耗品設定 -->
-  <h2>商品への消耗品割り当て</h2>
-  <form id="assignConsumableForm">
-    <label for="productSelect">商品:</label>
-    <select id="productSelect" required>
-      <!-- 商品リストが動的に追加されます -->
-    </select>
-    <label for="consumableSelect">消耗品:</label>
-    <select id="consumableSelect" required>
-      <!-- 消耗品リストが動的に追加されます -->
-    </select>
-    <label for="consumableQuantity">数量:</label>
-    <input type="number" id="consumableQuantity" value="1" min="1" required />
-    <button type="submit">割り当て</button>
-  </form>
-  <!-- 商品ごとの消耗品一覧 -->
-  <h2>商品ごとの消耗品一覧</h2>
-  <table id="productConsumableList">
-    <thead>
-      <tr>
-        <th>商品名</th>
-        <th>消耗品名</th>
-        <th>数量</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- 商品ごとの消耗品データがここに表示されます -->
-    </tbody>
-  </table>
-  <!-- 月次消耗品集計 -->
-  <h2>月次消耗品集計</h2>
-  <form id="consumableReportForm">
-    <label for="reportYear">年:</label>
-    <input type="number" id="reportYear" min="2000" max="2100" required />
-    <label for="reportMonth">月:</label>
-    <input type="number" id="reportMonth" min="1" max="12" required />
-    <button type="submit">集計</button>
-  </form>
-  <table id="consumableReport">
-    <thead>
-      <tr>
-        <th>消耗品名</th>
-        <th>総使用数</th>
-        <th>総コスト</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- 集計結果がここに表示されます -->
-    </tbody>
-  </table>
-</section>
-
     <!-- 支払い方法設定 -->
     <section id="payment-methods" class="content-section" style="display: none;">
       <h1>支払い方法設定</h1>
@@ -408,4 +317,3 @@
   <script type="module" src="main.js"></script>
 </body>
 </html>
-
