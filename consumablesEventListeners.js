@@ -248,7 +248,7 @@ document.getElementById('consumableReportForm').addEventListener('submit', async
     console.error(error);
     showError('消耗品集計に失敗しました');
   }
-}
+});
 
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
