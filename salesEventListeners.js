@@ -12,6 +12,7 @@ import {
   getTransactions,
   getTransactionById,
   updateTransaction,
+  deleteTransaction, // 追加
 } from './transactions.js';
 
 import {
@@ -22,6 +23,10 @@ import {
 } from './paymentMethods.js';
 
 import { getUnitPrice } from './pricing.js'; // 単価取得
+
+import {
+  updateOverallInventory, // 追加
+} from './overallInventory.js'; // 全体在庫の更新に使用
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -239,7 +244,6 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       const profit = subtotal - cost;
 
       totalCost += cost;
-      // 手数料は全体で計算しているので、各商品の利益計算では含めない
 
       transactionData.items.push({
         productId: product.id,
@@ -254,6 +258,8 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
 
       // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
+      // 全体在庫の更新
+      await updateOverallInventory(product.overallInventoryId, -requiredQuantity);
     }
 
     transactionData.cost = totalCost;
@@ -386,10 +392,52 @@ async function displayTransactionDetails(transactionId) {
       returnButton.onclick = () => handleReturnTransaction(transaction);
     }
 
+    // 取引削除ボタンの表示
+    const deleteButton = document.getElementById('deleteTransactionButton');
+    deleteButton.style.display = 'block';
+    deleteButton.onclick = () => handleDeleteTransaction(transaction.id);
+
     document.getElementById('transactionDetails').style.display = 'block';
   } catch (error) {
     console.error(error);
     showError('取引詳細の表示に失敗しました');
+  }
+}
+
+// 取引の削除処理
+async function handleDeleteTransaction(transactionId) {
+  if (confirm('この取引を削除しますか？この操作は元に戻せません。')) {
+    try {
+      const transaction = await getTransactionById(transactionId);
+      if (!transaction) {
+        showError('取引が見つかりません');
+        return;
+      }
+
+      // 在庫を元に戻す（返品と同様の処理）
+      if (transaction.items && transaction.items.length > 0) {
+        for (const item of transaction.items) {
+          const productId = item.productId;
+          const quantity = item.quantity;
+          const size = item.size;
+          const product = await getProductById(productId);
+          const updatedQuantity = product.quantity + quantity * size;
+          await updateProduct(productId, { quantity: updatedQuantity });
+          // 全体在庫の更新
+          await updateOverallInventory(product.overallInventoryId, quantity * size);
+        }
+      }
+
+      // 取引の削除
+      await deleteTransaction(transactionId);
+      alert('取引が削除されました');
+      document.getElementById('transactionDetails').style.display = 'none';
+      // 売上管理セクションを更新
+      await displayTransactions();
+    } catch (error) {
+      console.error(error);
+      showError('取引の削除に失敗しました');
+    }
   }
 }
 
@@ -410,6 +458,8 @@ async function handleReturnTransaction(transaction) {
         const product = await getProductById(productId);
         const updatedQuantity = product.quantity + quantity * size;
         await updateProduct(productId, { quantity: updatedQuantity });
+        // 全体在庫の更新
+        await updateOverallInventory(product.overallInventoryId, quantity * size);
       }
     }
     // 取引を返品済みに更新
