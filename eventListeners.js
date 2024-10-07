@@ -27,7 +27,7 @@ import {
   updateOverallInventory,
   getOverallInventory,
   getAllOverallInventories,
-  deleteOverallInventory, // 追加: deleteOverallInventoryのインポート
+  deleteOverallInventory,
 } from './inventoryManagement.js';
 
 import {
@@ -85,6 +85,7 @@ document
       document.getElementById('addConsumableForm').reset();
       alert('消耗品が追加されました');
       await displayConsumables();
+      await updateConsumableSelectOptions(); // 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の追加に失敗しました');
@@ -119,6 +120,7 @@ async function displayConsumables() {
             await deleteConsumable(consumable.id);
             alert('消耗品が削除されました');
             await displayConsumables();
+            await updateConsumableSelectOptions(); // 消耗品リストの更新
           } catch (error) {
             console.error(error);
             showError('消耗品の削除に失敗しました');
@@ -158,6 +160,7 @@ function editConsumable(consumable) {
       await updateConsumable(consumable.id, updatedData);
       alert('消耗品が更新されました');
       await displayConsumables();
+      await updateConsumableSelectOptions(); // 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の更新に失敗しました');
@@ -203,7 +206,28 @@ function createAddConsumableToProductForm(product) {
     const quantity = parseFloat(document.getElementById('consumableQuantity').value);
     await addConsumableToProduct(product.id, consumableId, quantity);
   });
+  updateConsumableSelectOptions(); // ドロップダウンリストを更新
   return form;
+}
+
+// 消耗品セレクトボックスのオプションを更新する関数
+async function updateConsumableSelectOptions() {
+  try {
+    const consumables = await getConsumables();
+    const select = document.getElementById('consumableSelect');
+    if (select) {
+      select.innerHTML = '<option value="">消耗品を選択</option>';
+      consumables.forEach((consumable) => {
+        const option = document.createElement('option');
+        option.value = consumable.id;
+        option.textContent = consumable.name;
+        select.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    showError('消耗品の取得に失敗しました');
+  }
 }
 
 // 親カテゴリ追加フォームのイベントリスナー
@@ -542,9 +566,9 @@ async function displayProducts() {
   }
 }
 
-// 商品の編集フォーム表示関数
+// 商品の編集フォーム表示関数に消耗品設定機能を追加
 function editProduct(product) {
- // 編集用のフォームを作成
+  // 編集用のフォームを作成
   const editForm = document.createElement('form');
   editForm.innerHTML = `
     <input type="text" name="name" value="${product.name}" required />
@@ -581,7 +605,7 @@ function editProduct(product) {
     editForm.remove();
     displayProducts();
   });
- // 消耗品設定フォームを追加
+  // 消耗品設定フォームを追加
   const consumableForm = createAddConsumableToProductForm(product);
   editForm.appendChild(consumableForm);
   // 既存の要素を編集フォームに置き換える
@@ -589,6 +613,14 @@ function editProduct(product) {
   productList.innerHTML = '';
   productList.appendChild(editForm);
 }
+
+// 新規商品追加時にも消耗品を設定するフォームの追加
+async function createNewProductForm() {
+  const form = document.getElementById('addProductForm');
+  const consumableForm = createAddConsumableToProductForm({ id: null });
+  form.appendChild(consumableForm);
+}
+createNewProductForm();
 
 // 在庫管理セクションの商品一覧表示関数
 async function displayInventoryProducts() {
@@ -673,6 +705,19 @@ async function updateOverallInventoryQuantity(subcategoryId, newQuantity) {
     showError('全体在庫の更新に失敗しました');
   }
 }
+
+// 関数のエクスポート
+export {
+  updatePricingParentCategorySelect,
+  showError,
+  displayConsumables,
+  editConsumable,
+  addConsumableToProduct,
+  createAddConsumableToProductForm,
+  editProduct,
+  updateConsumableSelectOptions,
+  createNewProductForm,
+};
 
 // 全体在庫の在庫数を表示する関数
 async function displayOverallInventory() {
