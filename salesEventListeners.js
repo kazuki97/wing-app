@@ -24,7 +24,7 @@ import {
 
 import { getUnitPrice } from './pricing.js'; // 単価取得
 
-import { updateOverallInventory } from './inventoryManagement.js'; // 追加
+import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js'; // 追加
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -254,8 +254,11 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
 
       // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
+
       // 全体在庫の更新
-      await updateOverallInventory(product.subcategoryId, -requiredQuantity);
+      const overallInventory = await getOverallInventory(product.subcategoryId);
+      const updatedQuantity = (overallInventory.quantity || 0) - requiredQuantity;
+      await updateOverallInventory(product.subcategoryId, updatedQuantity);
     }
 
     transactionData.cost = totalCost;
@@ -264,7 +267,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     // 取引の保存
     await addTransaction(transactionData);
 
-   // カートをクリア
+    // カートをクリア
     salesCart = [];
     displaySalesCart();
     alert('販売が完了しました');
