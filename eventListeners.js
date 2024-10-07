@@ -296,7 +296,7 @@ async function displaySubcategories(parentCategoryId) {
             });
         }
       });
-     // 削除ボタン
+      // 削除ボタン
       const deleteButton = document.createElement('button');
       deleteButton.textContent = '削除';
       deleteButton.addEventListener('click', async () => {
