@@ -8,9 +8,6 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
-  query,
-  where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 全体在庫の更新（サブカテゴリごと）
@@ -31,7 +28,7 @@ export async function updateOverallInventory(subcategoryId, quantity) {
   }
 }
 
-// トランザクション内で全体在庫を更新する関数（修正箇所）
+// トランザクション内で全体在庫を更新する関数
 export function updateOverallInventoryTransaction(transaction, subcategoryId, quantityChange) {
   const overallInventoryRef = doc(db, 'overallInventory', subcategoryId);
   return transaction.get(overallInventoryRef).then((overallInventoryDoc) => {
