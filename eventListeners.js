@@ -85,7 +85,7 @@ document
       document.getElementById('addConsumableForm').reset();
       alert('消耗品が追加されました');
       await displayConsumables();
-      await updateConsumableSelectOptions(); // 消耗品リストの更新
+      await updateConsumableSelectOptionsForForms(); // 修正: 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の追加に失敗しました');
@@ -120,7 +120,7 @@ async function displayConsumables() {
             await deleteConsumable(consumable.id);
             alert('消耗品が削除されました');
             await displayConsumables();
-            await updateConsumableSelectOptions(); // 消耗品リストの更新
+            await updateConsumableSelectOptionsForForms(); // 修正: 消耗品リストの更新
           } catch (error) {
             console.error(error);
             showError('消耗品の削除に失敗しました');
@@ -160,7 +160,7 @@ function editConsumable(consumable) {
       await updateConsumable(consumable.id, updatedData);
       alert('消耗品が更新されました');
       await displayConsumables();
-      await updateConsumableSelectOptions(); // 消耗品リストの更新
+      await updateConsumableSelectOptionsForForms(); // 修正: 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の更新に失敗しました');
@@ -621,6 +621,22 @@ function editProduct(product) {
   // 消耗品設定フォームを追加
   const consumableForm = createAddConsumableToProductForm(product);
   editForm.appendChild(consumableForm);
+
+  // 消耗品一覧を表示
+  const consumableList = document.createElement('ul');
+  if (product.consumables && product.consumables.length > 0) {
+    product.consumables.forEach((consumable) => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `消耗品: ${consumable.consumableId}, 数量: ${consumable.quantity}`;
+      consumableList.appendChild(listItem);
+    });
+  } else {
+    const listItem = document.createElement('li');
+    listItem.textContent = '設定された消耗品はありません';
+    consumableList.appendChild(listItem);
+  }
+  editForm.appendChild(consumableList);
+
   // 既存の要素を編集フォームに置き換える
   const productList = document.getElementById('productList');
   productList.innerHTML = '';
@@ -737,137 +753,4 @@ async function updateOverallInventoryQuantity(subcategoryId, newQuantity) {
 async function displayOverallInventory() {
   try {
     const overallInventories = await getAllOverallInventories();
-    const inventoryTable = document.getElementById('overallInventoryTable').querySelector('tbody');
-    inventoryTable.innerHTML = '';
-    for (const inventory of overallInventories) {
-      const subcategory = await getSubcategoryById(inventory.id); // サブカテゴリ名を取得
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
-        <td><input type="number" value="${inventory.quantity}" min="0" data-subcategory-id="${inventory.id}" class="overall-inventory-quantity" /></td>
-        <td><button class="update-overall-inventory" data-subcategory-id="${inventory.id}">更新</button></td>
-        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
-      `;
-      inventoryTable.appendChild(row);
-    }
-
-    // 更新ボタンのイベントリスナー
-    document.querySelectorAll('.update-overall-inventory').forEach((button) => {
-      button.addEventListener('click', (e) => {
-        const subcategoryId = e.target.dataset.subcategoryId;
-        const newQuantity = parseInt(
-          document.querySelector(`input[data-subcategory-id="${subcategoryId}"]`).value,
-          10
-        );
-        updateOverallInventoryQuantity(subcategoryId, newQuantity);
-      });
-    });
-
-    // 削除ボタンのイベントリスナー
-    document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
-      button.addEventListener('click', async (e) => {
-        const inventoryId = e.target.dataset.id;
-        if (confirm('この全体在庫を削除しますか？')) {
-          try {
-            await deleteOverallInventory(inventoryId);
-            alert('全体在庫が削除されました');
-            await displayOverallInventory();
-          } catch (error) {
-            console.error(error);
-            showError('全体在庫の削除に失敗しました');
-          }
-        }
-      });
-    });
-  } catch (error) {
-    console.error('全体在庫の表示に失敗しました:', error);
-    showError('全体在庫の表示に失敗しました');
-  }
-}
-
-// 単価ルール追加フォームのイベントリスナー
-document
-  .getElementById('addPricingRuleForm')
-  .addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const subcategoryId = document.getElementById('pricingSubcategorySelect').value;
-    const minQuantity = parseFloat(document.getElementById('minQuantity').value);
-    const maxQuantity = parseFloat(document.getElementById('maxQuantity').value);
-    const unitPrice = parseFloat(document.getElementById('unitPrice').value);
-
-    if (minQuantity > maxQuantity) {
-      showError('最小数量は最大数量以下である必要があります');
-      return;
-    }
-
-    try {
-      await addPricingRule(subcategoryId, minQuantity, maxQuantity, unitPrice);
-      alert('単価ルールが追加されました');
-      await displayPricingRules();
-      document.getElementById('addPricingRuleForm').reset();
-    } catch (error) {
-      console.error(error);
-      showError('単価ルールの追加に失敗しました');
-    }
-  });
-
-// 単価ルールの表示
-async function displayPricingRules() {
-  try {
-    const subcategoryId = document.getElementById('pricingSubcategorySelect').value;
-    if (!subcategoryId) {
-      // サブカテゴリが選択されていない場合は何もしない
-      return;
-    }
-    const pricingRules = await getPricingRules(subcategoryId);
-    const pricingRulesList = document.getElementById('pricingRulesList').querySelector('tbody');
-    pricingRulesList.innerHTML = '';
-    for (const rule of pricingRules) {
-      const subcategory = await getSubcategoryById(rule.subcategoryId);
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
-        <td>${rule.minQuantity}</td>
-        <td>${rule.maxQuantity}</td>
-        <td>${rule.unitPrice}</td>
-        <td><button class="delete-pricing-rule" data-id="${rule.id}">削除</button></td>
-      `;
-      pricingRulesList.appendChild(row);
-    }
-    // 削除ボタンのイベントリスナー
-    document.querySelectorAll('.delete-pricing-rule').forEach((button) => {
-      button.addEventListener('click', async (e) => {
-        const ruleId = e.target.dataset.id;
-        if (confirm('本当に削除しますか？')) {
-          try {
-            await deletePricingRule(ruleId);
-            alert('単価ルールが削除されました');
-            await displayPricingRules();
-          } catch (error) {
-            console.error(error);
-            showError('単価ルールの削除に失敗しました');
-          }
-        }
-      });
-    });
-  } catch (error) {
-    console.error(error);
-    showError('単価ルールの表示に失敗しました');
-  }
-}
-
-// 単価設定セクションのサブカテゴリセレクトボックスのイベントリスナー
-document.getElementById('pricingSubcategorySelect').addEventListener('change', async () => {
-  await displayPricingRules();
-});
-
-// 初期化処理
-window.addEventListener('DOMContentLoaded', async () => {
-  await updateAllParentCategorySelects();
-  await updatePricingParentCategorySelect(); // 修正：この関数を正しく呼び出す
-  await displayParentCategories();
-  await displayProducts();
-  await displayOverallInventory();
-  await displayInventoryProducts();
-  await displayConsumables(); // 消耗品の一覧を表示
-});
+    const inventoryTable = document.getElementById('overallInventory
