@@ -581,6 +581,7 @@ async function displayOverallInventory() {
   }
 }
 
+
 // 単価ルール追加フォームのイベントリスナー
 document
   .getElementById('addPricingRuleForm')
