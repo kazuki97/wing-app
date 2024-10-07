@@ -3,6 +3,7 @@
 // インポート
 import {
   getProductByBarcode,
+  updateProduct,
   getProductById,
 } from './products.js';
 
@@ -10,7 +11,8 @@ import {
   addTransaction,
   getTransactions,
   getTransactionById,
-  deleteTransaction,
+  updateTransaction,
+  deleteTransaction, // 追加
 } from './transactions.js';
 
 import {
@@ -22,15 +24,7 @@ import {
 
 import { getUnitPrice } from './pricing.js'; // 単価取得
 
-import { updateOverallInventoryTransaction } from './inventoryManagement.js'; // トランザクション内で全体在庫を更新
-
-import { db } from './db.js'; // Firestoreデータベースのインスタンス
-
-import {
-  runTransaction,
-  doc,
-  collection,
-} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js'; // トランザクション用に追加
+import { updateOverallInventory } from './inventoryManagement.js'; // 追加
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -140,7 +134,7 @@ async function displaySalesCart() {
     salesCartTable.appendChild(row);
   }
 
-  document.getElementById('totalAmount').textContent = `合計金額: ¥${totalAmount.toFixed(2)}`;
+  document.getElementById('totalAmount').textContent = `合計金額: ¥${totalAmount}`;
 
   // 数量変更のイベントリスナー
   document.querySelectorAll('.cart-quantity').forEach((input) => {
@@ -200,52 +194,28 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     }
     const feeRate = paymentMethod.feeRate;
 
+    // 在庫のチェックと更新
+    for (const item of salesCart) {
+      const product = item.product;
+      const quantity = item.quantity;
+      const requiredQuantity = product.size * quantity;
+
+      // 商品の在庫チェック
+      if (product.quantity < requiredQuantity) {
+        showError(`商品「${product.name}」の在庫が不足しています`);
+        return;
+      }
+    }
+
     // 手数料の計算
-    const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('合計金額: ¥', ''));
-    const feeAmount = parseFloat((totalAmount * feeRate / 100).toFixed(2));
-    const netAmount = parseFloat((totalAmount - feeAmount).toFixed(2));
+    const totalAmount = Math.round(
+      parseFloat(document.getElementById('totalAmount').textContent.replace('合計金額: ¥', ''))
+    );
+    const feeAmount = Math.round((totalAmount * feeRate) / 100);
+    const netAmount = totalAmount - feeAmount;
 
     // 原価と利益の計算
     let totalCost = 0;
-
-    // **事前にすべてのデータを取得**
-    const productDataList = [];
-    for (const item of salesCart) {
-      const productId = item.product.id;
-      const productDoc = await getProductById(productId);
-      if (!productDoc) {
-        throw new Error(`商品が見つかりません: ${item.product.name}`);
-      }
-      const productData = productDoc;
-      const quantity = item.quantity;
-      const requiredQuantity = item.product.size * quantity;
-
-      // 商品の在庫チェック
-      if (productData.quantity < quantity) {
-        throw new Error(`商品「${item.product.name}」の在庫が不足しています`);
-      }
-
-      // 単価の取得
-      const unitPrice = await getUnitPrice(productData.subcategoryId, requiredQuantity);
-
-      // コストと利益の計算
-      const cost = productData.cost * quantity;
-      const subtotal = unitPrice * item.product.size * quantity;
-      totalCost += cost;
-
-      productDataList.push({
-        productRef: doc(db, 'products', productId),
-        productData,
-        quantity,
-        requiredQuantity,
-        subcategoryId: productData.subcategoryId,
-        unitPrice,
-        subtotal,
-        cost,
-        productName: productData.name,
-        size: item.product.size,
-      });
-    }
 
     // 販売データの作成
     const transactionData = {
@@ -257,43 +227,42 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       paymentMethodName: paymentMethod.name,
       items: [],
       manuallyAdded: false,
-      cost: totalCost,
-      profit: netAmount - totalCost,
+      cost: 0,
+      profit: 0,
     };
 
-    // Firestoreのトランザクションを使用して在庫更新と取引の保存を行う
-    await runTransaction(db, (transaction) => {
-      // 在庫の更新と取引データの準備
-      productDataList.forEach((item) => {
-        // 在庫の更新
-        transaction.update(item.productRef, {
-          quantity: item.productData.quantity - item.quantity,
-        });
+    for (const item of salesCart) {
+      const product = item.product;
+      const quantity = item.quantity;
+      const requiredQuantity = product.size * quantity;
+      const cost = product.cost * requiredQuantity;
+      const unitPrice = await getUnitPrice(product.subcategoryId, requiredQuantity);
+      const subtotal = unitPrice * requiredQuantity;
 
-        // 全体在庫の更新
-        updateOverallInventoryTransaction(
-          transaction,
-          item.subcategoryId,
-          -item.requiredQuantity
-        );
+      totalCost += cost;
 
-        // 取引データのアイテムを追加
-        transactionData.items.push({
-          productId: item.productRef.id,
-          productName: item.productName,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          size: item.size,
-          subtotal: item.subtotal,
-          cost: item.cost,
-          profit: item.subtotal - item.cost,
-        });
+      transactionData.items.push({
+        productId: product.id,
+        productName: product.name,
+        quantity: quantity,
+        unitPrice: unitPrice,
+        size: product.size,
+        subtotal: subtotal,
+        cost: cost,
+        profit: subtotal - cost,
       });
 
-      // 取引の保存
-      const transactionRef = doc(collection(db, 'transactions'));
-      transaction.set(transactionRef, transactionData);
-    });
+      // 在庫の更新
+      await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
+      // 全体在庫の更新
+      await updateOverallInventory(product.id, -requiredQuantity);
+    }
+
+    transactionData.cost = totalCost;
+    transactionData.profit = netAmount - totalCost;
+
+    // 取引の保存
+    await addTransaction(transactionData);
 
     // カートをクリア
     salesCart = [];
@@ -303,72 +272,186 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     await displayTransactions();
   } catch (error) {
     console.error(error);
-    showError('販売処理に失敗しました: ' + error.message);
+    showError('販売処理に失敗しました');
   }
 });
 
+// 売上管理セクションの表示
+async function displayTransactions(filter = {}) {
+  try {
+    let transactions = await getTransactions();
+
+    // フィルタの適用
+    if (filter.onlyReturned) {
+      transactions = transactions.filter((t) => t.isReturned);
+    }
+    if (filter.month || filter.year) {
+      transactions = transactions.filter((t) => {
+        const date = t.timestamp.toDate();
+        const monthMatch = filter.month ? date.getMonth() + 1 === filter.month : true;
+        const yearMatch = filter.year ? date.getFullYear() === filter.year : true;
+        return monthMatch && yearMatch;
+      });
+    }
+
+    const transactionList = document.getElementById('transactionList').querySelector('tbody');
+    transactionList.innerHTML = '';
+    for (const transaction of transactions) {
+      const row = document.createElement('tr');
+      // 返品済みの場合は赤文字にする
+      if (transaction.isReturned) {
+        row.style.color = 'red';
+      }
+      // 商品名の一覧をカンマ区切りで取得
+      const productNames = transaction.items.map((item) => item.productName).join(', ');
+      // 総数量を計算
+      const totalQuantity = transaction.items.reduce((sum, item) => sum + item.quantity, 0);
+
+      row.innerHTML = `
+        <td>${transaction.id}</td>
+        <td>${transaction.timestamp.toDate().toLocaleString()}</td>
+        <td>${transaction.paymentMethodName}</td>
+        <td>${productNames || '手動追加'}</td>
+        <td>${totalQuantity || '-'}</td>
+        <td>¥${transaction.totalAmount}</td>
+        <td>¥${transaction.cost || 0}</td>
+        <td>¥${transaction.profit || 0}</td>
+        <td><button class="view-transaction-details" data-id="${transaction.id}">詳細</button></td>
+      `;
+      transactionList.appendChild(row);
+    }
+
+    // 詳細ボタンのイベントリスナー
+    document.querySelectorAll('.view-transaction-details').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const transactionId = e.target.dataset.id;
+        await displayTransactionDetails(transactionId);
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    showError('取引の表示に失敗しました');
+  }
+}
+
+// 取引詳細の表示
+async function displayTransactionDetails(transactionId) {
+  try {
+    const transaction = await getTransactionById(transactionId);
+    if (!transaction) {
+      showError('取引が見つかりません');
+      return;
+    }
+    document.getElementById('detailTransactionId').textContent = transaction.id;
+    document.getElementById('detailTimestamp').textContent = transaction.timestamp.toDate().toLocaleString();
+    document.getElementById('detailPaymentMethod').textContent = transaction.paymentMethodName;
+    document.getElementById('detailFeeAmount').textContent = transaction.feeAmount;
+    document.getElementById('detailNetAmount').textContent = transaction.netAmount;
+    document.getElementById('detailTotalCost').textContent = transaction.cost || 0;
+    document.getElementById('detailTotalProfit').textContent = transaction.profit || 0;
+
+    const detailProductList = document.getElementById('detailProductList');
+    detailProductList.innerHTML = '';
+
+    if (transaction.items && transaction.items.length > 0) {
+      for (const item of transaction.items) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.productName}</td>
+          <td>${item.quantity}</td>
+          <td>${item.unitPrice}</td>
+          <td>${item.subtotal}</td>
+          <td>${item.cost}</td>
+          <td>${item.profit}</td>
+        `;
+        detailProductList.appendChild(row);
+      }
+    } else {
+      // 手動追加のため、商品明細が無い
+      const row = document.createElement('tr');
+      row.innerHTML = '<td colspan="6">商品情報はありません</td>';
+      detailProductList.appendChild(row);
+    }
+
+    // 返品ボタンの表示（手動追加の場合は非表示にする）
+    const returnButton = document.getElementById('returnTransactionButton');
+    if (transaction.isReturned || transaction.manuallyAdded) {
+      returnButton.style.display = 'none';
+      if (transaction.isReturned) {
+        document.getElementById('returnInfo').textContent = `返品理由: ${transaction.returnReason}`;
+      } else {
+        document.getElementById('returnInfo').textContent = '';
+      }
+    } else {
+      returnButton.style.display = 'block';
+      document.getElementById('returnInfo').textContent = '';
+      returnButton.onclick = () => handleReturnTransaction(transaction);
+    }
+
+    // 取引削除ボタンの表示
+    const deleteButton = document.getElementById('deleteTransactionButton');
+    deleteButton.style.display = 'block';
+    deleteButton.onclick = () => handleDeleteTransaction(transaction.id);
+
+    document.getElementById('transactionDetails').style.display = 'block';
+  } catch (error) {
+    console.error(error);
+    showError('取引詳細の表示に失敗しました');
+  }
+}
+
+// 取引の削除
+async function handleDeleteTransaction(transactionId) {
+  if (confirm('この取引を削除しますか？')) {
+    try {
+      await deleteTransaction(transactionId);
+      alert('取引が削除されました');
+      document.getElementById('transactionDetails').style.display = 'none';
+      await displayTransactions();
+    } catch (error) {
+      console.error(error);
+      showError('取引の削除に失敗しました');
+    }
+  }
+}
+
 // 返品処理
-async function handleReturnTransaction(transactionData) {
+async function handleReturnTransaction(transaction) {
   const reason = prompt('返品理由を入力してください');
   if (!reason) {
     showError('返品理由を入力してください');
     return;
   }
   try {
-    // **事前にすべてのデータを取得**
-    const productDataList = [];
-    for (const item of transactionData.items) {
-      const productId = item.productId;
-      const productDoc = await getProductById(productId);
-      if (!productDoc) {
-        throw new Error(`商品が見つかりません: ${item.productName}`);
-      }
-      const productData = productDoc;
-      const quantity = item.quantity;
-      const requiredQuantity = item.size * quantity;
+    if (transaction.items && transaction.items.length > 0) {
+      // 在庫を元に戻す
+      for (const item of transaction.items) {
+        const productId = item.productId;
+        const quantity = item.quantity;
+        const size = item.size;
+        const requiredQuantity = quantity * size;
 
-      productDataList.push({
-        productRef: doc(db, 'products', productId),
-        productData,
-        quantity,
-        requiredQuantity,
-        subcategoryId: productData.subcategoryId,
-      });
-    }
-
-    await runTransaction(db, (transaction) => {
-      // 在庫の更新
-      productDataList.forEach((item) => {
-        // 在庫の更新
-        transaction.update(item.productRef, {
-          quantity: item.productData.quantity + item.quantity,
-        });
-
+        const product = await getProductById(productId);
+        const updatedQuantity = product.quantity + requiredQuantity;
+        await updateProduct(productId, { quantity: updatedQuantity });
         // 全体在庫の更新
-        updateOverallInventoryTransaction(
-          transaction,
-          item.subcategoryId,
-          item.requiredQuantity
-        );
-      });
-
-      // 取引を返品済みに更新
-      const transactionRef = doc(db, 'transactions', transactionData.id);
-      transaction.update(transactionRef, {
-        isReturned: true,
-        returnReason: reason,
-        returnedAt: new Date(),
-      });
+        await updateOverallInventory(productId, requiredQuantity);
+      }
+    }
+    // 取引を返品済みに更新
+    await updateTransaction(transaction.id, {
+      isReturned: true,
+      returnReason: reason,
+      returnedAt: new Date(),
     });
-
     alert('返品が完了しました');
     // 取引詳細を再表示
-    await displayTransactionDetails(transactionData.id);
+    await displayTransactionDetails(transaction.id);
     // 売上管理セクションを更新
     await displayTransactions();
   } catch (error) {
     console.error(error);
-    showError('返品処理に失敗しました: ' + error.message);
+    showError('返品処理に失敗しました');
   }
 }
 
@@ -518,8 +601,8 @@ document.getElementById('addTransactionForm').addEventListener('submit', async (
     const feeRate = paymentMethod.feeRate;
 
     // 手数料の計算
-    const feeAmount = parseFloat((totalAmount * feeRate / 100).toFixed(2));
-    const netAmount = parseFloat((totalAmount - feeAmount).toFixed(2));
+    const feeAmount = Math.round((totalAmount * feeRate) / 100);
+    const netAmount = totalAmount - feeAmount;
 
     // 販売データの作成（手動入力なので items は空）
     const transactionData = {
