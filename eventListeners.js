@@ -491,13 +491,14 @@ async function displayInventoryProducts() {
   }
 }
 
-// 商品の在庫数（数量）を更新する関数
-async function updateProductQuantity(productId, quantity) {
+// 販売完了後に全体在庫を更新する関数
+// 修正しました: 販売完了後に全体在庫を減少させる関数を追加
+async function updateOverallInventoryAfterSale(productId, quantitySold) {
   try {
-    await updateProduct(productId, { quantity: quantity });
+    await updateOverallInventory(productId, -quantitySold);
   } catch (error) {
-    console.error('在庫数の更新エラー:', error);
-    throw error;
+    console.error('全体在庫の更新エラー:', error);
+    showError('全体在庫の更新に失敗しました');
   }
 }
 
@@ -519,6 +520,7 @@ document
   });
 
 // 全体在庫の表示関数を修正して削除ボタンを追加
+// 修正しました: 全体在庫の表示関数に削除ボタンを追加
 async function displayOverallInventory() {
   try {
     const overallInventories = await getAllOverallInventories();
@@ -535,7 +537,7 @@ async function displayOverallInventory() {
       overallInventoryList.appendChild(row);
     }
 
-  // 削除ボタンのイベントリスナー
+    // 削除ボタンのイベントリスナー
     document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
       button.addEventListener('click', async (e) => {
         const inventoryId = e.target.dataset.id;
