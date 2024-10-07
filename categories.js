@@ -1,5 +1,4 @@
 // categories.js
-
 import { db } from './db.js';
 import {
   collection,
@@ -7,8 +6,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  getDoc,
   getDocs,
+  getDoc,
   query,
   where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
@@ -16,7 +15,9 @@ import {
 // 親カテゴリの追加
 export async function addParentCategory(name) {
   try {
-    const docRef = await addDoc(collection(db, 'parentCategories'), { name });
+    const docRef = await addDoc(collection(db, 'parentCategories'), {
+      name,
+    });
     return docRef.id;
   } catch (error) {
     console.error('親カテゴリの追加エラー:', error);
@@ -35,11 +36,11 @@ export async function getParentCategories() {
   }
 }
 
-// 親カテゴリの更新
-export async function updateParentCategory(id, name) {
+// 親カテゴリの編集
+export async function updateParentCategory(id, newName) {
   try {
     const docRef = doc(db, 'parentCategories', id);
-    await updateDoc(docRef, { name });
+    await updateDoc(docRef, { name: newName });
   } catch (error) {
     console.error('親カテゴリの更新エラー:', error);
     throw error;
@@ -51,6 +52,11 @@ export async function deleteParentCategory(id) {
   try {
     const docRef = doc(db, 'parentCategories', id);
     await deleteDoc(docRef);
+    // 対応するサブカテゴリも削除
+    const subcategories = await getSubcategories(id);
+    for (const subcategory of subcategories) {
+      await deleteSubcategory(subcategory.id);
+    }
   } catch (error) {
     console.error('親カテゴリの削除エラー:', error);
     throw error;
@@ -86,7 +92,7 @@ export async function getSubcategories(parentCategoryId) {
   }
 }
 
-// サブカテゴリのIDからサブカテゴリを取得（修正箇所）
+// サブカテゴリIDからサブカテゴリ情報を取得
 export async function getSubcategoryById(subcategoryId) {
   try {
     const docRef = doc(db, 'subcategories', subcategoryId);
@@ -95,7 +101,7 @@ export async function getSubcategoryById(subcategoryId) {
       return { id: docSnap.id, ...docSnap.data() };
     } else {
       console.error('サブカテゴリが見つかりません');
-      return null; // 修正点：nullを返すように変更
+      return null;
     }
   } catch (error) {
     console.error('サブカテゴリの取得エラー:', error);
@@ -103,11 +109,11 @@ export async function getSubcategoryById(subcategoryId) {
   }
 }
 
-// サブカテゴリの更新
-export async function updateSubcategory(id, name) {
+// サブカテゴリの編集
+export async function updateSubcategory(id, newName) {
   try {
     const docRef = doc(db, 'subcategories', id);
-    await updateDoc(docRef, { name });
+    await updateDoc(docRef, { name: newName });
   } catch (error) {
     console.error('サブカテゴリの更新エラー:', error);
     throw error;
