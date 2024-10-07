@@ -548,7 +548,7 @@ async function displayOverallInventory() {
       inventoryTable.appendChild(row);
     });
 
-    // 更新ボタンのイベントリスナー
+   // 更新ボタンのイベントリスナー
     document.querySelectorAll('.update-overall-inventory').forEach((button) => {
       button.addEventListener('click', (e) => {
         const subcategoryId = e.target.dataset.subcategoryId;
@@ -559,11 +559,6 @@ async function displayOverallInventory() {
         updateOverallInventoryQuantity(subcategoryId, newQuantity);
       });
     });
-  } catch (error) {
-    console.error('全体在庫の表示に失敗しました:', error);
-    showError('全体在庫の表示に失敗しました');
-  }
-}
 
     // 削除ボタンのイベントリスナー
     document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
@@ -582,7 +577,7 @@ async function displayOverallInventory() {
       });
     });
   } catch (error) {
-    console.error(error);
+    console.error('全体在庫の表示に失敗しました:', error);
     showError('全体在庫の表示に失敗しました');
   }
 }
