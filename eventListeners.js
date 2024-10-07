@@ -65,6 +65,164 @@ function showError(message) {
   }, 5000);
 }
 
+// eventListeners.js
+
+// インポート
+import {
+  addParentCategory,
+  getParentCategories,
+  updateParentCategory,
+  deleteParentCategory,
+  addSubcategory,
+  getSubcategories,
+  getSubcategoryById,
+  updateSubcategory,
+  deleteSubcategory,
+} from './categories.js';
+
+import {
+  addProduct,
+  getProducts,
+  getProductById,
+  getProductByBarcode,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
+} from './products.js';
+
+import {
+  updateOverallInventory,
+  getOverallInventory,
+  getAllOverallInventories,
+  deleteOverallInventory, // 追加: deleteOverallInventoryのインポート
+} from './inventoryManagement.js';
+
+import {
+  addPricingRule,
+  getPricingRules,
+  deletePricingRule,
+  getUnitPrice,
+} from './pricing.js';
+
+import {
+  addConsumable,
+  getConsumables,
+  deleteConsumable,
+  updateConsumable,
+} from './consumables.js';
+
+// エラーメッセージ表示関数
+function showError(message) {
+  const errorDiv = document.getElementById('error-message');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+  setTimeout(() => {
+    errorDiv.style.display = 'none';
+  }, 5000);
+}
+
+// 消耗品追加フォームのイベントリスナー
+document
+  .getElementById('addConsumableForm')
+  .addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('consumableName').value;
+    const cost = parseFloat(document.getElementById('consumableCost').value);
+    const barcode = document.getElementById('consumableBarcode').value || null;
+    try {
+      await addConsumable({ name, cost, barcode });
+      document.getElementById('addConsumableForm').reset();
+      alert('消耗品が追加されました');
+      await displayConsumables();
+    } catch (error) {
+      console.error(error);
+      showError('消耗品の追加に失敗しました');
+    }
+  });
+
+// 消耗品一覧の表示
+async function displayConsumables() {
+  try {
+    const consumables = await getConsumables();
+    const consumableList = document.getElementById('consumableList');
+    consumableList.innerHTML = '';
+    consumables.forEach((consumable) => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `
+        消耗品名: ${consumable.name},
+        原価: ${consumable.cost},
+        バーコード: ${consumable.barcode || 'なし'}
+      `;
+      // 編集ボタン
+      const editButton = document.createElement('button');
+      editButton.textContent = '編集';
+      editButton.addEventListener('click', () => {
+        editConsumable(consumable);
+      });
+      // 削除ボタン
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = '削除';
+      deleteButton.addEventListener('click', async () => {
+        if (confirm('本当に削除しますか？')) {
+          try {
+            await deleteConsumable(consumable.id);
+            alert('消耗品が削除されました');
+            await displayConsumables();
+          } catch (error) {
+            console.error(error);
+            showError('消耗品の削除に失敗しました');
+          }
+        }
+      });
+      listItem.appendChild(editButton);
+      listItem.appendChild(deleteButton);
+      consumableList.appendChild(listItem);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('消耗品の表示に失敗しました');
+  }
+}
+
+// 消耗品の編集フォーム表示関数
+function editConsumable(consumable) {
+  // 編集用のフォームを作成
+  const editForm = document.createElement('form');
+  editForm.innerHTML = `
+    <input type="text" name="name" value="${consumable.name}" required />
+    <input type="number" name="cost" value="${consumable.cost}" required step="any" min="0" />
+    <input type="text" name="barcode" value="${consumable.barcode || ''}" />
+    <button type="submit">更新</button>
+    <button type="button" id="cancelEdit">キャンセル</button>
+  `;
+  // 編集フォームのイベントリスナー
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const updatedData = {
+      name: editForm.name.value,
+      cost: parseFloat(editForm.cost.value),
+      barcode: editForm.barcode.value || null,
+    };
+    try {
+      await updateConsumable(consumable.id, updatedData);
+      alert('消耗品が更新されました');
+      await displayConsumables();
+    } catch (error) {
+      console.error(error);
+      showError('消耗品の更新に失敗しました');
+    }
+  });
+  // キャンセルボタンのイベントリスナー
+  editForm.querySelector('#cancelEdit').addEventListener('click', () => {
+    editForm.remove();
+    displayConsumables();
+  });
+  // 既存の要素を編集フォームに置き換える
+  const consumableList = document.getElementById('consumableList');
+  consumableList.innerHTML = '';
+  consumableList.appendChild(editForm);
+}
+
 // 親カテゴリ追加フォームのイベントリスナー
 document
   .getElementById('addParentCategoryForm')
@@ -666,4 +824,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayProducts();
   await displayOverallInventory();
   await displayInventoryProducts();
+  await displayConsumables(); // 消耗品の一覧を表示
 });
