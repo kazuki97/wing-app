@@ -536,16 +536,17 @@ async function displayOverallInventory() {
     const overallInventories = await getAllOverallInventories();
     const inventoryTable = document.getElementById('overallInventoryTable').querySelector('tbody');
     inventoryTable.innerHTML = '';
-    overallInventories.forEach((inventory) => {
+    for (const inventory of overallInventories) {
+      const subcategory = await getSubcategoryById(inventory.id); // サブカテゴリ名を取得
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${inventory.id}</td>
+        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td><input type="number" value="${inventory.quantity}" min="0" data-subcategory-id="${inventory.id}" class="overall-inventory-quantity" /></td>
         <td><button class="update-overall-inventory" data-subcategory-id="${inventory.id}">更新</button></td>
         <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
       `;
       inventoryTable.appendChild(row);
-    });
+    }
 
     // 更新ボタンのイベントリスナー
     document.querySelectorAll('.update-overall-inventory').forEach((button) => {
@@ -580,7 +581,6 @@ async function displayOverallInventory() {
     showError('全体在庫の表示に失敗しました');
   }
 }
-
 
 // 単価ルール追加フォームのイベントリスナー
 document
