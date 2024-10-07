@@ -511,30 +511,31 @@ async function displayOverallInventory() {
       row.innerHTML = `
         <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td>${inventory.quantity || 0}</td>
+        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>  <!-- 削除ボタン追加 -->
       `;
       overallInventoryList.appendChild(row);
     }
+
+    // 削除ボタンのイベントリスナー
+    document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const subcategoryId = e.target.dataset.id;
+        if (confirm('この全体在庫を削除しますか？')) {
+          try {
+            await deleteOverallInventory(subcategoryId);
+            alert('全体在庫が削除されました');
+            await displayOverallInventory();  // 全体在庫の再表示
+          } catch (error) {
+            console.error('全体在庫の削除に失敗しました:', error);
+            showError('全体在庫の削除に失敗しました');
+          }
+        }
+      });
+    });
+
   } catch (error) {
     console.error(error);
     showError('全体在庫の表示に失敗しました');
-  }
-}
-
-// 単価設定セクションの親カテゴリセレクトボックスの更新
-async function updatePricingParentCategorySelect() {
-  try {
-    const parentCategories = await getParentCategories();
-    const select = document.getElementById('pricingParentCategorySelect');
-    select.innerHTML = '<option value="">親カテゴリを選択</option>';
-    parentCategories.forEach((category) => {
-      const option = document.createElement('option');
-      option.value = category.id;
-      option.textContent = category.name;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error(error);
-    showError('親カテゴリの取得に失敗しました');
   }
 }
 
