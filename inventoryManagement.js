@@ -1,4 +1,3 @@
-// inventoryManagement.js
 import { db } from './db.js';
 import {
   collection,
@@ -7,9 +6,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
-  query,
-  where,
+  deleteDoc, // 追加
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 全体在庫の更新（サブカテゴリごと）
@@ -53,6 +50,17 @@ export async function getAllOverallInventories() {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('全体在庫一覧の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 全体在庫の削除（新規追加）
+export async function deleteOverallInventory(subcategoryId) {
+  try {
+    const docRef = doc(db, 'overallInventory', subcategoryId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('全体在庫の削除エラー:', error);
     throw error;
   }
 }
