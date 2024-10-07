@@ -542,11 +542,12 @@ async function displayOverallInventory() {
         <td>${inventory.id}</td>
         <td><input type="number" value="${inventory.quantity}" min="0" data-subcategory-id="${inventory.id}" class="overall-inventory-quantity" /></td>
         <td><button class="update-overall-inventory" data-subcategory-id="${inventory.id}">更新</button></td>
+        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
       `;
       inventoryTable.appendChild(row);
     });
 
-   // 更新ボタンのイベントリスナー
+    // 更新ボタンのイベントリスナー
     document.querySelectorAll('.update-overall-inventory').forEach((button) => {
       button.addEventListener('click', (e) => {
         const subcategoryId = e.target.dataset.subcategoryId;
