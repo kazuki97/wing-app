@@ -519,23 +519,51 @@ document
     }
   });
 
-// 全体在庫の表示関数を修正して削除ボタンを追加
-// 修正しました: 全体在庫の表示関数に削除ボタンを追加
+// 全体在庫の在庫数を手動で更新する関数
+async function updateOverallInventoryQuantity(subcategoryId, newQuantity) {
+  try {
+    await updateOverallInventory(subcategoryId, newQuantity);
+    alert('全体在庫が更新されました');
+    // 更新後の在庫数を表示
+    await displayOverallInventory();
+  } catch (error) {
+    console.error('全体在庫の更新に失敗しました:', error);
+    showError('全体在庫の更新に失敗しました');
+  }
+}
+
+// 全体在庫の在庫数を表示する関数
 async function displayOverallInventory() {
   try {
     const overallInventories = await getAllOverallInventories();
-    const overallInventoryList = document.getElementById('overallInventoryList').querySelector('tbody');
-    overallInventoryList.innerHTML = '';
-    for (const inventory of overallInventories) {
-      const subcategory = await getSubcategoryById(inventory.id);
+    const inventoryTable = document.getElementById('overallInventoryTable').querySelector('tbody');
+    inventoryTable.innerHTML = '';
+    overallInventories.forEach((inventory) => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
-        <td>${inventory.quantity || 0}</td>
-        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
+        <td>${inventory.id}</td>
+        <td><input type="number" value="${inventory.quantity}" min="0" data-subcategory-id="${inventory.id}" class="overall-inventory-quantity" /></td>
+        <td><button class="update-overall-inventory" data-subcategory-id="${inventory.id}">更新</button></td>
       `;
-      overallInventoryList.appendChild(row);
-    }
+      inventoryTable.appendChild(row);
+    });
+
+    // 更新ボタンのイベントリスナー
+    document.querySelectorAll('.update-overall-inventory').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const subcategoryId = e.target.dataset.subcategoryId;
+        const newQuantity = parseInt(
+          document.querySelector(`input[data-subcategory-id="${subcategoryId}"]`).value,
+          10
+        );
+        updateOverallInventoryQuantity(subcategoryId, newQuantity);
+      });
+    });
+  } catch (error) {
+    console.error('全体在庫の表示に失敗しました:', error);
+    showError('全体在庫の表示に失敗しました');
+  }
+}
 
     // 削除ボタンのイベントリスナー
     document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
