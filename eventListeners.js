@@ -100,11 +100,7 @@ async function displayConsumables() {
     consumableList.innerHTML = '';
     consumables.forEach((consumable) => {
       const listItem = document.createElement('li');
-      listItem.textContent = `
-        消耗品名: ${consumable.name},
-        原価: ${consumable.cost},
-        バーコード: ${consumable.barcode || 'なし'}
-      `;
+      listItem.textContent = `消耗品名: ${consumable.name}, 原価: ${consumable.cost}, バーコード: ${consumable.barcode || 'なし'}`;
       // 編集ボタン
       const editButton = document.createElement('button');
       editButton.textContent = '編集';
