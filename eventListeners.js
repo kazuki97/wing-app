@@ -37,6 +37,13 @@ import {
   getUnitPrice,
 } from './pricing.js';
 
+import {
+  addConsumable,
+  getConsumables,
+  updateConsumable,
+  deleteConsumable,
+} from './consumables.js';
+
 // 追加: updatePricingParentCategorySelectの定義
 async function updatePricingParentCategorySelect() {
   try {
