@@ -21,6 +21,7 @@
       <li><a href="#transactions" class="nav-link">売上管理</a></li>
       <li><a href="#pricing" class="nav-link">単価設定</a></li>
       <li><a href="#payment-methods" class="nav-link">支払い方法設定</a></li>
+      <li><a href="#consumables" class="nav-link">消耗品管理</a></li>
     </ul>
   </nav>
 
@@ -310,6 +311,20 @@
           <!-- 支払い方法情報がここに表示されます -->
         </tbody>
       </table>
+    </section>
+
+    <!-- 消耗品管理 -->
+    <section id="consumables" class="content-section" style="display: none;">
+      <h1>消耗品管理</h1>
+      <!-- 消耗品追加フォーム -->
+      <form id="addConsumableForm">
+        <input type="text" id="consumableName" placeholder="消耗品名" required />
+        <input type="number" id="consumableCost" placeholder="原価" required step="any" min="0" />
+        <input type="text" id="consumableBarcode" placeholder="バーコード (任意)" />
+        <button type="submit">追加</button>
+      </form>
+      <!-- 消耗品一覧表示エリア -->
+      <ul id="consumableList"></ul>
     </section>
 
   </main>
