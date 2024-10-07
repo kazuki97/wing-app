@@ -225,53 +225,79 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     };
 
     // Firestoreのトランザクションを使用して在庫更新と取引の保存を行う
-    await runTransaction(db, async (transaction) => {
-      // 在庫のチェックと更新
-      for (const item of salesCart) {
+    await runTransaction(db, (transaction) => {
+      // まず、すべての読み取りを行う
+      const productPromises = salesCart.map((item) => {
         const productRef = doc(db, 'products', item.product.id);
-        const productDoc = await transaction.get(productRef);
-        if (!productDoc.exists()) {
-          throw new Error(`商品が見つかりません: ${item.product.name}`);
-        }
-        const productData = productDoc.data();
-        const quantity = item.quantity;
-        const requiredQuantity = item.product.size * quantity;
+        return transaction.get(productRef).then((productDoc) => {
+          if (!productDoc.exists()) {
+            throw new Error(`商品が見つかりません: ${item.product.name}`);
+          }
+          const productData = productDoc.data();
+          const quantity = item.quantity;
+          const requiredQuantity = item.product.size * quantity;
 
-        // 商品の在庫チェック
-        if (productData.quantity < quantity) {
-          throw new Error(`商品「${item.product.name}」の在庫が不足しています`);
-        }
+          // 商品の在庫チェック
+          if (productData.quantity < quantity) {
+            throw new Error(`商品「${item.product.name}」の在庫が不足しています`);
+          }
 
-        // 在庫の更新
-        transaction.update(productRef, { quantity: productData.quantity - quantity });
+          // コストと利益の計算
+          const cost = productData.cost * quantity;
+          totalCost += cost;
 
-        // 全体在庫の更新
-        await updateOverallInventoryTransaction(transaction, productData.subcategoryId, -requiredQuantity);
+          // 単価の取得
+          return getUnitPrice(productData.subcategoryId, requiredQuantity).then((unitPrice) => {
+            const subtotal = unitPrice * item.product.size * quantity;
 
-        // コストと利益の計算
-        const cost = productData.cost * quantity;
-        const unitPrice = await getUnitPrice(productData.subcategoryId, requiredQuantity);
-        const subtotal = unitPrice * item.product.size * quantity;
-        totalCost += cost;
+            transactionData.items.push({
+              productId: item.product.id,
+              productName: item.product.name,
+              quantity: quantity,
+              unitPrice: unitPrice,
+              size: item.product.size,
+              subtotal: subtotal,
+              cost: cost,
+              profit: subtotal - cost,
+            });
 
-        transactionData.items.push({
-          productId: item.product.id,
-          productName: item.product.name,
-          quantity: quantity,
-          unitPrice: unitPrice,
-          size: item.product.size,
-          subtotal: subtotal,
-          cost: cost,
-          profit: subtotal - cost,
+            // 在庫の更新を後で行うため、必要な情報を返す
+            return {
+              productRef,
+              productData,
+              quantity,
+              requiredQuantity,
+              subcategoryId: productData.subcategoryId,
+            };
+          });
         });
-      }
+      });
 
-      transactionData.cost = totalCost;
-      transactionData.profit = netAmount - totalCost;
+      // すべての読み取りが終わったら、書き込みを行う
+      return Promise.all(productPromises).then((products) => {
+        const updatePromises = products.map((productInfo) => {
+          // 在庫の更新
+          transaction.update(productInfo.productRef, {
+            quantity: productInfo.productData.quantity - productInfo.quantity,
+          });
 
-      // 取引の保存
-      const transactionRef = doc(collection(db, 'transactions'));
-      transaction.set(transactionRef, transactionData);
+          // 全体在庫の更新
+          return updateOverallInventoryTransaction(
+            transaction,
+            productInfo.subcategoryId,
+            -productInfo.requiredQuantity
+          );
+        });
+
+        return Promise.all(updatePromises).then(() => {
+          transactionData.cost = totalCost;
+          transactionData.profit = netAmount - totalCost;
+
+          // 取引の保存
+          const transactionRef = doc(collection(db, 'transactions'));
+          transaction.set(transactionRef, transactionData);
+        });
+      });
     });
 
     // カートをクリア
@@ -433,12 +459,10 @@ async function handleReturnTransaction(transactionData) {
     return;
   }
   try {
-    await runTransaction(db, async (transaction) => {
-      if (transactionData.items && transactionData.items.length > 0) {
-        // 在庫を元に戻す
-        for (const item of transactionData.items) {
-          const productRef = doc(db, 'products', item.productId);
-          const productDoc = await transaction.get(productRef);
+    await runTransaction(db, (transaction) => {
+      const itemPromises = transactionData.items.map((item) => {
+        const productRef = doc(db, 'products', item.productId);
+        return transaction.get(productRef).then((productDoc) => {
           if (!productDoc.exists()) {
             throw new Error(`商品が見つかりません: ${item.productName}`);
           }
@@ -450,15 +474,22 @@ async function handleReturnTransaction(transactionData) {
           transaction.update(productRef, { quantity: productData.quantity + quantity });
 
           // 全体在庫の更新
-          await updateOverallInventoryTransaction(transaction, productData.subcategoryId, requiredQuantity);
-        }
-      }
-      // 取引を返品済みに更新
-      const transactionRef = doc(db, 'transactions', transactionData.id);
-      transaction.update(transactionRef, {
-        isReturned: true,
-        returnReason: reason,
-        returnedAt: new Date(),
+          return updateOverallInventoryTransaction(
+            transaction,
+            productData.subcategoryId,
+            requiredQuantity
+          );
+        });
+      });
+
+      return Promise.all(itemPromises).then(() => {
+        // 取引を返品済みに更新
+        const transactionRef = doc(db, 'transactions', transactionData.id);
+        transaction.update(transactionRef, {
+          isReturned: true,
+          returnReason: reason,
+          returnedAt: new Date(),
+        });
       });
     });
 
