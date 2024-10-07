@@ -196,25 +196,25 @@ async function addConsumableToProduct(productId, consumableId, quantity) {
 function createAddConsumableToProductForm(product) {
   const form = document.createElement('form');
   form.innerHTML = `
-    <select id="consumableSelect" required></select>
-    <input type="number" id="consumableQuantity" placeholder="数量" required step="any" min="0" />
+    <select id="consumableSelect_${product.id}" required></select>
+    <input type="number" id="consumableQuantity_${product.id}" placeholder="数量" required step="any" min="0" />
     <button type="submit">消耗品を設定</button>
   `;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const consumableId = document.getElementById('consumableSelect').value;
-    const quantity = parseFloat(document.getElementById('consumableQuantity').value);
+    const consumableId = document.getElementById(`consumableSelect_${product.id}`).value;
+    const quantity = parseFloat(document.getElementById(`consumableQuantity_${product.id}`).value);
     await addConsumableToProduct(product.id, consumableId, quantity);
   });
-  updateConsumableSelectOptions(); // ドロップダウンリストを更新
+  updateConsumableSelectOptionsForForm(`consumableSelect_${product.id}`); // ドロップダウンリストを更新
   return form;
 }
 
 // 消耗品セレクトボックスのオプションを更新する関数
-async function updateConsumableSelectOptions() {
+async function updateConsumableSelectOptionsForForm(selectId) {
   try {
     const consumables = await getConsumables();
-    const select = document.getElementById('consumableSelect');
+    const select = document.getElementById(selectId);
     if (select) {
       select.innerHTML = '<option value="">消耗品を選択</option>';
       consumables.forEach((consumable) => {
@@ -617,10 +617,23 @@ function editProduct(product) {
 // 新規商品追加時にも消耗品を設定するフォームの追加
 async function createNewProductForm() {
   const form = document.getElementById('addProductForm');
-  const consumableForm = createAddConsumableToProductForm({ id: null });
+  const consumableForm = createAddConsumableToProductForm({ id: 'new' });
   form.appendChild(consumableForm);
 }
 createNewProductForm();
+
+// 関数のエクスポート
+export {
+  updatePricingParentCategorySelect,
+  showError,
+  displayConsumables,
+  editConsumable,
+  addConsumableToProduct,
+  createAddConsumableToProductForm,
+  editProduct,
+  updateConsumableSelectOptionsForForm,
+  createNewProductForm,
+};
 
 // 在庫管理セクションの商品一覧表示関数
 async function displayInventoryProducts() {
@@ -705,19 +718,6 @@ async function updateOverallInventoryQuantity(subcategoryId, newQuantity) {
     showError('全体在庫の更新に失敗しました');
   }
 }
-
-// 関数のエクスポート
-export {
-  updatePricingParentCategorySelect,
-  showError,
-  displayConsumables,
-  editConsumable,
-  addConsumableToProduct,
-  createAddConsumableToProductForm,
-  editProduct,
-  updateConsumableSelectOptions,
-  createNewProductForm,
-};
 
 // 全体在庫の在庫数を表示する関数
 async function displayOverallInventory() {
