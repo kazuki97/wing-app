@@ -27,6 +27,7 @@ import {
   updateOverallInventory,
   getOverallInventory,
   getAllOverallInventories,
+  deleteOverallInventory, // 追加: deleteOverallInventoryのインポート
 } from './inventoryManagement.js';
 
 import {
@@ -517,7 +518,7 @@ document
     }
   });
 
-// 全体在庫の表示
+// 全体在庫の表示関数を修正して削除ボタンを追加
 async function displayOverallInventory() {
   try {
     const overallInventories = await getAllOverallInventories();
@@ -529,28 +530,27 @@ async function displayOverallInventory() {
       row.innerHTML = `
         <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td>${inventory.quantity || 0}</td>
-        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>  <!-- 削除ボタン追加 -->
+        <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
       `;
       overallInventoryList.appendChild(row);
     }
 
-    // 削除ボタンのイベントリスナー
+  // 削除ボタンのイベントリスナー
     document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
       button.addEventListener('click', async (e) => {
-        const subcategoryId = e.target.dataset.id;
+        const inventoryId = e.target.dataset.id;
         if (confirm('この全体在庫を削除しますか？')) {
           try {
-            await deleteOverallInventory(subcategoryId);
+            await deleteOverallInventory(inventoryId);
             alert('全体在庫が削除されました');
-            await displayOverallInventory();  // 全体在庫の再表示
+            await displayOverallInventory();
           } catch (error) {
-            console.error('全体在庫の削除に失敗しました:', error);
+            console.error(error);
             showError('全体在庫の削除に失敗しました');
           }
         }
       });
     });
-
   } catch (error) {
     console.error(error);
     showError('全体在庫の表示に失敗しました');
@@ -636,7 +636,7 @@ document.getElementById('pricingSubcategorySelect').addEventListener('change', a
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
   await updateAllParentCategorySelects();
-  await updatePricingParentCategorySelect();
+  await updatePricingParentCategorySelect(); // 修正：この関数を正しく呼び出す
   await displayParentCategories();
   await displayProducts();
   await displayOverallInventory();
