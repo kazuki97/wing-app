@@ -36,6 +36,24 @@ import {
   getUnitPrice,
 } from './pricing.js';
 
+// 追加: updatePricingParentCategorySelectの定義
+async function updatePricingParentCategorySelect() {
+  try {
+    const parentCategories = await getParentCategories();
+    const select = document.getElementById('pricingParentCategorySelect');
+    select.innerHTML = '<option value="">親カテゴリを選択</option>';
+    parentCategories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('親カテゴリの取得に失敗しました');
+  }
+}
+
 // エラーメッセージ表示関数
 function showError(message) {
   const errorDiv = document.getElementById('error-message');
