@@ -30,6 +30,37 @@ export async function updateOverallInventory(subcategoryId, quantity) {
   }
 }
 
+// トランザクション内で全体在庫を更新する関数
+export async function updateOverallInventoryTransaction(transaction, subcategoryId, quantityChange) {
+  try {
+    const overallInventoryRef = doc(db, 'overallInventory', subcategoryId);
+    const overallInventoryDoc = await transaction.get(overallInventoryRef);
+
+    let newQuantity = quantityChange;
+
+    if (overallInventoryDoc.exists()) {
+      const currentQuantity = overallInventoryDoc.data().quantity || 0;
+      newQuantity += currentQuantity;
+    }
+
+    if (newQuantity < 0) {
+      throw new Error('全体在庫が不足しています');
+    }
+
+    transaction.set(
+      overallInventoryRef,
+      {
+        quantity: newQuantity,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error('全体在庫のトランザクション更新エラー:', error);
+    throw error;
+  }
+}
+
 // 全体在庫の取得（サブカテゴリごと）
 export async function getOverallInventory(subcategoryId) {
   try {
