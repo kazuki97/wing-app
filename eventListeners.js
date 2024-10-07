@@ -65,61 +65,6 @@ function showError(message) {
   }, 5000);
 }
 
-// eventListeners.js
-
-// インポート
-import {
-  addParentCategory,
-  getParentCategories,
-  updateParentCategory,
-  deleteParentCategory,
-  addSubcategory,
-  getSubcategories,
-  getSubcategoryById,
-  updateSubcategory,
-  deleteSubcategory,
-} from './categories.js';
-
-import {
-  addProduct,
-  getProducts,
-  getProductById,
-  getProductByBarcode,
-  updateProduct,
-  deleteProduct,
-  getAllProducts,
-} from './products.js';
-
-import {
-  updateOverallInventory,
-  getOverallInventory,
-  getAllOverallInventories,
-  deleteOverallInventory, // 追加: deleteOverallInventoryのインポート
-} from './inventoryManagement.js';
-
-import {
-  addPricingRule,
-  getPricingRules,
-  deletePricingRule,
-  getUnitPrice,
-} from './pricing.js';
-
-import {
-  addConsumable,
-  getConsumables,
-  deleteConsumable,
-  updateConsumable,
-} from './consumables.js';
-
-// エラーメッセージ表示関数
-function showError(message) {
-  const errorDiv = document.getElementById('error-message');
-  errorDiv.textContent = message;
-  errorDiv.style.display = 'block';
-  setTimeout(() => {
-    errorDiv.style.display = 'none';
-  }, 5000);
-}
 
 // 消耗品追加フォームのイベントリスナー
 document
