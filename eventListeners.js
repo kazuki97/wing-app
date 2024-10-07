@@ -72,7 +72,6 @@ function showError(message) {
   }, 5000);
 }
 
-
 // 消耗品追加フォームのイベントリスナー
 document
   .getElementById('addConsumableForm')
@@ -513,7 +512,7 @@ async function displayProducts() {
 
 // 商品の編集フォーム表示関数
 function editProduct(product) {
-  // 編集用のフォームを作成
+ // 編集用のフォームを作成
   const editForm = document.createElement('form');
   editForm.innerHTML = `
     <input type="text" name="name" value="${product.name}" required />
@@ -550,6 +549,9 @@ function editProduct(product) {
     editForm.remove();
     displayProducts();
   });
+ // 消耗品設定フォームを追加
+  const consumableForm = createAddConsumableToProductForm(product);
+  editForm.appendChild(consumableForm);
   // 既存の要素を編集フォームに置き換える
   const productList = document.getElementById('productList');
   productList.innerHTML = '';
