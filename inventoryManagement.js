@@ -1,4 +1,5 @@
 // inventoryManagement.js
+
 import { db } from './db.js';
 import {
   collection,
@@ -30,23 +31,23 @@ export async function updateOverallInventory(subcategoryId, quantity) {
   }
 }
 
-// トランザクション内で全体在庫を更新する関数
+// トランザクション内で全体在庫を更新する関数（修正箇所）
 export async function updateOverallInventoryTransaction(transaction, subcategoryId, quantityChange) {
   try {
     const overallInventoryRef = doc(db, 'overallInventory', subcategoryId);
+    // まず読み取り操作を行う
     const overallInventoryDoc = await transaction.get(overallInventoryRef);
-
-    let newQuantity = quantityChange;
-
+    let currentQuantity = 0;
     if (overallInventoryDoc.exists()) {
-      const currentQuantity = overallInventoryDoc.data().quantity || 0;
-      newQuantity += currentQuantity;
+      currentQuantity = overallInventoryDoc.data().quantity || 0;
     }
+    const newQuantity = currentQuantity + quantityChange;
 
     if (newQuantity < 0) {
       throw new Error('全体在庫が不足しています');
     }
 
+    // 書き込み操作
     transaction.set(
       overallInventoryRef,
       {
@@ -87,4 +88,3 @@ export async function getAllOverallInventories() {
     throw error;
   }
 }
-
