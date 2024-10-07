@@ -33,7 +33,6 @@ export async function getPricingRules(subcategoryId) {
     const q = query(
       collection(db, 'pricingRules'),
       where('subcategoryId', '==', subcategoryId)
-      // orderBy('minQuantity', 'asc') は削除しました
     );
     const snapshot = await getDocs(q);
     // 手動でソート
@@ -70,6 +69,20 @@ export async function getUnitPrice(subcategoryId, totalQuantity) {
     return null;
   } catch (error) {
     console.error('単価の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 単価ルールの更新（新規追加）
+export async function updatePricingRule(id, updatedData) {
+  try {
+    const docRef = doc(db, 'pricingRules', id);
+    await updateDoc(docRef, {
+      ...updatedData,
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error('単価ルールの更新エラー:', error);
     throw error;
   }
 }
