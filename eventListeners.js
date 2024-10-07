@@ -174,6 +174,38 @@ function editConsumable(consumable) {
   consumableList.appendChild(editForm);
 }
 
+// 商品に消耗品を設定するイベントリスナー
+async function addConsumableToProduct(productId, consumableId, quantity) {
+  try {
+    const product = await getProductById(productId);
+    const consumables = product.consumables || [];
+    consumables.push({ consumableId, quantity });
+    await updateProduct(productId, { consumables });
+    alert('商品に消耗品が設定されました');
+    await displayProducts();
+  } catch (error) {
+    console.error(error);
+    showError('商品に消耗品を設定するのに失敗しました');
+  }
+}
+
+// 消耗品を設定するフォームの追加
+function createAddConsumableToProductForm(product) {
+  const form = document.createElement('form');
+  form.innerHTML = `
+    <select id="consumableSelect" required></select>
+    <input type="number" id="consumableQuantity" placeholder="数量" required step="any" min="0" />
+    <button type="submit">消耗品を設定</button>
+  `;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const consumableId = document.getElementById('consumableSelect').value;
+    const quantity = parseFloat(document.getElementById('consumableQuantity').value);
+    await addConsumableToProduct(product.id, consumableId, quantity);
+  });
+  return form;
+}
+
 // 親カテゴリ追加フォームのイベントリスナー
 document
   .getElementById('addParentCategoryForm')
