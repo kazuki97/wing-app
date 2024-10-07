@@ -95,7 +95,7 @@ export async function getSubcategoryById(subcategoryId) {
       return { id: docSnap.id, ...docSnap.data() };
     } else {
       console.error('サブカテゴリが見つかりません');
-      return null;
+      return null; // 修正点：nullを返すように変更
     }
   } catch (error) {
     console.error('サブカテゴリの取得エラー:', error);
