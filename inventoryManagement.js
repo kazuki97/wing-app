@@ -1,5 +1,4 @@
 // inventoryManagement.js
-
 import { db } from './db.js';
 import {
   collection,
@@ -8,6 +7,9 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
+  query,
+  where,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 全体在庫の更新（サブカテゴリごと）
@@ -26,32 +28,6 @@ export async function updateOverallInventory(subcategoryId, quantity) {
     console.error('全体在庫の更新エラー:', error);
     throw error;
   }
-}
-
-// トランザクション内で全体在庫を更新する関数
-export function updateOverallInventoryTransaction(transaction, subcategoryId, quantityChange) {
-  const overallInventoryRef = doc(db, 'overallInventory', subcategoryId);
-  return transaction.get(overallInventoryRef).then((overallInventoryDoc) => {
-    let currentQuantity = 0;
-    if (overallInventoryDoc.exists()) {
-      currentQuantity = overallInventoryDoc.data().quantity || 0;
-    }
-    const newQuantity = currentQuantity + quantityChange;
-
-    if (newQuantity < 0) {
-      throw new Error('全体在庫が不足しています');
-    }
-
-    // 書き込み操作
-    transaction.set(
-      overallInventoryRef,
-      {
-        quantity: newQuantity,
-        updatedAt: new Date(),
-      },
-      { merge: true }
-    );
-  });
 }
 
 // 全体在庫の取得（サブカテゴリごと）
