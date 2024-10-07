@@ -255,7 +255,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
       // 在庫の更新
       await updateProduct(product.id, { quantity: product.quantity - requiredQuantity });
       // 全体在庫の更新
-      await updateOverallInventory(product.id, -requiredQuantity);
+      await updateOverallInventory(product.subcategoryId, -requiredQuantity);
     }
 
     transactionData.cost = totalCost;
@@ -264,7 +264,7 @@ document.getElementById('completeSaleButton').addEventListener('click', async ()
     // 取引の保存
     await addTransaction(transactionData);
 
-    // カートをクリア
+   // カートをクリア
     salesCart = [];
     displaySalesCart();
     alert('販売が完了しました');
