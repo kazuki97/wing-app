@@ -242,18 +242,17 @@ async function displayParentCategories() {
       // 削除ボタン
       const deleteButton = document.createElement('button');
       deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', () => {
+      deleteButton.addEventListener('click', async () => {
         if (confirm('本当に削除しますか？ この親カテゴリに属するサブカテゴリも削除されます。')) {
-          deleteParentCategory(category.id)
-            .then(async () => {
-              alert('親カテゴリが削除されました');
-              await displayParentCategories();
-              await updateAllParentCategorySelects();
-            })
-            .catch((error) => {
-              console.error(error);
-              showError('親カテゴリの削除に失敗しました');
-            });
+          try {
+            await deleteParentCategory(category.id);
+            alert('親カテゴリが削除されました');
+            await displayParentCategories();
+            await updateAllParentCategorySelects();
+          } catch (error) {
+            console.error(error);
+            showError('親カテゴリの削除に失敗しました');
+          }
         }
       });
       listItem.appendChild(editButton);
