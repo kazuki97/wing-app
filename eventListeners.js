@@ -230,6 +230,19 @@ async function updateConsumableSelectOptionsForForm(selectId) {
   }
 }
 
+// すべての消耗品セレクトボックスを更新する関数
+async function updateConsumableSelectOptionsForForms() {
+  try {
+    const forms = document.querySelectorAll('[id^="consumableSelect_"]');
+    for (const form of forms) {
+      await updateConsumableSelectOptionsForForm(form.id);
+    }
+  } catch (error) {
+    console.error(error);
+    showError('消耗品のセレクトボックスの更新に失敗しました');
+  }
+}
+
 // 親カテゴリ追加フォームのイベントリスナー
 document
   .getElementById('addParentCategoryForm')
@@ -633,6 +646,7 @@ export {
   editProduct,
   updateConsumableSelectOptionsForForm,
   createNewProductForm,
+  updateConsumableSelectOptionsForForms,
 };
 
 // 在庫管理セクションの商品一覧表示関数
