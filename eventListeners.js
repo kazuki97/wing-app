@@ -296,21 +296,20 @@ async function displaySubcategories(parentCategoryId) {
             });
         }
       });
-      // 削除ボタン
+     // 削除ボタン
       const deleteButton = document.createElement('button');
       deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', () => {
+      deleteButton.addEventListener('click', async () => {
         if (confirm('本当に削除しますか？')) {
-          deleteSubcategory(subcategory.id)
-            .then(async () => {
-              alert('サブカテゴリが削除されました');
-              await displayParentCategories();
-              await updateAllParentCategorySelects();
-            })
-            .catch((error) => {
-              console.error(error);
-              showError('サブカテゴリの削除に失敗しました');
-            });
+          try {
+            await deleteSubcategory(subcategory.id);
+            alert('サブカテゴリが削除されました');
+            await displayParentCategories();
+            await updateAllParentCategorySelects();
+          } catch (error) {
+            console.error(error);
+            showError('サブカテゴリの削除に失敗しました');
+          }
         }
       });
       listItem.appendChild(editButton);
@@ -464,7 +463,7 @@ async function displayInventoryProducts() {
         <td>${product.cost}</td>
         <td>${product.barcode}</td>
         <td>${product.size}</td>
-        <td><button class="update-inventory">更新</button></td>
+        <td><button class="update-inventory">更新</button><button class="delete-inventory" data-id="${product.id}">削除</button></td>
       `;
       inventoryList.appendChild(row);
     }
