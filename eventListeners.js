@@ -642,19 +642,6 @@ async function createNewProductForm() {
 }
 createNewProductForm();
 
-// 関数のエクスポート
-export {
-  updatePricingParentCategorySelect,
-  showError,
-  displayConsumables,
-  editConsumable,
-  addConsumableToProduct,
-  createAddConsumableToProductForm,
-  editProduct,
-  updateConsumableSelectOptionsForForm,
-  createNewProductForm,
-};
-
 // 在庫管理セクションの商品一覧表示関数
 async function displayInventoryProducts() {
   try {
