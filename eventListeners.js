@@ -270,10 +270,10 @@ async function displayProducts() {
         <td>${product.size}</td>
         <td>
           <ul>
-            ${product.consumables && product.consumables.length > 0 ? product.consumables.map(consumableEntry => {
-              const consumable = getConsumableById(consumableEntry.consumableId);
+            ${product.consumables && product.consumables.length > 0 ? (await Promise.all(product.consumables.map(async (consumableEntry) => {
+              const consumable = await getConsumableById(consumableEntry.consumableId);
               return `<li>消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}</li>`;
-            }).join('') : 'なし'}
+            }))).join('') : 'なし'}
           </ul>
         </td>
         <td>
