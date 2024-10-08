@@ -23,16 +23,6 @@ export async function addConsumable(consumable) {
   }
 }
 
-export async function getConsumables() {
-  try {
-    const querySnapshot = await getDocs(consumablesCollection);
-    return querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-  } catch (error) {
-    console.error('消耗品の取得に失敗しました:', error);
-    throw new Error('消耗品の取得に失敗しました');
-  }
-}
-
 export async function getConsumableById(id) {
   try {
     const consumableDoc = doc(db, 'consumables', id);
