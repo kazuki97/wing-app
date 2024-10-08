@@ -119,6 +119,7 @@ document
 async function displayConsumables() {
   try {
     const consumables = await getConsumables();
+    console.log('取得した消耗品:', consumables); // デバッグ用
     const consumableList = document.getElementById('consumableList');
     consumableList.innerHTML = '';
     consumables.forEach((consumable) => {
@@ -215,17 +216,17 @@ function createAddConsumableToProductForm(product) {
 }
 
 // 消耗品セレクトボックスのオプションを更新する関数
-async function updateConsumableSelectOptionsForForm(selectId) {
+async function updateConsumableSelectOptionsForForm(selectElement) {
   try {
     const consumables = await getConsumables();
-    const select = document.getElementById(selectId);
-    if (select) {
-      select.innerHTML = '<option value="">消耗品を選択</option>';
+    console.log('更新する消耗品リスト:', consumables); // デバッグ用
+    if (selectElement) {
+      selectElement.innerHTML = '<option value="">消耗品を選択</option>';
       consumables.forEach((consumable) => {
         const option = document.createElement('option');
         option.value = consumable.id;
         option.textContent = consumable.name;
-        select.appendChild(option);
+        selectElement.appendChild(option);
       });
     }
   } catch (error) {
