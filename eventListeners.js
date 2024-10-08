@@ -42,8 +42,10 @@ import {
   getConsumableById,
   getConsumables,
   updateConsumable,
-  deleteConsumable
+  deleteConsumable,
 } from './consumables.js';
+
+import { getDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 追加: updatePricingParentCategorySelectの定義
 async function updatePricingParentCategorySelect() {
