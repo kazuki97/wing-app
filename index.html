@@ -211,9 +211,18 @@
       <button id="completeSaleButton">販売完了</button>
     </section>
 
-    <!-- 売上管理 -->
+     <!-- 売上管理 -->
     <section id="transactions" class="content-section" style="display: none;">
       <h1>売上管理</h1>
+      <!-- 売上概要表示 -->
+      <div id="salesSummary" class="sales-summary">
+        <div class="summary-card" id="monthlySales">今月の売上: ¥0</div>
+        <div class="summary-card" id="monthlyProfit">今月の利益: ¥0</div>
+        <div class="summary-card" id="yearlySales">今年の売上: ¥0</div>
+        <div class="summary-card" id="yearlyProfit">今年の利益: ¥0</div>
+      </div>
+      <!-- グラフ表示 -->
+      <canvas id="salesChart" width="400" height="200"></canvas>
       <!-- フィルタリングフォーム -->
       <form id="filterTransactionsForm">
         <label for="filterYear">年:</label>
@@ -292,7 +301,7 @@
       </div>
     </section>
 
-    <!-- 単価設定 -->
+     <!-- 単価設定 -->
     <section id="pricing" class="content-section" style="display: none;">
       <h1>単価設定</h1>
       <!-- 単価ルール追加フォーム -->
