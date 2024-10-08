@@ -234,17 +234,67 @@ async function updateAllConsumableSelectOptions() {
   }
 }
 
-// 関数のエクスポート
-export {
-  updatePricingParentCategorySelect,
-  showError,
-  displayConsumables,
-  editConsumable,
-  addConsumableToProduct,
-  createAddConsumableToProductForm,
-  updateConsumableSelectOptionsForForm,
-  updateAllConsumableSelectOptions,
-};
+// 商品一覧の表示（消耗品情報付き）
+async function displayProducts() {
+  try {
+    const parentCategoryId = document.getElementById('filterParentCategorySelect').value;
+    const subcategoryId = document.getElementById('filterSubcategorySelect').value;
+    const products = await getProducts(parentCategoryId, subcategoryId);
+    const productList = document.getElementById('productList');
+    productList.innerHTML = '';
+    products.forEach((product) => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `
+        商品名: ${product.name},
+        数量: ${product.quantity || 0},
+        価格: ${product.price},
+        原価: ${product.cost},
+        バーコード: ${product.barcode},
+        サイズ: ${product.size}
+      `;
+
+      // 関連付けられた消耗品の表示
+      if (product.consumables && product.consumables.length > 0) {
+        const consumableDetails = document.createElement('ul');
+        product.consumables.forEach(async (consumableEntry) => {
+          const consumable = await getConsumableById(consumableEntry.consumableId);
+          const detailItem = document.createElement('li');
+          detailItem.textContent = `消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}`;
+          consumableDetails.appendChild(detailItem);
+        });
+        listItem.appendChild(consumableDetails);
+      }
+
+      // 編集ボタン
+      const editButton = document.createElement('button');
+      editButton.textContent = '編集';
+      editButton.addEventListener('click', () => {
+        editProduct(product);
+      });
+      // 削除ボタン
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = '削除';
+      deleteButton.addEventListener('click', async () => {
+        if (confirm('本当に削除しますか？')) {
+          try {
+            await deleteProduct(product.id);
+            alert('商品が削除されました');
+            await displayProducts();
+          } catch (error) {
+            console.error(error);
+            showError('商品の削除に失敗しました');
+          }
+        }
+      });
+      listItem.appendChild(editButton);
+      listItem.appendChild(deleteButton);
+      productList.appendChild(listItem);
+    });
+  } catch (error) {
+    console.error(error);
+    showError('商品の表示に失敗しました');
+  }
+}
 
 // 親カテゴリ追加フォームのイベントリスナー
 document
@@ -587,15 +637,15 @@ function editProduct(product) {
   // 編集用のフォームを作成
   const editForm = document.createElement('form');
   editForm.innerHTML = `
-  <input type="text" name="name" value="${product.name}" required />
-  <input type="number" name="price" value="${product.price}" required />
-  <input type="number" name="cost" value="${product.cost}" required />
-  <input type="text" name="barcode" value="${product.barcode}" />
-  <input type="number" name="quantity" value="${product.quantity}" required />
-  <input type="number" name="size" value="${product.size}" required />
-  <button type="submit">更新</button>
-  <button type="button" id="cancelEdit">キャンセル</button>
-`;
+    <input type="text" name="name" value="${product.name}" required />
+    <input type="number" name="price" value="${product.price}" required />
+    <input type="number" name="cost" value="${product.cost}" required />
+    <input type="text" name="barcode" value="${product.barcode}" />
+    <input type="number" name="quantity" value="${product.quantity}" required />
+    <input type="number" name="size" value="${product.size}" required />
+    <button type="submit">更新</button>
+    <button type="button" id="cancelEdit">キャンセル</button>
+  `;
   // 編集フォームのイベントリスナー
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -629,6 +679,19 @@ function editProduct(product) {
   productList.innerHTML = '';
   productList.appendChild(editForm);
 }
+
+// 関数のエクスポートに displayProducts を追加
+export {
+  updatePricingParentCategorySelect,
+  showError,
+  displayConsumables,
+  editConsumable,
+  addConsumableToProduct,
+  createAddConsumableToProductForm,
+  updateConsumableSelectOptionsForForm,
+  updateAllConsumableSelectOptions,
+  displayProducts,
+};
 
 // 新規商品追加時にも消耗品を設定するフォームの追加
 async function createNewProductForm() {
@@ -860,4 +923,3 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayInventoryProducts();
   await displayConsumables(); // 消耗品の一覧を表示
 });
-
