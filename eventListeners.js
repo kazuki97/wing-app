@@ -731,12 +731,12 @@ async function displayOverallInventory() {
     for (const inventory of overallInventories) {
       const subcategory = await getSubcategoryById(inventory.id); // サブカテゴリ名を取得
       const row = document.createElement('tr');
-      row.innerHTML = 
+      row.innerHTML = `
         <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td><input type="number" value="${inventory.quantity}" min="0" data-subcategory-id="${inventory.id}" class="overall-inventory-quantity" /></td>
         <td><button class="update-overall-inventory" data-subcategory-id="${inventory.id}">更新</button></td>
         <td><button class="delete-overall-inventory" data-id="${inventory.id}">削除</button></td>
-      ;
+      `;
       inventoryTable.appendChild(row);
     }
 
@@ -814,13 +814,13 @@ async function displayPricingRules() {
     for (const rule of pricingRules) {
       const subcategory = await getSubcategoryById(rule.subcategoryId);
       const row = document.createElement('tr');
-      row.innerHTML = 
+      row.innerHTML = `
         <td>${subcategory ? subcategory.name : '不明なサブカテゴリ'}</td>
         <td>${rule.minQuantity}</td>
         <td>${rule.maxQuantity}</td>
         <td>${rule.unitPrice}</td>
         <td><button class="delete-pricing-rule" data-id="${rule.id}">削除</button></td>
-      ;
+      `;
       pricingRulesList.appendChild(row);
     }
     // 削除ボタンのイベントリスナー
