@@ -584,55 +584,6 @@ document
     }
   });
 
-// 商品一覧の表示
-async function displayProducts() {
-  try {
-    const parentCategoryId = document.getElementById('filterParentCategorySelect').value;
-    const subcategoryId = document.getElementById('filterSubcategorySelect').value;
-    const products = await getProducts(parentCategoryId, subcategoryId);
-    const productList = document.getElementById('productList');
-    productList.innerHTML = '';
-    products.forEach((product) => {
-      const listItem = document.createElement('li');
-     listItem.textContent = `
-  商品名: ${product.name},
-  数量: ${product.quantity || 0},
-  価格: ${product.price},
-  原価: ${product.cost},
-  バーコード: ${product.barcode},
-  サイズ: ${product.size}
-`;
-      // 編集ボタン
-      const editButton = document.createElement('button');
-      editButton.textContent = '編集';
-      editButton.addEventListener('click', () => {
-        editProduct(product);
-      });
-      // 削除ボタン
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', async () => {
-        if (confirm('本当に削除しますか？')) {
-          try {
-            await deleteProduct(product.id);
-            alert('商品が削除されました');
-            await displayProducts();
-          } catch (error) {
-            console.error(error);
-            showError('商品の削除に失敗しました');
-          }
-        }
-      });
-      listItem.appendChild(editButton);
-      listItem.appendChild(deleteButton);
-      productList.appendChild(listItem);
-    });
-  } catch (error) {
-    console.error(error);
-    showError('商品の表示に失敗しました');
-  }
-}
-
 // 商品の編集フォーム表示関数に消耗品設定機能を追加
 function editProduct(product) {
   // 編集用のフォームを作成
