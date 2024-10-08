@@ -1,5 +1,6 @@
 // eventListeners.js
 
+
 // インポート
 import {
   addParentCategory,
