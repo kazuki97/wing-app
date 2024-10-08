@@ -644,7 +644,7 @@ document
     }
   });
 
-/// 商品の編集フォーム表示関数に消耗品設定機能を追加
+// 商品の編集フォーム表示関数に消耗品設定機能を追加
 function editProduct(product) {
   // 編集用のフォームを作成
   const editForm = document.createElement('form');
@@ -707,7 +707,7 @@ export {
 // 新規商品追加時にも消耗品を設定するフォームの追加
 async function createNewProductForm() {
   const form = document.getElementById('addProductForm');
-  const consumableForm = createAddConsumableToProductForm({ id: 'new' });
+  const consumableForm = createAddConsumablesToProductForm({ id: 'new' });
   form.appendChild(consumableForm);
 }
 createNewProductForm();
