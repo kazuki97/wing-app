@@ -525,21 +525,27 @@ async function displayParentCategories() {
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = `
       <th>親カテゴリ名</th>
-      <th>操作</th>
       <th>サブカテゴリ</th>
+      <th>操作</th>
     `;
     table.appendChild(headerRow);
     for (const category of parentCategories) {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${category.name}</td>
-        <td>
-          <button class="edit-button">編集</button>
-          <button class="delete-button">削除</button>
-        </td>
+      `;
+
+      // サブカテゴリの表示
+      const subcategoryList = await displaySubcategories(category.id);
+      row.appendChild(subcategoryList);
+
+      const actionsCell = document.createElement('td');
+      actionsCell.innerHTML = `
+        <button class="edit-button">編集</button>
+        <button class="delete-button">削除</button>
       `;
       // 編集ボタン
-      row.querySelector('.edit-button').addEventListener('click', () => {
+      actionsCell.querySelector('.edit-button').addEventListener('click', () => {
         const newName = prompt('新しいカテゴリ名を入力してください', category.name);
         if (newName) {
           updateParentCategory(category.id, newName)
@@ -555,7 +561,7 @@ async function displayParentCategories() {
         }
       });
       // 削除ボタン
-      row.querySelector('.delete-button').addEventListener('click', async () => {
+      actionsCell.querySelector('.delete-button').addEventListener('click', async () => {
         if (confirm('本当に削除しますか？ この親カテゴリに属するサブカテゴリも削除されます。')) {
           try {
             await deleteParentCategory(category.id);
@@ -569,10 +575,7 @@ async function displayParentCategories() {
         }
       });
 
-      // サブカテゴリの表示
-      const subcategoryList = await displaySubcategories(category.id);
-      row.appendChild(subcategoryList);
-
+      row.appendChild(actionsCell);
       table.appendChild(row);
     }
     parentCategoryList.appendChild(table);
