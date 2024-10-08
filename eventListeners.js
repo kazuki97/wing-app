@@ -543,14 +543,14 @@ async function displayProducts() {
     productList.innerHTML = '';
     products.forEach((product) => {
       const listItem = document.createElement('li');
-      listItem.textContent = 
-        商品名: ${product.name},
-        数量: ${product.quantity || 0},
-        価格: ${product.price},
-        原価: ${product.cost},
-        バーコード: ${product.barcode},
-        サイズ: ${product.size}
-      ;
+     listItem.textContent = `
+  商品名: ${product.name},
+  数量: ${product.quantity || 0},
+  価格: ${product.price},
+  原価: ${product.cost},
+  バーコード: ${product.barcode},
+  サイズ: ${product.size}
+`;
       // 編集ボタン
       const editButton = document.createElement('button');
       editButton.textContent = '編集';
