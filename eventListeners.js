@@ -586,16 +586,16 @@ async function displayProducts() {
 function editProduct(product) {
   // 編集用のフォームを作成
   const editForm = document.createElement('form');
-  editForm.innerHTML = 
-    <input type="text" name="name" value="${product.name}" required />
-    <input type="number" name="price" value="${product.price}" required />
-    <input type="number" name="cost" value="${product.cost}" required />
-    <input type="text" name="barcode" value="${product.barcode}" />
-    <input type="number" name="quantity" value="${product.quantity}" required />
-    <input type="number" name="size" value="${product.size}" required />
-    <button type="submit">更新</button>
-    <button type="button" id="cancelEdit">キャンセル</button>
-  ;
+  editForm.innerHTML = `
+  <input type="text" name="name" value="${product.name}" required />
+  <input type="number" name="price" value="${product.price}" required />
+  <input type="number" name="cost" value="${product.cost}" required />
+  <input type="text" name="barcode" value="${product.barcode}" />
+  <input type="number" name="quantity" value="${product.quantity}" required />
+  <input type="number" name="size" value="${product.size}" required />
+  <button type="submit">更新</button>
+  <button type="button" id="cancelEdit">キャンセル</button>
+`;
   // 編集フォームのイベントリスナー
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
