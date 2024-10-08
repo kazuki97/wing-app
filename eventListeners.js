@@ -85,7 +85,6 @@ document
       document.getElementById('addConsumableForm').reset();
       alert('消耗品が追加されました');
       await displayConsumables();
-      await updateConsumableSelectOptions(); // 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の追加に失敗しました');
@@ -100,11 +99,11 @@ async function displayConsumables() {
     consumableList.innerHTML = '';
     consumables.forEach((consumable) => {
       const listItem = document.createElement('li');
-      listItem.textContent = 
+      listItem.textContent = `
         消耗品名: ${consumable.name},
         原価: ${consumable.cost},
         バーコード: ${consumable.barcode || 'なし'}
-      ;
+      `;
       // 編集ボタン
       const editButton = document.createElement('button');
       editButton.textContent = '編集';
@@ -120,7 +119,6 @@ async function displayConsumables() {
             await deleteConsumable(consumable.id);
             alert('消耗品が削除されました');
             await displayConsumables();
-            await updateConsumableSelectOptions(); // 消耗品リストの更新
           } catch (error) {
             console.error(error);
             showError('消耗品の削除に失敗しました');
@@ -141,13 +139,13 @@ async function displayConsumables() {
 function editConsumable(consumable) {
   // 編集用のフォームを作成
   const editForm = document.createElement('form');
-  editForm.innerHTML = 
+  editForm.innerHTML = `
     <input type="text" name="name" value="${consumable.name}" required />
     <input type="number" name="cost" value="${consumable.cost}" required step="any" min="0" />
     <input type="text" name="barcode" value="${consumable.barcode || ''}" />
     <button type="submit">更新</button>
     <button type="button" id="cancelEdit">キャンセル</button>
-  ;
+  `;
   // 編集フォームのイベントリスナー
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -160,7 +158,6 @@ function editConsumable(consumable) {
       await updateConsumable(consumable.id, updatedData);
       alert('消耗品が更新されました');
       await displayConsumables();
-      await updateConsumableSelectOptions(); // 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の更新に失敗しました');
@@ -195,18 +192,18 @@ async function addConsumableToProduct(productId, consumableId, quantity) {
 // 消耗品を設定するフォームの追加
 function createAddConsumableToProductForm(product) {
   const form = document.createElement('form');
-  form.innerHTML = 
+  form.innerHTML = `
     <select id="consumableSelect_${product.id}" required></select>
     <input type="number" id="consumableQuantity_${product.id}" placeholder="数量" required step="any" min="0" />
     <button type="submit">消耗品を設定</button>
-  ;
+  `;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const consumableId = document.getElementById(consumableSelect_${product.id}).value;
-    const quantity = parseFloat(document.getElementById(consumableQuantity_${product.id}).value);
+    const consumableId = document.getElementById(`consumableSelect_${product.id}`).value;
+    const quantity = parseFloat(document.getElementById(`consumableQuantity_${product.id}`).value);
     await addConsumableToProduct(product.id, consumableId, quantity);
   });
-  updateConsumableSelectOptionsForForm(consumableSelect_${product.id}); // ドロップダウンリストを更新
+  updateConsumableSelectOptionsForForm(`consumableSelect_${product.id}`); // ドロップダウンリストを更新
   return form;
 }
 
@@ -229,6 +226,17 @@ async function updateConsumableSelectOptionsForForm(selectId) {
     showError('消耗品の取得に失敗しました');
   }
 }
+
+// 関数のエクスポート
+export {
+  updatePricingParentCategorySelect,
+  showError,
+  displayConsumables,
+  editConsumable,
+  addConsumableToProduct,
+  createAddConsumableToProductForm,
+  updateConsumableSelectOptionsForForm,
+};
 
 // 親カテゴリ追加フォームのイベントリスナー
 document
