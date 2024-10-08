@@ -86,14 +86,21 @@ function closeModal(modalId) {
   modal.style.display = 'none';
 }
 
-// 商品追加モーダルのイベントリスナー
-document.getElementById('addProductButton').addEventListener('click', () => {
-  openModal('addProductModal');
-});
-
-document.getElementById('closeProductModal').addEventListener('click', () => {
-  closeModal('addProductModal');
-});
+// カテゴリ追加モーダルのイベントリスナー
+function addCategoryModalListener() {
+  document.getElementById('addParentCategoryButton').addEventListener('click', () => {
+    openModal('addParentCategoryModal');
+  });
+  document.getElementById('closeParentCategoryModal').addEventListener('click', () => {
+    closeModal('addParentCategoryModal');
+  });
+  document.getElementById('addSubcategoryButton').addEventListener('click', () => {
+    openModal('addSubcategoryModal');
+  });
+  document.getElementById('closeSubcategoryModal').addEventListener('click', () => {
+    closeModal('addSubcategoryModal');
+  });
+}
 
 // 消耗品追加フォームのイベントリスナー
 document
@@ -359,9 +366,8 @@ function createAddConsumablesToProductForm(product) {
 }
 
 // 親カテゴリ追加フォームのイベントリスナー
-document
-  .getElementById('addParentCategoryForm')
-  .addEventListener('submit', async (e) => {
+async function addParentCategoryListener() {
+  document.getElementById('addParentCategoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('parentCategoryName').value;
     try {
@@ -370,16 +376,17 @@ document
       await updateAllParentCategorySelects();
       await displayParentCategories();
       alert('親カテゴリが追加されました');
+      closeModal('addParentCategoryModal');
     } catch (error) {
       console.error(error);
       showError('親カテゴリの追加に失敗しました');
     }
   });
+}
 
 // サブカテゴリ追加フォームのイベントリスナー
-document
-  .getElementById('addSubcategoryForm')
-  .addEventListener('submit', async (e) => {
+async function addSubcategoryListener() {
+  document.getElementById('addSubcategoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const parentCategoryId = document.getElementById('subcategoryParentCategorySelect').value;
     const name = document.getElementById('subcategoryName').value;
@@ -389,11 +396,13 @@ document
       await displayParentCategories();
       await updateAllParentCategorySelects();
       alert('サブカテゴリが追加されました');
+      closeModal('addSubcategoryModal');
     } catch (error) {
       console.error(error);
       showError('サブカテゴリの追加に失敗しました');
     }
   });
+}
 
 // 親カテゴリセレクトボックスの更新（全てのセレクトボックスを更新）
 async function updateAllParentCategorySelects() {
@@ -511,13 +520,25 @@ async function displayParentCategories() {
     const parentCategories = await getParentCategories();
     const parentCategoryList = document.getElementById('parentCategoryList');
     parentCategoryList.innerHTML = '';
+    const table = document.createElement('table');
+    table.classList.add('category-table');
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `
+      <th>親カテゴリ名</th>
+      <th>操作</th>
+    `;
+    table.appendChild(headerRow);
     for (const category of parentCategories) {
-      const listItem = document.createElement('li');
-      listItem.textContent = category.name;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${category.name}</td>
+        <td>
+          <button class="edit-button">編集</button>
+          <button class="delete-button">削除</button>
+        </td>
+      `;
       // 編集ボタン
-      const editButton = document.createElement('button');
-      editButton.textContent = '編集';
-      editButton.addEventListener('click', () => {
+      row.querySelector('.edit-button').addEventListener('click', () => {
         const newName = prompt('新しいカテゴリ名を入力してください', category.name);
         if (newName) {
           updateParentCategory(category.id, newName)
@@ -533,9 +554,7 @@ async function displayParentCategories() {
         }
       });
       // 削除ボタン
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', async () => {
+      row.querySelector('.delete-button').addEventListener('click', async () => {
         if (confirm('本当に削除しますか？ この親カテゴリに属するサブカテゴリも削除されます。')) {
           try {
             await deleteParentCategory(category.id);
@@ -553,10 +572,11 @@ async function displayParentCategories() {
 
       // サブカテゴリの表示
       const subcategoryList = await displaySubcategories(category.id);
-      listItem.appendChild(subcategoryList);
+      row.appendChild(subcategoryList);
 
-      parentCategoryList.appendChild(listItem);
+      table.appendChild(row);
     }
+    parentCategoryList.appendChild(table);
   } catch (error) {
     console.error(error);
     showError('親カテゴリの表示に失敗しました');
@@ -567,7 +587,8 @@ async function displayParentCategories() {
 async function displaySubcategories(parentCategoryId) {
   try {
     const subcategories = await getSubcategories(parentCategoryId);
-    const subcategoryList = document.createElement('ul');
+    const subcategoryList = document.createElement('td');
+    const ul = document.createElement('ul');
     for (const subcategory of subcategories) {
       const listItem = document.createElement('li');
       listItem.textContent = subcategory.name;
@@ -607,13 +628,14 @@ async function displaySubcategories(parentCategoryId) {
       });
       listItem.appendChild(editButton);
       listItem.appendChild(deleteButton);
-      subcategoryList.appendChild(listItem);
+      ul.appendChild(listItem);
     }
+    subcategoryList.appendChild(ul);
     return subcategoryList;
   } catch (error) {
     console.error(error);
     showError('サブカテゴリの表示に失敗しました');
-    return document.createElement('ul');
+    return document.createElement('td');
   }
 }
 
@@ -935,4 +957,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayOverallInventory();
   await displayInventoryProducts();
   await displayConsumables(); // 消耗品の一覧を表示
+  addCategoryModalListener();
+  addParentCategoryListener();
+  addSubcategoryListener();
 });
