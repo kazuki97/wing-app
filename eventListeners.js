@@ -644,7 +644,7 @@ document
     }
   });
 
-// 商品の編集フォーム表示関数に消耗品設定機能を追加
+/// 商品の編集フォーム表示関数に消耗品設定機能を追加
 function editProduct(product) {
   // 編集用のフォームを作成
   const editForm = document.createElement('form');
@@ -684,7 +684,7 @@ function editProduct(product) {
     displayProducts();
   });
   // 消耗品設定フォームを追加
-  const consumableForm = createAddConsumableToProductForm(product);
+  const consumableForm = createAddConsumablesToProductForm(product);
   editForm.appendChild(consumableForm);
   // 既存の要素を編集フォームに置き換える
   const productList = document.getElementById('productList');
@@ -698,7 +698,7 @@ export {
   showError,
   displayConsumables,
   editConsumable,
-  createAddConsumableToProductForm,
+  createAddConsumablesToProductForm,
   updateConsumableSelectOptionsForForm,
   updateAllConsumableSelectOptions,
   displayProducts,
