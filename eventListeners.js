@@ -1,6 +1,5 @@
 // eventListeners.js
 
-
 // インポート
 import {
   addParentCategory,
@@ -866,3 +865,4 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayInventoryProducts();
   await displayConsumables(); // 消耗品の一覧を表示
 });
+
