@@ -40,6 +40,7 @@ import {
 import {
   addConsumable,
   getConsumables,
+  getConsumableById,
   updateConsumable,
   deleteConsumable,
 } from './consumables.js';
