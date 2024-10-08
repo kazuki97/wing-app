@@ -741,16 +741,16 @@ async function displayOverallInventory() {
     }
 
     // 更新ボタンのイベントリスナー
-    document.querySelectorAll('.update-overall-inventory').forEach((button) => {
-      button.addEventListener('click', (e) => {
-        const subcategoryId = e.target.dataset.subcategoryId;
-        const newQuantity = parseInt(
-          document.querySelector(input[data-subcategory-id="${subcategoryId}"]).value,
-          10
-        );
-        updateOverallInventoryQuantity(subcategoryId, newQuantity);
-      });
-    });
+document.querySelectorAll('.update-overall-inventory').forEach((button) => {
+  button.addEventListener('click', (e) => {
+    const subcategoryId = e.target.dataset.subcategoryId;
+    const newQuantity = parseInt(
+      document.querySelector(`input[data-subcategory-id="${subcategoryId}"]`).value,
+      10
+    );
+    updateOverallInventoryQuantity(subcategoryId, newQuantity);
+  });
+});
 
     // 削除ボタンのイベントリスナー
     document.querySelectorAll('.delete-overall-inventory').forEach((button) => {
