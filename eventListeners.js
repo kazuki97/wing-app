@@ -42,8 +42,7 @@ import {
   getConsumableById,
   getConsumables,
   updateConsumable,
-  deleteConsumable,
-  getDoc
+  deleteConsumable
 } from './consumables.js';
 
 // 追加: updatePricingParentCategorySelectの定義
@@ -244,7 +243,7 @@ async function displayProducts() {
     const products = await getProducts(parentCategoryId, subcategoryId);
     const productList = document.getElementById('productList');
     productList.innerHTML = '';
-    products.forEach((product) => {
+    for (const product of products) {
       const listItem = document.createElement('li');
       listItem.textContent = `
         商品名: ${product.name},
@@ -291,7 +290,7 @@ async function displayProducts() {
       listItem.appendChild(editButton);
       listItem.appendChild(deleteButton);
       productList.appendChild(listItem);
-    });
+    }
   } catch (error) {
     console.error(error);
     showError('商品の表示に失敗しました');
