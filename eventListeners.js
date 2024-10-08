@@ -90,7 +90,7 @@ document
 // 消耗品一覧の表示
 async function displayConsumables() {
   try {
-    const consumables = await getAllConsumables();
+    const consumables = await getConsumables();
     const consumableList = document.getElementById('consumableList');
     consumableList.innerHTML = '';
     consumables.forEach((consumable) => {
@@ -204,7 +204,7 @@ function createAddConsumableToProductForm(product) {
 // 消耗品セレクトボックスのオプションを更新する関数
 async function updateConsumableSelectOptionsForForm(selectId) {
   try {
-    const consumables = await getAllConsumables();
+    const consumables = await getConsumables();
     const select = document.getElementById(selectId);
     if (select) {
       select.innerHTML = '<option value="">消耗品を選択</option>';
@@ -637,7 +637,6 @@ export {
   updateConsumableSelectOptionsForForm,
   updateAllConsumableSelectOptions,
   displayProducts,
-  getConsumableById,
 };
 
 // 新規商品追加時にも消耗品を設定するフォームの追加
