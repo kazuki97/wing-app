@@ -237,9 +237,9 @@ async function updateConsumableSelectOptionsForForm(selectElement) {
 
 // すべての消耗品セレクトボックスのオプションを更新する関数
 async function updateAllConsumableSelectOptions() {
-  const selects = document.querySelectorAll('select[id^="consumableSelect_"]');
+  const selects = document.querySelectorAll('select.consumable-select');
   for (const select of selects) {
-    await updateConsumableSelectOptionsForForm(select.id);
+    await updateConsumableSelectOptionsForForm(select);
   }
 }
 
