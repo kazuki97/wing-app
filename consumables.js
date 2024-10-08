@@ -23,11 +23,16 @@ export async function addConsumable(consumable) {
   }
 }
 
-// 消耗品の取得
-export async function getConsumables() {
+// 消耗品のIDで取得
+export async function getConsumableById(id) {
   try {
-    const querySnapshot = await getDocs(consumablesCollection);
-    return querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+    const consumableDoc = doc(db, 'consumables', id);
+    const consumableSnapshot = await getDoc(consumableDoc);
+    if (consumableSnapshot.exists()) {
+      return { ...consumableSnapshot.data(), id: consumableSnapshot.id };
+    } else {
+      throw new Error('消耗品が見つかりません');
+    }
   } catch (error) {
     console.error('消耗品の取得に失敗しました:', error);
     throw new Error('消耗品の取得に失敗しました');
