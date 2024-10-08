@@ -52,13 +52,24 @@
       </div>
     </section>
 
-    <!-- 商品設定 -->
-    <section id="products" class="content-section" style="display: none;">
-      <h1>商品設定</h1>
-      <!-- 商品追加フォーム -->
+   <!-- 商品設定 -->
+<section id="products" class="content-section" style="display: none;">
+  <h1>商品設定</h1>
+  <!-- 商品追加ボタン -->
+  <button id="addProductButton">商品を追加</button>
+
+  <!-- 商品追加モーダル -->
+  <div id="addProductModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span id="closeProductModal" class="close-button">&times;</span>
+      <h2>商品を追加</h2>
       <form id="addProductForm">
-        <select id="productParentCategorySelect" required></select>
-        <select id="productSubcategorySelect" required></select>
+        <select id="productParentCategorySelect" required>
+          <option value="">親カテゴリを選択</option>
+        </select>
+        <select id="productSubcategorySelect" required>
+          <option value="">サブカテゴリを選択</option>
+        </select>
         <input type="text" id="productName" placeholder="商品名" required />
         <input type="number" id="productPrice" placeholder="価格" required />
         <input type="number" id="productCost" placeholder="原価" required />
@@ -67,18 +78,21 @@
         <input type="number" id="productSize" placeholder="サイズ" required />
         <button type="submit">追加</button>
       </form>
-      <!-- 商品フィルタリング -->
-      <div>
-        <select id="filterParentCategorySelect">
-          <option value="">すべての親カテゴリ</option>
-        </select>
-        <select id="filterSubcategorySelect">
-          <option value="">すべてのサブカテゴリ</option>
-        </select>
-      </div>
-      <!-- 商品一覧表示エリア -->
-      <ul id="productList"></ul>
-    </section>
+    </div>
+  </div>
+
+  <!-- 商品フィルタリング -->
+  <div>
+    <select id="filterParentCategorySelect">
+      <option value="">すべての親カテゴリ</option>
+    </select>
+    <select id="filterSubcategorySelect">
+      <option value="">すべてのサブカテゴリ</option>
+    </select>
+  </div>
+  <!-- 商品一覧表示エリア -->
+  <div id="productList"></div>
+</section>
 
     <!-- 在庫管理 -->
     <section id="inventory" class="content-section" style="display: none;">
