@@ -709,6 +709,7 @@ async function createNewProductForm() {
   const form = document.getElementById('addProductForm');
   const consumableForm = createAddConsumablesToProductForm({ id: 'new' });
   form.appendChild(consumableForm);
+  await updateConsumableSelectOptionsForForm(consumableForm.querySelector('.consumable-select'));
 }
 createNewProductForm();
 
