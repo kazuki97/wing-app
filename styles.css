@@ -45,6 +45,7 @@ main {
   color: #fff;
   padding: 10px;
   display: none;
+  border-radius: 5px;
 }
 
 form {
@@ -54,12 +55,24 @@ form {
 form input,
 form select {
   margin-right: 10px;
-  padding: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 button {
-  padding: 5px 10px;
+  padding: 10px 15px;
   margin-left: 5px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #45a049;
 }
 
 ul {
@@ -78,6 +91,11 @@ ul li button {
 /* コンテンツセクションのスタイル */
 .content-section {
   display: none;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 /* ホームセクションはデフォルトで表示 */
@@ -90,12 +108,16 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 table th,
 table td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
 }
 
 table th {
@@ -110,11 +132,13 @@ table th {
 
 #barcodeScanner input {
   width: 300px;
-  padding: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 #barcodeScanner button {
-  padding: 5px 10px;
+  padding: 10px 15px;
 }
 
 /* 支払い方法選択のスタイル */
@@ -123,7 +147,9 @@ table th {
 }
 
 #paymentMethodSelection select {
-  padding: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 #paymentMethodSelection label {
@@ -135,6 +161,7 @@ table th {
   font-size: 1.5em;
   margin-top: 20px;
   margin-bottom: 20px;
+  font-weight: bold;
 }
 
 /* 売上管理セクションのスタイル */
@@ -142,6 +169,8 @@ table th {
   background-color: #fff;
   padding: 20px;
   border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 #transactionDetails h2 {
@@ -166,7 +195,7 @@ table th {
 #paymentMethodList th,
 #paymentMethodList td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
 }
 
 #paymentMethodList th {
@@ -195,6 +224,7 @@ table th {
   width: 80%;
   max-width: 500px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
 }
 
 .close-button {
@@ -209,6 +239,28 @@ table th {
   color: #000;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* 売上概要カードのスタイル */
+.sales-summary {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+}
+
+/* テーブルのスタイルを強化 */
+.product-table th, .product-table td {
+  text-align: center;
 }
 
 /* ボタンのスタイル */
