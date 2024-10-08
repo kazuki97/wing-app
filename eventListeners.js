@@ -526,6 +526,7 @@ async function displayParentCategories() {
     headerRow.innerHTML = `
       <th>親カテゴリ名</th>
       <th>操作</th>
+      <th>サブカテゴリ</th>
     `;
     table.appendChild(headerRow);
     for (const category of parentCategories) {
@@ -567,7 +568,7 @@ async function displayParentCategories() {
           }
         }
       });
-     
+
       // サブカテゴリの表示
       const subcategoryList = await displaySubcategories(category.id);
       row.appendChild(subcategoryList);
