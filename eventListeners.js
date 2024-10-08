@@ -639,15 +639,7 @@ function editProduct(product) {
   productList.appendChild(editForm);
 }
 
-// 新規商品追加時にも消耗品を設定するフォームの追加
-async function createNewProductForm() {
-  const form = document.getElementById('addProductForm');
-  const consumableForm = createAddConsumableToProductForm({ id: 'new' });
-  form.appendChild(consumableForm);
-}
-createNewProductForm();
-
-// 関数のエクスポート
+// エクスポート
 export {
   updatePricingParentCategorySelect,
   showError,
@@ -656,8 +648,6 @@ export {
   addConsumableToProduct,
   createAddConsumableToProductForm,
   editProduct,
-  updateConsumableSelectOptionsForForm,
-  createNewProductForm,
   updateConsumableSelectOptionsForForms,
 };
 
