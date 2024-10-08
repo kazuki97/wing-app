@@ -310,6 +310,53 @@ async function displayProducts() {
   }
 }
 
+// 複数の消耗品を商品に関連付けるフォーム作成関数
+function createAddConsumablesToProductForm(product) {
+  const form = document.createElement('form');
+  form.innerHTML = `
+    <div id="consumableEntries">
+      <div class="consumable-entry">
+        <select class="consumable-select" required></select>
+        <input type="number" class="consumable-quantity" placeholder="数量" required step="any" min="0" />
+      </div>
+    </div>
+    <button type="button" id="addConsumableEntry">消耗品を追加</button>
+    <button type="submit">設定</button>
+  `;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const consumableEntries = [];
+    form.querySelectorAll('.consumable-entry').forEach((entry) => {
+      const consumableId = entry.querySelector('.consumable-select').value;
+      const quantity = parseFloat(entry.querySelector('.consumable-quantity').value);
+      if (consumableId && quantity > 0) {
+        consumableEntries.push({ consumableId, quantity });
+      }
+    });
+    try {
+      await updateProduct(product.id, { consumables: consumableEntries });
+      alert('商品に消耗品が設定されました');
+      await displayProducts();
+    } catch (error) {
+      console.error(error);
+      showError('商品に消耗品を設定するのに失敗しました');
+    }
+  });
+  // 消耗品の追加ボタンのイベントリスナー
+  form.querySelector('#addConsumableEntry').addEventListener('click', () => {
+    const newEntry = document.createElement('div');
+    newEntry.classList.add('consumable-entry');
+    newEntry.innerHTML = `
+      <select class="consumable-select" required></select>
+      <input type="number" class="consumable-quantity" placeholder="数量" required step="any" min="0" />
+    `;
+    form.querySelector('#consumableEntries').appendChild(newEntry);
+    updateConsumableSelectOptionsForForm(newEntry.querySelector('.consumable-select'));
+  });
+  updateConsumableSelectOptionsForForm(form.querySelector('.consumable-select'));
+  return form;
+}
+
 // 親カテゴリ追加フォームのイベントリスナー
 document
   .getElementById('addParentCategoryForm')
