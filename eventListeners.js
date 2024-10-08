@@ -648,15 +648,15 @@ async function displayInventoryProducts() {
     inventoryList.innerHTML = '';
     for (const product of products) {
       const row = document.createElement('tr');
-      row.innerHTML = 
-        <td>${product.name}</td>
-        <td><input type="number" value="${product.quantity || 0}" data-product-id="${product.id}" class="inventory-quantity" /></td>
-        <td>${product.price}</td>
-        <td>${product.cost}</td>
-        <td>${product.barcode}</td>
-        <td>${product.size}</td>
-        <td><button class="update-inventory">更新</button><button class="delete-inventory" data-id="${product.id}">削除</button></td>
-      ;
+     row.innerHTML = `
+  <td>${product.name}</td>
+  <td><input type="number" value="${product.quantity || 0}" data-product-id="${product.id}" class="inventory-quantity" /></td>
+  <td>${product.price}</td>
+  <td>${product.cost}</td>
+  <td>${product.barcode}</td>
+  <td>${product.size}</td>
+  <td><button class="update-inventory">更新</button><button class="delete-inventory" data-id="${product.id}">削除</button></td>
+`;
       inventoryList.appendChild(row);
     }
     // 在庫数更新ボタンのイベントリスナー
