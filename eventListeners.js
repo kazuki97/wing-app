@@ -85,6 +85,7 @@ document
       document.getElementById('addConsumableForm').reset();
       alert('消耗品が追加されました');
       await displayConsumables();
+      await updateAllConsumableSelectOptions(); // 追加: 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の追加に失敗しました');
@@ -119,6 +120,7 @@ async function displayConsumables() {
             await deleteConsumable(consumable.id);
             alert('消耗品が削除されました');
             await displayConsumables();
+            await updateAllConsumableSelectOptions(); // 追加: 消耗品リストの更新
           } catch (error) {
             console.error(error);
             showError('消耗品の削除に失敗しました');
@@ -158,6 +160,7 @@ function editConsumable(consumable) {
       await updateConsumable(consumable.id, updatedData);
       alert('消耗品が更新されました');
       await displayConsumables();
+      await updateAllConsumableSelectOptions(); // 追加: 消耗品リストの更新
     } catch (error) {
       console.error(error);
       showError('消耗品の更新に失敗しました');
@@ -227,6 +230,14 @@ async function updateConsumableSelectOptionsForForm(selectId) {
   }
 }
 
+// すべての消耗品セレクトボックスのオプションを更新する関数
+async function updateAllConsumableSelectOptions() {
+  const selects = document.querySelectorAll('select[id^="consumableSelect_"]');
+  for (const select of selects) {
+    await updateConsumableSelectOptionsForForm(select.id);
+  }
+}
+
 // 関数のエクスポート
 export {
   updatePricingParentCategorySelect,
@@ -236,6 +247,7 @@ export {
   addConsumableToProduct,
   createAddConsumableToProductForm,
   updateConsumableSelectOptionsForForm,
+  updateAllConsumableSelectOptions,
 };
 
 // 親カテゴリ追加フォームのイベントリスナー
