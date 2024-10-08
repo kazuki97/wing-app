@@ -245,39 +245,46 @@ async function displayProducts() {
     const products = await getProducts(parentCategoryId, subcategoryId);
     const productList = document.getElementById('productList');
     productList.innerHTML = '';
+    const table = document.createElement('table');
+    table.classList.add('product-table');
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `
+      <th>商品名</th>
+      <th>数量</th>
+      <th>価格</th>
+      <th>原価</th>
+      <th>バーコード</th>
+      <th>サイズ</th>
+      <th>消耗品</th>
+      <th>操作</th>
+    `;
+    table.appendChild(headerRow);
     for (const product of products) {
-      const listItem = document.createElement('li');
-      listItem.textContent = `
-        商品名: ${product.name},
-        数量: ${product.quantity || 0},
-        価格: ${product.price},
-        原価: ${product.cost},
-        バーコード: ${product.barcode},
-        サイズ: ${product.size}
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${product.name}</td>
+        <td>${product.quantity || 0}</td>
+        <td>${product.price}</td>
+        <td>${product.cost}</td>
+        <td>${product.barcode}</td>
+        <td>${product.size}</td>
+        <td>
+          <ul>
+            ${product.consumables && product.consumables.length > 0 ? product.consumables.map(consumableEntry => {
+              const consumable = getConsumableById(consumableEntry.consumableId);
+              return `<li>消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}</li>`;
+            }).join('') : 'なし'}
+          </ul>
+        </td>
+        <td>
+          <button class="edit-button">編集</button>
+          <button class="delete-button">削除</button>
+        </td>
       `;
-
-      // 関連付けられた消耗品の表示
-      if (product.consumables && product.consumables.length > 0) {
-        const consumableDetails = document.createElement('ul');
-        for (const consumableEntry of product.consumables) {
-          const consumable = await getConsumableById(consumableEntry.consumableId);
-          const detailItem = document.createElement('li');
-          detailItem.textContent = `消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}`;
-          consumableDetails.appendChild(detailItem);
-        }
-        listItem.appendChild(consumableDetails);
-      }
-
-      // 編集ボタン
-      const editButton = document.createElement('button');
-      editButton.textContent = '編集';
-      editButton.addEventListener('click', () => {
+      row.querySelector('.edit-button').addEventListener('click', () => {
         editProduct(product);
       });
-      // 削除ボタン
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = '削除';
-      deleteButton.addEventListener('click', async () => {
+      row.querySelector('.delete-button').addEventListener('click', async () => {
         if (confirm('本当に削除しますか？')) {
           try {
             await deleteProduct(product.id);
@@ -289,10 +296,9 @@ async function displayProducts() {
           }
         }
       });
-      listItem.appendChild(editButton);
-      listItem.appendChild(deleteButton);
-      productList.appendChild(listItem);
+      table.appendChild(row);
     }
+    productList.appendChild(table);
   } catch (error) {
     console.error(error);
     showError('商品の表示に失敗しました');
