@@ -8,6 +8,7 @@ import {
   deleteDoc,
   updateDoc,
   doc,
+  getDoc,  // ここに getDoc を追加
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // コレクションの参照
