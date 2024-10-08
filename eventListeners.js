@@ -635,7 +635,9 @@ function editProduct(product) {
 
   // 既存の要素を編集フォームに置き換える
   const productList = document.getElementById('productList');
-  product
+  productList.innerHTML = '';
+  productList.appendChild(editForm);
+}
 
 // 新規商品追加時にも消耗品を設定するフォームの追加
 async function createNewProductForm() {
