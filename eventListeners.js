@@ -651,7 +651,6 @@ export {
   showError,
   displayConsumables,
   editConsumable,
-  addConsumableToProduct,
   createAddConsumableToProductForm,
   updateConsumableSelectOptionsForForm,
   updateAllConsumableSelectOptions,
