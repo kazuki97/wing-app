@@ -37,7 +37,13 @@ import {
   getUnitPrice,
 } from './pricing.js';
 
-import { addConsumable, getConsumableById, getConsumables, updateConsumable, deleteConsumable } from './consumables.js';
+import {
+  addConsumable,
+  getConsumableById,
+  getConsumables,
+  updateConsumable,
+  deleteConsumable
+} from './consumables.js';
 
 // 追加: updatePricingParentCategorySelectの定義
 async function updatePricingParentCategorySelect() {
@@ -290,6 +296,7 @@ async function displayProducts() {
     showError('商品の表示に失敗しました');
   }
 }
+
 
 // 親カテゴリ追加フォームのイベントリスナー
 document
