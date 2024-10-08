@@ -12,7 +12,7 @@ import {
   getTransactions,
   getTransactionById,
   updateTransaction,
-  deleteTransaction, // 追加
+  deleteTransaction,
 } from './transactions.js';
 
 import {
@@ -22,9 +22,11 @@ import {
   deletePaymentMethod,
 } from './paymentMethods.js';
 
-import { getUnitPrice } from './pricing.js'; // 単価取得
+import { getUnitPrice } from './pricing.js';
 
-import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js'; // 追加
+import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js';
+
+import Chart from 'chart.js/auto';
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -35,6 +37,121 @@ function showError(message) {
     errorDiv.style.display = 'none';
   }, 5000);
 }
+
+// 売上概要の表示
+async function displaySalesSummary() {
+  try {
+    const transactions = await getTransactions();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    let monthlySales = 0;
+    let yearlySales = 0;
+    let monthlyProfit = 0;
+    let yearlyProfit = 0;
+
+    transactions.forEach((transaction) => {
+      const date = transaction.timestamp.toDate();
+      if (date.getFullYear() === currentYear) {
+        yearlySales += transaction.totalAmount;
+        yearlyProfit += transaction.profit;
+        if (date.getMonth() + 1 === currentMonth) {
+          monthlySales += transaction.totalAmount;
+          monthlyProfit += transaction.profit;
+        }
+      }
+    });
+
+    document.getElementById('monthlySales').textContent = `今月の売上: ¥${monthlySales}`;
+    document.getElementById('monthlyProfit').textContent = `今月の利益: ¥${monthlyProfit}`;
+    document.getElementById('yearlySales').textContent = `今年の売上: ¥${yearlySales}`;
+    document.getElementById('yearlyProfit').textContent = `今年の利益: ¥${yearlyProfit}`;
+  } catch (error) {
+    console.error(error);
+    showError('売上概要の表示に失敗しました');
+  }
+}
+
+// グラフの表示
+async function displaySalesChart() {
+  try {
+    const transactions = await getTransactions();
+    const salesData = new Array(12).fill(0);
+    const profitData = new Array(12).fill(0);
+
+    transactions.forEach((transaction) => {
+      const date = transaction.timestamp.toDate();
+      const month = date.getMonth();
+      salesData[month] += transaction.totalAmount;
+      profitData[month] += transaction.profit;
+    });
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+          {
+            label: '売上',
+            data: salesData,
+            borderColor: 'blue',
+            fill: false,
+          },
+          {
+            label: '利益',
+            data: profitData,
+            borderColor: 'green',
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    showError('売上グラフの表示に失敗しました');
+  }
+}
+
+// 初期化処理
+window.addEventListener('DOMContentLoaded', async () => {
+  await displayTransactions();
+  await displayPaymentMethods();
+  await updatePaymentMethodSelect();
+  await displaySalesSummary();
+  await displaySalesChart();
+});
+
+// 売上管理セクションのフィルタリング機能
+async function filterTransactions() {
+  const month = parseInt(document.getElementById('filterMonth').value, 10);
+  const year = parseInt(document.getElementById('filterYear').value, 10);
+  const onlyReturned = document.getElementById('filterOnlyReturned').checked;
+
+  const filter = {};
+  if (!isNaN(month)) {
+    filter.month = month;
+  }
+  if (!isNaN(year)) {
+    filter.year = year;
+  }
+  filter.onlyReturned = onlyReturned;
+
+  await displayTransactions(filter);
+}
+
+document.getElementById('filterTransactionsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await filterTransactions();
+});
 
 // バーコードスキャンセクションのイベントリスナーと関数
 let salesCart = [];
