@@ -75,6 +75,26 @@ function showError(message) {
   }, 5000);
 }
 
+// モーダルの表示と非表示の制御関数
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.style.display = 'block';
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.style.display = 'none';
+}
+
+// 商品追加モーダルのイベントリスナー
+document.getElementById('addProductButton').addEventListener('click', () => {
+  openModal('addProductModal');
+});
+
+document.getElementById('closeProductModal').addEventListener('click', () => {
+  closeModal('addProductModal');
+});
+
 // 消耗品追加フォームのイベントリスナー
 document
   .getElementById('addConsumableForm')
@@ -176,21 +196,6 @@ function editConsumable(consumable) {
   consumableList.appendChild(editForm);
 }
 
-// 商品に消耗品を設定するイベントリスナー
-async function addConsumableToProduct(productId, consumableId, quantity) {
-  try {
-    const product = await getProductById(productId);
-    const consumables = product.consumables || [];
-    consumables.push({ consumableId, quantity });
-    await updateProduct(productId, { consumables });
-    alert('商品に消耗品が設定されました');
-    await displayProducts();
-  } catch (error) {
-    console.error(error);
-    showError('商品に消耗品を設定するのに失敗しました');
-  }
-}
-
 // 消耗品を設定するフォームの追加
 function createAddConsumableToProductForm(product) {
   const form = document.createElement('form');
@@ -272,7 +277,7 @@ async function displayProducts() {
           <ul>
             ${product.consumables && product.consumables.length > 0 ? (await Promise.all(product.consumables.map(async (consumableEntry) => {
               const consumable = await getConsumableById(consumableEntry.consumableId);
-              return `<li>消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}</li>`;
+              return `<li>消耗品: ${consumable ? consumable.name : '不明な消耗品'}, 数量: ${consumableEntry.quantity}</li>`;
             }))).join('') : 'なし'}
           </ul>
         </td>
