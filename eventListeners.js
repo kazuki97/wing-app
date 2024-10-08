@@ -567,9 +567,7 @@ async function displayParentCategories() {
           }
         }
       });
-      listItem.appendChild(editButton);
-      listItem.appendChild(deleteButton);
-
+     
       // サブカテゴリの表示
       const subcategoryList = await displaySubcategories(category.id);
       row.appendChild(subcategoryList);
