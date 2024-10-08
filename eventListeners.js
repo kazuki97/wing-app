@@ -42,7 +42,8 @@ import {
   getConsumableById,
   getConsumables,
   updateConsumable,
-  deleteConsumable
+  deleteConsumable,
+  getDoc
 } from './consumables.js';
 
 // 追加: updatePricingParentCategorySelectの定義
@@ -257,12 +258,12 @@ async function displayProducts() {
       // 関連付けられた消耗品の表示
       if (product.consumables && product.consumables.length > 0) {
         const consumableDetails = document.createElement('ul');
-        product.consumables.forEach(async (consumableEntry) => {
+        for (const consumableEntry of product.consumables) {
           const consumable = await getConsumableById(consumableEntry.consumableId);
           const detailItem = document.createElement('li');
           detailItem.textContent = `消耗品: ${consumable.name}, 数量: ${consumableEntry.quantity}`;
           consumableDetails.appendChild(detailItem);
-        });
+        }
         listItem.appendChild(consumableDetails);
       }
 
@@ -296,7 +297,6 @@ async function displayProducts() {
     showError('商品の表示に失敗しました');
   }
 }
-
 
 // 親カテゴリ追加フォームのイベントリスナー
 document
