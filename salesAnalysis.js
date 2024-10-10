@@ -1,6 +1,6 @@
 // salesAnalysis.js
 import { getTransactions } from './transactions.js';
-import { getParentCategories, getAllSubcategories } from './categories.js';
+import { getParentCategories, getSubcategories } from './categories.js';
 
 let salesChartInstance = null;
 
@@ -90,15 +90,17 @@ async function updateCategorySelectOptions() {
       parentCategorySelect.appendChild(option);
     });
 
-    const subcategories = await getAllSubcategories();
     const subcategorySelect = document.getElementById('analysisSubcategory');
     subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
-    subcategories.forEach((subcategory) => {
-      const option = document.createElement('option');
-      option.value = subcategory.id;
-      option.textContent = subcategory.name;
-      subcategorySelect.appendChild(option);
-    });
+    for (const category of parentCategories) {
+      const subcategories = await getSubcategories(category.id);
+      subcategories.forEach((subcategory) => {
+        const option = document.createElement('option');
+        option.value = subcategory.id;
+        option.textContent = subcategory.name;
+        subcategorySelect.appendChild(option);
+      });
+    }
   } catch (error) {
     console.error('カテゴリの取得エラー:', error);
   }
