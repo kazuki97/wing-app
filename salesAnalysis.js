@@ -75,7 +75,7 @@ async function initializeSalesAnalysis(filter) {
     profit: salesData.map((transaction) => transaction.profit),
     quantity: salesData.map((transaction) => transaction.items.reduce((sum, item) => sum + item.quantity, 0)),
   };
-  displaySalesChart(data, labels, 'line', 'salesAnalysisChart');
+  displaySalesChart(data, labels, 'bar', 'salesAnalysisChart');
 }
 
 // フィルタリングフォームのイベントリスナー
