@@ -17,6 +17,9 @@ async function getSalesData(filter) {
     const matchesCategory = !filter.category || transaction.category === filter.category;
     const matchesSubcategory = !filter.subcategory || transaction.subcategory === filter.subcategory;
 
+    console.log('カテゴリ比較:', 'フィルタカテゴリ:', filter.category, 'トランザクションカテゴリ:', transaction.category, 'マッチ:', matchesCategory); // デバッグ用
+    console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
+
     const matches = matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
     console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
 
