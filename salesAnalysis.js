@@ -68,6 +68,11 @@ function displaySalesChart(data, labels, chartType, chartContainerId) {
 // 売上分析セクションの初期化
 async function initializeSalesAnalysis(filter) {
   const salesData = await getSalesData(filter);
+  if (salesData.length === 0) {
+    console.warn('該当する売上データがありません');
+    document.getElementById('salesAnalysisChart').getContext('2d').clearRect(0, 0, salesAnalysisChart.width, salesAnalysisChart.height);
+    return;
+  }
   const labels = salesData.map((transaction) => transaction.timestamp.toDate().toLocaleDateString());
   const data = {
     sales: salesData.map((transaction) => transaction.totalAmount),
