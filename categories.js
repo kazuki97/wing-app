@@ -17,6 +17,8 @@ export async function addParentCategory(name) {
   try {
     const docRef = await addDoc(collection(db, 'parentCategories'), {
       name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     return docRef.id;
   } catch (error) {
@@ -40,7 +42,7 @@ export async function getParentCategories() {
 export async function updateParentCategory(id, newName) {
   try {
     const docRef = doc(db, 'parentCategories', id);
-    await updateDoc(docRef, { name: newName });
+    await updateDoc(docRef, { name: newName, updatedAt: new Date() });
   } catch (error) {
     console.error('親カテゴリの更新エラー:', error);
     throw error;
@@ -53,7 +55,7 @@ export async function deleteParentCategory(id) {
     const docRef = doc(db, 'parentCategories', id);
     await deleteDoc(docRef);
     // 対応するサブカテゴリも削除
-    const subcategories = await getSubcategories(id);
+    const subcategories = await getSubcategoriesByParentId(id);
     for (const subcategory of subcategories) {
       await deleteSubcategory(subcategory.id);
     }
@@ -69,6 +71,8 @@ export async function addSubcategory(name, parentCategoryId) {
     const docRef = await addDoc(collection(db, 'subcategories'), {
       name,
       parentCategoryId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     return docRef.id;
   } catch (error) {
@@ -77,8 +81,8 @@ export async function addSubcategory(name, parentCategoryId) {
   }
 }
 
-// サブカテゴリの取得
-export async function getSubcategories(parentCategoryId) {
+// 特定の親カテゴリIDに基づくサブカテゴリの取得
+export async function getSubcategoriesByParentId(parentCategoryId) {
   try {
     const q = query(
       collection(db, 'subcategories'),
@@ -88,6 +92,17 @@ export async function getSubcategories(parentCategoryId) {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('サブカテゴリの取得エラー:', error);
+    throw error;
+  }
+}
+
+// 全サブカテゴリの取得
+export async function getSubcategories() {
+  try {
+    const snapshot = await getDocs(collection(db, 'subcategories'));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('全サブカテゴリの取得エラー:', error);
     throw error;
   }
 }
@@ -113,7 +128,7 @@ export async function getSubcategoryById(subcategoryId) {
 export async function updateSubcategory(id, newName) {
   try {
     const docRef = doc(db, 'subcategories', id);
-    await updateDoc(docRef, { name: newName });
+    await updateDoc(docRef, { name: newName, updatedAt: new Date() });
   } catch (error) {
     console.error('サブカテゴリの更新エラー:', error);
     throw error;
