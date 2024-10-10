@@ -8,7 +8,11 @@ import {
   getDoc,
   doc,
   updateDoc,
-  deleteDoc, // 追加
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
 // 売上データの追加
@@ -23,9 +27,26 @@ export async function addTransaction(transactionData) {
 }
 
 // 取引データの取得
-export async function getTransactions() {
+export async function getTransactions(filters = {}) {
   try {
-    const snapshot = await getDocs(collection(db, 'transactions'));
+    let transactionQuery = collection(db, 'transactions');
+
+    if (filters.year) {
+      transactionQuery = query(transactionQuery, where('year', '==', filters.year));
+    }
+    if (filters.month) {
+      transactionQuery = query(transactionQuery, where('month', '==', filters.month));
+    }
+    if (filters.category) {
+      transactionQuery = query(transactionQuery, where('category', '==', filters.category));
+    }
+    if (filters.subcategory) {
+      transactionQuery = query(transactionQuery, where('subcategory', '==', filters.subcategory));
+    }
+
+    transactionQuery = query(transactionQuery, orderBy('timestamp', 'desc'));
+
+    const snapshot = await getDocs(transactionQuery);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('取引の取得エラー:', error);
