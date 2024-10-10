@@ -46,7 +46,7 @@ import {
 } from './consumables.js';
 
 import { addTransaction, getTransactions } from './transactions.js';
-import Chart from 'chart.js/auto';
+const Chart = window.Chart;
 
 import { getDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
