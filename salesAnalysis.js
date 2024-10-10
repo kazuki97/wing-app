@@ -121,8 +121,31 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   await initializeSalesAnalysis(filter);
 });
 
+// 年と月のドロップダウンの選択肢を追加
+function updateYearMonthSelectOptions() {
+  const currentYear = new Date().getFullYear();
+  const yearSelect = document.getElementById('analysisYear');
+  yearSelect.innerHTML = '';
+  for (let year = currentYear; year >= 2000; year--) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  }
+
+  const monthSelect = document.getElementById('analysisMonth');
+  monthSelect.innerHTML = '';
+  for (let month = 1; month <= 12; month++) {
+    const option = document.createElement('option');
+    option.value = month;
+    option.textContent = month;
+    monthSelect.appendChild(option);
+  }
+}
+
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
   updateCategorySelectOptions();
+  updateYearMonthSelectOptions();
   initializeSalesAnalysis({});
 });
