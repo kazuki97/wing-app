@@ -2,6 +2,7 @@
 import { getTransactions } from './transactions.js';
 
 const Chart = window.Chart;
+let salesChart = null; // グラフのインスタンスを保持する変数
 
 // フィルタリングオプションに基づいて売上データを取得する
 async function getSalesData(filter) {
@@ -19,7 +20,13 @@ async function getSalesData(filter) {
 // グラフの表示
 function displaySalesChart(data, labels, chartType, chartContainerId) {
   const ctx = document.getElementById(chartContainerId).getContext('2d');
-  new Chart(ctx, {
+
+  // 既存のチャートがある場合は破棄する
+  if (salesChart !== null) {
+    salesChart.destroy();
+  }
+
+  salesChart = new Chart(ctx, {
     type: chartType,
     data: {
       labels: labels,
