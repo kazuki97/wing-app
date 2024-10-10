@@ -7,13 +7,20 @@ let salesChartInstance = null;
 // フィルタリングオプションに基づいて売上データを取得する
 async function getSalesData(filter) {
   const transactions = await getTransactions();
+  console.log('適用フィルタ:', filter); // デバッグ用
+  console.log('全トランザクション:', transactions); // デバッグ用
+
   return transactions.filter((transaction) => {
-    const date = transaction.timestamp.toDate();
+    const date = new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
     const matchesCategory = !filter.category || transaction.category === filter.category;
     const matchesSubcategory = !filter.subcategory || transaction.subcategory === filter.subcategory;
-    return matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
+
+    const matches = matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
+    console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
+
+    return matches;
   });
 }
 
@@ -70,15 +77,20 @@ async function initializeSalesAnalysis(filter) {
   const salesData = await getSalesData(filter);
   if (salesData.length === 0) {
     console.warn('該当する売上データがありません');
-    document.getElementById('salesAnalysisChart').getContext('2d').clearRect(0, 0, salesAnalysisChart.width, salesAnalysisChart.height);
+    const canvas = document.getElementById('salesAnalysisChart');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
     return;
   }
-  const labels = salesData.map((transaction) => transaction.timestamp.toDate().toLocaleDateString());
+  const labels = salesData.map((transaction) => new Date(transaction.timestamp).toLocaleDateString());
   const data = {
     sales: salesData.map((transaction) => transaction.totalAmount),
     profit: salesData.map((transaction) => transaction.profit),
     quantity: salesData.map((transaction) => transaction.items.reduce((sum, item) => sum + item.quantity, 0)),
   };
+  console.log('グラフに渡すデータ:', data); // デバッグ用
   displaySalesChart(data, labels, 'bar', 'salesAnalysisChart');
 }
 
