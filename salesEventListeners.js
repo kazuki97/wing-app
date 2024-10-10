@@ -781,3 +781,4 @@ window.addEventListener('DOMContentLoaded', async () => {
   await displayPaymentMethods();
   await updatePaymentMethodSelect();
 });
+
