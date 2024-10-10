@@ -6,19 +6,24 @@ let salesChartInstance = null;
 
 // フィルタリングオプションに基づいて売上データを取得する
 async function getSalesData(filter) {
-  const transactions = await getTransactions();
-  console.log('適用フィルタ:', filter); // デバッグ用
-  console.log('全トランザクション:', transactions); // デバッグ用
+  try {
+    const transactions = await getTransactions(filter);
+    console.log('適用フィルタ:', filter); // デバッグ用
+    console.log('全トランザクション:', transactions); // デバッグ用
 
-  return transactions.filter((transaction) => {
-    if (!transaction.subcategory) return false;
+    return transactions.filter((transaction) => {
+      if (!transaction.subcategory) return false;
 
-    const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
+      const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
 
-    console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
+      console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
 
-    return matchesSubcategory;
-  });
+      return matchesSubcategory;
+    });
+  } catch (error) {
+    console.error('売上データの取得エラー:', error);
+    return [];
+  }
 }
 
 // グラフの表示
