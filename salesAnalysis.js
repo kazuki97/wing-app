@@ -1,6 +1,7 @@
 // salesAnalysis.js
 import { getTransactions } from './transactions.js';
-import { Chart } from 'chart.js';
+
+const Chart = window.Chart;
 
 // フィルタリングオプションに基づいて売上データを取得する
 async function getSalesData(filter) {
@@ -72,10 +73,10 @@ async function initializeSalesAnalysis(filter) {
 // フィルタリングフォームのイベントリスナー
 document.getElementById('salesAnalysisFilterForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const year = parseInt(document.getElementById('filterYear').value, 10);
-  const month = parseInt(document.getElementById('filterMonth').value, 10);
-  const category = document.getElementById('filterCategory').value;
-  const subcategory = document.getElementById('filterSubcategory').value;
+  const year = parseInt(document.getElementById('analysisYear').value, 10);
+  const month = parseInt(document.getElementById('analysisMonth').value, 10);
+  const category = document.getElementById('analysisCategory').value;
+  const subcategory = document.getElementById('analysisSubcategory').value;
   const filter = { year, month, category, subcategory };
   await initializeSalesAnalysis(filter);
 });
