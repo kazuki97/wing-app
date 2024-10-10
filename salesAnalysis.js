@@ -92,12 +92,12 @@ async function updateCategorySelectOptions() {
 
     const subcategorySelect = document.getElementById('analysisSubcategory');
     subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
-    const uniqueSubcategories = new Set();
+    const uniqueSubcategories = new Map();
     for (const category of parentCategories) {
       const subcategories = await getSubcategories(category.id);
       subcategories.forEach((subcategory) => {
         if (!uniqueSubcategories.has(subcategory.id)) {
-          uniqueSubcategories.add(subcategory.id);
+          uniqueSubcategories.set(subcategory.id, subcategory.name);
           const option = document.createElement('option');
           option.value = subcategory.id;
           option.textContent = subcategory.name;
