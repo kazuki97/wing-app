@@ -142,9 +142,10 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   e.preventDefault();
   const year = parseInt(document.getElementById('analysisYear').value, 10);
   const month = parseInt(document.getElementById('analysisMonth').value, 10);
-  const category = document.getElementById('analysisCategory').value;
-  const subcategory = document.getElementById('analysisSubcategory').value;
+  const category = document.getElementById('analysisCategory').value || '';
+  const subcategory = document.getElementById('analysisSubcategory').value || '';
   const filter = { year, month, category, subcategory };
+  console.log('送信されたフィルタ:', filter); // デバッグ用
   await initializeSalesAnalysis(filter);
 });
 
