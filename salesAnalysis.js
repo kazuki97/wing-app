@@ -1,9 +1,8 @@
 // salesAnalysis.js
 import { getTransactions } from './transactions.js';
-import { getCategories, getSubcategories } from './categories.js';
+import { getParentCategories, getAllSubcategories } from './categories.js';
 
-const Chart = window.Chart;
-let salesChart = null; // グラフのインスタンスを保持する変数
+let salesChartInstance = null;
 
 // フィルタリングオプションに基づいて売上データを取得する
 async function getSalesData(filter) {
@@ -18,43 +17,16 @@ async function getSalesData(filter) {
   });
 }
 
-// カテゴリとサブカテゴリの選択肢を更新する
-async function updateCategoryAndSubcategoryOptions() {
-  try {
-    const categories = await getCategories();
-    const categorySelect = document.getElementById('analysisCategory');
-    categorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
-    categories.forEach((category) => {
-      const option = document.createElement('option');
-      option.value = category.id;
-      option.textContent = category.name;
-      categorySelect.appendChild(option);
-    });
-
-    const subcategories = await getSubcategories();
-    const subcategorySelect = document.getElementById('analysisSubcategory');
-    subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
-    subcategories.forEach((subcategory) => {
-      const option = document.createElement('option');
-      option.value = subcategory.id;
-      option.textContent = subcategory.name;
-      subcategorySelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error('カテゴリとサブカテゴリの選択肢の更新に失敗しました:', error);
-  }
-}
-
 // グラフの表示
 function displaySalesChart(data, labels, chartType, chartContainerId) {
   const ctx = document.getElementById(chartContainerId).getContext('2d');
 
   // 既存のチャートがある場合は破棄する
-  if (salesChart !== null) {
-    salesChart.destroy();
+  if (salesChartInstance) {
+    salesChartInstance.destroy();
   }
 
-  salesChart = new Chart(ctx, {
+  salesChartInstance = new Chart(ctx, {
     type: chartType,
     data: {
       labels: labels,
@@ -84,8 +56,6 @@ function displaySalesChart(data, labels, chartType, chartContainerId) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true, // アスペクト比を維持するように変更
-      aspectRatio: 2, // アスペクト比を調整してグラフが大きくなりすぎないようにする
       scales: {
         y: {
           beginAtZero: true,
@@ -107,6 +77,33 @@ async function initializeSalesAnalysis(filter) {
   displaySalesChart(data, labels, 'bar', 'salesAnalysisChart');
 }
 
+// カテゴリとサブカテゴリの選択肢を更新
+async function updateCategorySelectOptions() {
+  try {
+    const parentCategories = await getParentCategories();
+    const parentCategorySelect = document.getElementById('analysisCategory');
+    parentCategorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
+    parentCategories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.name;
+      parentCategorySelect.appendChild(option);
+    });
+
+    const subcategories = await getAllSubcategories();
+    const subcategorySelect = document.getElementById('analysisSubcategory');
+    subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+    subcategories.forEach((subcategory) => {
+      const option = document.createElement('option');
+      option.value = subcategory.id;
+      option.textContent = subcategory.name;
+      subcategorySelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error('カテゴリの取得エラー:', error);
+  }
+}
+
 // フィルタリングフォームのイベントリスナー
 document.getElementById('salesAnalysisFilterForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -119,7 +116,7 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
 });
 
 // 初期化
-document.addEventListener('DOMContentLoaded', async () => {
-  await updateCategoryAndSubcategoryOptions();
+document.addEventListener('DOMContentLoaded', () => {
+  updateCategorySelectOptions();
   initializeSalesAnalysis({});
 });
