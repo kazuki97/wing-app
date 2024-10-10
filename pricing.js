@@ -19,6 +19,8 @@ export async function addPricingRule(subcategoryId, minQuantity, maxQuantity, un
       minQuantity,
       maxQuantity,
       unitPrice,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     return docRef.id;
   } catch (error) {
@@ -65,15 +67,29 @@ export async function getUnitPrice(subcategoryId, totalQuantity) {
         return rule.unitPrice;
       }
     }
-    // 適用可能なルールがない場合は null を返す
-    return null;
+    // 適用可能なルールがない場合はデフォルト価格を返す
+    return await getDefaultUnitPrice(subcategoryId);
   } catch (error) {
     console.error('単価の取得エラー:', error);
     throw error;
   }
 }
 
-// 単価ルールの更新（新規追加）
+// デフォルト単価の取得（新規追加）
+export async function getDefaultUnitPrice(subcategoryId) {
+  try {
+    const pricingRules = await getPricingRules(subcategoryId);
+    if (pricingRules.length > 0) {
+      return pricingRules[pricingRules.length - 1].unitPrice; // 最も大きい数量範囲の単価をデフォルトとする
+    }
+    return 0; // デフォルト価格が設定されていない場合は 0 を返す
+  } catch (error) {
+    console.error('デフォルト単価の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 単価ルールの更新
 export async function updatePricingRule(id, updatedData) {
   try {
     const docRef = doc(db, 'pricingRules', id);
