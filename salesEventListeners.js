@@ -26,7 +26,7 @@ import { getUnitPrice } from './pricing.js';
 
 import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js';
 
-const Chart = window.Chart;  // これはHTMLから読み込む場合の使い方
+import Chart from 'chart.js/auto';
 
 // エラーメッセージ表示関数
 function showError(message) {
