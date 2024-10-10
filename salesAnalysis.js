@@ -11,17 +11,16 @@ async function getSalesData(filter) {
   console.log('全トランザクション:', transactions); // デバッグ用
 
   return transactions.filter((transaction) => {
+    if (!transaction.category || !transaction.subcategory) return false;
+
     const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
-    const matchesCategory = !filter.category || filter.category === '' || String(transaction.category) === String(filter.category);
-    const matchesSubcategory = !filter.subcategory || filter.subcategory === '' || String(transaction.subcategory) === String(filter.subcategory);
+    const matchesCategory = !filter.category || String(transaction.category) === String(filter.category);
+    const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
 
     console.log('カテゴリ比較:', 'フィルタカテゴリ:', filter.category, 'トランザクションカテゴリ:', transaction.category, 'マッチ:', matchesCategory); // デバッグ用
     console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
-
-    console.log('カテゴリ型:', typeof filter.category, typeof transaction.category); // 型の確認
-    console.log('サブカテゴリ型:', typeof filter.subcategory, typeof transaction.subcategory); // 型の確認
 
     const matches = matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
     console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
@@ -151,10 +150,12 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   // カテゴリとサブカテゴリを再取得してログ出力
   const categoryElement = document.getElementById('analysisCategory');
   const subcategoryElement = document.getElementById('analysisSubcategory');
-  const category = categoryElement ? categoryElement.value : null;
-  const subcategory = subcategoryElement ? subcategoryElement.value : null;
-  console.log('フォーム送信時のカテゴリ:', category); // デバッグ用
-  console.log('フォーム送信時のサブカテゴリ:', subcategory); // デバッグ用
+  let category = categoryElement ? categoryElement.value : null;
+  let subcategory = subcategoryElement ? subcategoryElement.value : null;
+
+  // カテゴリまたはサブカテゴリが未選択の場合のデフォルト処理
+  if (category === '') category = null;
+  if (subcategory === '') subcategory = null;
 
   const filter = { year, month, category, subcategory };
   console.log('送信されたフィルタ:', filter); // デバッグ用
@@ -184,9 +185,7 @@ function updateYearMonthSelectOptions() {
 }
 
 // 初期化
-document.addEventListener('DOMContentLoaded', () => {
-  updateCategorySelectOptions().then(() => {
-    updateYearMonthSelectOptions();
-    initializeSalesAnalysis({});
-  });
+document.addEventListener('DOMContentLoaded', async () => {
+  await updateCategorySelectOptions();
+  updateYearMonthSelectOptions();
 });
