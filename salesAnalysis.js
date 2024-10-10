@@ -56,7 +56,8 @@ function displaySalesChart(data, labels, chartType, chartContainerId) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // アスペクト比を維持しない
+      maintainAspectRatio: true, // アスペクト比を維持するように変更
+      aspectRatio: 2, // アスペクト比を調整してグラフが大きくなりすぎないようにする
       scales: {
         y: {
           beginAtZero: true,
