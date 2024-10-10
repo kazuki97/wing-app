@@ -14,10 +14,18 @@ import {
   orderBy,
   limit,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { getProductById } from './products.js'; // 商品情報を取得するためにインポート
 
 // 売上データの追加
 export async function addTransaction(transactionData) {
   try {
+    // 商品IDから商品情報を取得
+    const product = await getProductById(transactionData.productId);
+    if (product) {
+      // 商品にサブカテゴリ情報がある場合、それをトランザクションデータに追加
+      transactionData.subcategory = product.subcategoryId;
+    }
+
     const docRef = await addDoc(collection(db, 'transactions'), transactionData);
     return docRef.id;
   } catch (error) {
