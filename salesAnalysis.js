@@ -1,6 +1,6 @@
 // salesAnalysis.js
 import { getTransactions } from './transactions.js';
-import { getParentCategories, getSubcategories } from './categories.js';
+import { getSubcategories } from './categories.js';
 
 let salesChartInstance = null;
 
@@ -11,18 +11,16 @@ async function getSalesData(filter) {
   console.log('全トランザクション:', transactions); // デバッグ用
 
   return transactions.filter((transaction) => {
-    if (!transaction.category || !transaction.subcategory) return false;
+    if (!transaction.subcategory) return false;
 
     const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
-    const matchesCategory = !filter.category || String(transaction.category) === String(filter.category);
     const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
 
-    console.log('カテゴリ比較:', 'フィルタカテゴリ:', filter.category, 'トランザクションカテゴリ:', transaction.category, 'マッチ:', matchesCategory); // デバッグ用
     console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
 
-    const matches = matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
+    const matches = matchesYear && matchesMonth && matchesSubcategory;
     console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
 
     return matches;
@@ -106,38 +104,21 @@ async function initializeSalesAnalysis(filter) {
   displaySalesChart(data, labels, 'bar', 'salesAnalysisChart');
 }
 
-// カテゴリとサブカテゴリの選択肢を更新
-async function updateCategorySelectOptions() {
+// サブカテゴリの選択肢を更新
+async function updateSubcategorySelectOptions() {
   try {
-    const parentCategories = await getParentCategories();
-    console.log('取得した親カテゴリ:', parentCategories); // デバッグ用
-    const parentCategorySelect = document.getElementById('analysisCategory');
-    parentCategorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
-    parentCategories.forEach((category) => {
-      const option = document.createElement('option');
-      option.value = category.id;
-      option.textContent = category.name;
-      parentCategorySelect.appendChild(option);
-    });
-
+    const subcategories = await getSubcategories();
+    console.log('取得したサブカテゴリ:', subcategories); // デバッグ用
     const subcategorySelect = document.getElementById('analysisSubcategory');
     subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
-    const uniqueSubcategories = new Map();
-    for (const category of parentCategories) {
-      const subcategories = await getSubcategories(category.id);
-      console.log(`取得したサブカテゴリ (親カテゴリ: ${category.id}):`, subcategories); // デバッグ用
-      subcategories.forEach((subcategory) => {
-        if (!uniqueSubcategories.has(subcategory.id)) {
-          uniqueSubcategories.set(subcategory.id, subcategory.name);
-          const option = document.createElement('option');
-          option.value = subcategory.id;
-          option.textContent = subcategory.name;
-          subcategorySelect.appendChild(option);
-        }
-      });
-    }
+    subcategories.forEach((subcategory) => {
+      const option = document.createElement('option');
+      option.value = subcategory.id;
+      option.textContent = subcategory.name;
+      subcategorySelect.appendChild(option);
+    });
   } catch (error) {
-    console.error('カテゴリの取得エラー:', error);
+    console.error('サブカテゴリの取得エラー:', error);
   }
 }
 
@@ -147,17 +128,14 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   const year = parseInt(document.getElementById('analysisYear').value, 10);
   const month = parseInt(document.getElementById('analysisMonth').value, 10);
 
-  // カテゴリとサブカテゴリを再取得してログ出力
-  const categoryElement = document.getElementById('analysisCategory');
+  // サブカテゴリを再取得してログ出力
   const subcategoryElement = document.getElementById('analysisSubcategory');
-  let category = categoryElement ? categoryElement.value : null;
   let subcategory = subcategoryElement ? subcategoryElement.value : null;
 
-  // カテゴリまたはサブカテゴリが未選択の場合のデフォルト処理
-  if (category === '') category = null;
+  // サブカテゴリが未選択の場合のデフォルト処理
   if (subcategory === '') subcategory = null;
 
-  const filter = { year, month, category, subcategory };
+  const filter = { year, month, subcategory };
   console.log('送信されたフィルタ:', filter); // デバッグ用
   await initializeSalesAnalysis(filter);
 });
@@ -186,6 +164,6 @@ function updateYearMonthSelectOptions() {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
-  await updateCategorySelectOptions();
+  await updateSubcategorySelectOptions();
   updateYearMonthSelectOptions();
 });
