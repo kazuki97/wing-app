@@ -92,13 +92,17 @@ async function updateCategorySelectOptions() {
 
     const subcategorySelect = document.getElementById('analysisSubcategory');
     subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+    const uniqueSubcategories = new Set();
     for (const category of parentCategories) {
       const subcategories = await getSubcategories(category.id);
       subcategories.forEach((subcategory) => {
-        const option = document.createElement('option');
-        option.value = subcategory.id;
-        option.textContent = subcategory.name;
-        subcategorySelect.appendChild(option);
+        if (!uniqueSubcategories.has(subcategory.name)) {
+          uniqueSubcategories.add(subcategory.name);
+          const option = document.createElement('option');
+          option.value = subcategory.id;
+          option.textContent = subcategory.name;
+          subcategorySelect.appendChild(option);
+        }
       });
     }
   } catch (error) {
