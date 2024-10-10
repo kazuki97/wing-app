@@ -125,9 +125,6 @@ async function displaySalesChart() {
 
 // 初期化処理
 window.addEventListener('DOMContentLoaded', async () => {
-  await displayTransactions();
-  await displayPaymentMethods();
-  await updatePaymentMethodSelect();
   await displaySalesSummary();
   await displaySalesChart();
 });
@@ -149,11 +146,6 @@ async function filterTransactions() {
 
   await displayTransactions(filter);
 }
-
-document.getElementById('filterTransactionsForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  await filterTransactions();
-});
 
 // バーコードスキャンセクションのイベントリスナーと関数
 let salesCart = [];
