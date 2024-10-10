@@ -1,0 +1,3 @@
+[submodule "wing-app"]
+	path = wing-app
+	url = https://github.com/kazuki97/wing-app.git
