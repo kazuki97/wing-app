@@ -147,8 +147,15 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   e.preventDefault();
   const year = parseInt(document.getElementById('analysisYear').value, 10);
   const month = parseInt(document.getElementById('analysisMonth').value, 10);
-  const category = document.getElementById('analysisCategory').value || null;
-  const subcategory = document.getElementById('analysisSubcategory').value || null;
+
+  // カテゴリとサブカテゴリを再取得してログ出力
+  const categoryElement = document.getElementById('analysisCategory');
+  const subcategoryElement = document.getElementById('analysisSubcategory');
+  const category = categoryElement ? categoryElement.value : null;
+  const subcategory = subcategoryElement ? subcategoryElement.value : null;
+  console.log('フォーム送信時のカテゴリ:', category); // デバッグ用
+  console.log('フォーム送信時のサブカテゴリ:', subcategory); // デバッグ用
+
   const filter = { year, month, category, subcategory };
   console.log('送信されたフィルタ:', filter); // デバッグ用
   await initializeSalesAnalysis(filter);
@@ -178,7 +185,8 @@ function updateYearMonthSelectOptions() {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
-  updateCategorySelectOptions();
-  updateYearMonthSelectOptions();
-  initializeSalesAnalysis({});
+  updateCategorySelectOptions().then(() => {
+    updateYearMonthSelectOptions();
+    initializeSalesAnalysis({});
+  });
 });
