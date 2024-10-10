@@ -13,17 +13,11 @@ async function getSalesData(filter) {
   return transactions.filter((transaction) => {
     if (!transaction.subcategory) return false;
 
-    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
-    const matchesYear = !filter.year || date.getFullYear() === filter.year;
-    const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
     const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
 
     console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
 
-    const matches = matchesYear && matchesMonth && matchesSubcategory;
-    console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
-
-    return matches;
+    return matchesSubcategory;
   });
 }
 
