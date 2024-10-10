@@ -47,6 +47,10 @@ export async function getProducts(parentCategoryId, subcategoryId) {
 
 // 商品IDから商品情報を取得
 export async function getProductById(productId) {
+  if (!productId) {
+    console.error('無効な productId:', productId);
+    return null;
+  }
   try {
     const docRef = doc(db, 'products', productId);
     const docSnap = await getDoc(docRef);
@@ -93,6 +97,10 @@ export async function getAllProducts() {
 
 // 商品の更新
 export async function updateProduct(id, updatedData) {
+  if (!id) {
+    console.error('無効な商品ID:', id);
+    return;
+  }
   try {
     const docRef = doc(db, 'products', id);
     await updateDoc(docRef, updatedData);
@@ -104,6 +112,10 @@ export async function updateProduct(id, updatedData) {
 
 // 商品の削除
 export async function deleteProduct(id) {
+  if (!id) {
+    console.error('無効な商品ID:', id);
+    return;
+  }
   try {
     const docRef = doc(db, 'products', id);
     await deleteDoc(docRef);
