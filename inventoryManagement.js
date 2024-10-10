@@ -56,7 +56,7 @@ export async function getAllOverallInventories() {
   }
 }
 
-// 全体在庫の削除（新規追加）
+// 全体在庫の削除
 export async function deleteOverallInventory(subcategoryId) {
   try {
     const docRef = doc(db, 'overallInventory', subcategoryId);
@@ -67,7 +67,7 @@ export async function deleteOverallInventory(subcategoryId) {
   }
 }
 
-// 消耗品の在庫更新（新規追加）
+// 消耗品の在庫更新
 export async function updateConsumableInventory(consumableId, quantity) {
   try {
     const docRef = doc(db, 'consumableInventory', consumableId);
@@ -85,7 +85,7 @@ export async function updateConsumableInventory(consumableId, quantity) {
   }
 }
 
-// 消耗品在庫の取得（新規追加）
+// 消耗品在庫の取得
 export async function getConsumableInventory(consumableId) {
   try {
     const docRef = doc(db, 'consumableInventory', consumableId);
@@ -101,7 +101,7 @@ export async function getConsumableInventory(consumableId) {
   }
 }
 
-// 消耗品在庫の一覧取得（新規追加）
+// 消耗品在庫の一覧取得
 export async function getAllConsumableInventories() {
   try {
     const snapshot = await getDocs(collection(db, 'consumableInventory'));
@@ -112,7 +112,7 @@ export async function getAllConsumableInventories() {
   }
 }
 
-// 消耗品在庫の削除（新規追加）
+// 消耗品在庫の削除
 export async function deleteConsumableInventory(consumableId) {
   try {
     const docRef = doc(db, 'consumableInventory', consumableId);
