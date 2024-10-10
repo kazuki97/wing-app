@@ -26,7 +26,7 @@ import { getUnitPrice } from './pricing.js';
 
 import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js';
 
-import Chart from 'chart.js/auto';
+const Chart = window.Chart;  // これはHTMLから読み込む場合の使い方
 
 // エラーメッセージ表示関数
 function showError(message) {
@@ -93,24 +93,26 @@ async function displaySalesChart() {
         labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
         datasets: [
           {
-            label: '売上',
+            label: '売上金額',
             data: salesData,
-            borderColor: 'blue',
-            fill: false,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: true,
           },
           {
             label: '利益',
             data: profitData,
-            borderColor: 'green',
-            fill: false,
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            fill: true,
           },
         ],
       },
       options: {
         responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
+        scales: {
+          y: {
+            beginAtZero: true,
           },
         },
       },
