@@ -96,8 +96,8 @@ async function updateCategorySelectOptions() {
     for (const category of parentCategories) {
       const subcategories = await getSubcategories(category.id);
       subcategories.forEach((subcategory) => {
-        if (!uniqueSubcategories.has(subcategory.name)) {
-          uniqueSubcategories.add(subcategory.name);
+        if (!uniqueSubcategories.has(subcategory.id)) {
+          uniqueSubcategories.add(subcategory.id);
           const option = document.createElement('option');
           option.value = subcategory.id;
           option.textContent = subcategory.name;
@@ -138,7 +138,7 @@ function updateYearMonthSelectOptions() {
   for (let month = 1; month <= 12; month++) {
     const option = document.createElement('option');
     option.value = month;
-    option.textContent = month;
+    option.textContent = `${month}月`;
     monthSelect.appendChild(option);
   }
 }
