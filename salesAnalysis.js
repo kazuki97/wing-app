@@ -14,8 +14,8 @@ async function getSalesData(filter) {
     const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
-    const matchesCategory = !filter.category || String(transaction.category) === String(filter.category);
-    const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
+    const matchesCategory = !filter.category || filter.category === '' || String(transaction.category) === String(filter.category);
+    const matchesSubcategory = !filter.subcategory || filter.subcategory === '' || String(transaction.subcategory) === String(filter.subcategory);
 
     console.log('カテゴリ比較:', 'フィルタカテゴリ:', filter.category, 'トランザクションカテゴリ:', transaction.category, 'マッチ:', matchesCategory); // デバッグ用
     console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
@@ -111,6 +111,7 @@ async function initializeSalesAnalysis(filter) {
 async function updateCategorySelectOptions() {
   try {
     const parentCategories = await getParentCategories();
+    console.log('取得した親カテゴリ:', parentCategories); // デバッグ用
     const parentCategorySelect = document.getElementById('analysisCategory');
     parentCategorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
     parentCategories.forEach((category) => {
@@ -125,6 +126,7 @@ async function updateCategorySelectOptions() {
     const uniqueSubcategories = new Map();
     for (const category of parentCategories) {
       const subcategories = await getSubcategories(category.id);
+      console.log(`取得したサブカテゴリ (親カテゴリ: ${category.id}):`, subcategories); // デバッグ用
       subcategories.forEach((subcategory) => {
         if (!uniqueSubcategories.has(subcategory.id)) {
           uniqueSubcategories.set(subcategory.id, subcategory.name);
@@ -145,8 +147,8 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
   e.preventDefault();
   const year = parseInt(document.getElementById('analysisYear').value, 10);
   const month = parseInt(document.getElementById('analysisMonth').value, 10);
-  const category = document.getElementById('analysisCategory').value || '';
-  const subcategory = document.getElementById('analysisSubcategory').value || '';
+  const category = document.getElementById('analysisCategory').value || null;
+  const subcategory = document.getElementById('analysisSubcategory').value || null;
   const filter = { year, month, category, subcategory };
   console.log('送信されたフィルタ:', filter); // デバッグ用
   await initializeSalesAnalysis(filter);
