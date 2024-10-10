@@ -11,7 +11,7 @@ async function getSalesData(filter) {
   console.log('全トランザクション:', transactions); // デバッグ用
 
   return transactions.filter((transaction) => {
-    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : transaction.timestamp;
+    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
     const matchesCategory = !filter.category || transaction.category === filter.category;
@@ -85,7 +85,7 @@ async function initializeSalesAnalysis(filter) {
     return;
   }
   const labels = salesData.map((transaction) => {
-    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : transaction.timestamp;
+    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     return date.toLocaleDateString();
   });
   const data = {
