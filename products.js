@@ -1,129 +1,126 @@
-// transactions.js
-
+// products.js
 import { db } from './db.js';
 import {
   collection,
   addDoc,
-  getDocs,
-  getDoc,
-  doc,
   updateDoc,
   deleteDoc,
+  doc,
+  getDocs,
+  getDoc,
   query,
   where,
-  orderBy,
-  limit,
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import { getProductById } from './products.js'; // 商品情報を取得するためにインポート
 
-// 売上データの追加
-export async function addTransaction(transactionData) {
-  if (!transactionData || !transactionData.productId) {
-    console.error('無効な取引データ:', transactionData);
-    throw new Error('取引データが無効です。商品IDが必要です。');
-  }
+// 商品の追加
+export async function addProduct(productData) {
   try {
-    // 商品IDから商品情報を取得
-    const product = await getProductById(transactionData.productId);
-    if (!product) {
-      console.error(`商品が見つかりません: productId=${transactionData.productId}`);
-      throw new Error(`商品が見つかりません: productId=${transactionData.productId}`);
-    }
-    
-    // 商品にサブカテゴリ情報がある場合、それをトランザクションデータに追加
-    transactionData.subcategory = product.subcategoryId ? String(product.subcategoryId) : null;
-
-    const docRef = await addDoc(collection(db, 'transactions'), transactionData);
+    const docRef = await addDoc(collection(db, 'products'), productData);
     return docRef.id;
   } catch (error) {
-    console.error('取引の追加エラー:', error);
+    console.error('商品の追加エラー:', error);
     throw error;
   }
 }
 
-// 取引データの取得
-export async function getTransactions(filters = {}) {
+// 商品の取得
+export async function getProducts(parentCategoryId, subcategoryId) {
   try {
-    let transactionQuery = collection(db, 'transactions');
-
+    let q = collection(db, 'products');
     const conditions = [];
-    if (filters.year) {
-      conditions.push(where('year', '==', filters.year));
+    if (parentCategoryId) {
+      conditions.push(where('parentCategoryId', '==', parentCategoryId));
     }
-    if (filters.month) {
-      conditions.push(where('month', '==', filters.month));
+    if (subcategoryId) {
+      conditions.push(where('subcategoryId', '==', subcategoryId));
     }
-    if (filters.category) {
-      conditions.push(where('category', '==', filters.category));
-    }
-    if (filters.subcategory) {
-      conditions.push(where('subcategory', '==', filters.subcategory));
-    }
-    if (filters.onlyReturned) {
-      conditions.push(where('isReturned', '==', true));
-    }
-
     if (conditions.length > 0) {
-      transactionQuery = query(transactionQuery, ...conditions);
+      q = query(q, ...conditions);
     }
-
-    transactionQuery = query(transactionQuery, orderBy('timestamp', 'desc'));
-
-    const snapshot = await getDocs(transactionQuery);
+    const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error('取引の取得エラー:', error);
+    console.error('商品の取得エラー:', error);
     throw error;
   }
 }
 
-// 取引データのIDでの取得
-export async function getTransactionById(transactionId) {
-  if (!transactionId) {
-    console.error('無効な取引ID:', transactionId);
+// 商品IDから商品情報を取得
+export async function getProductById(productId) {
+  if (!productId) {
+    console.error('無効な productId:', productId);
     return null;
   }
   try {
-    const docRef = doc(db, 'transactions', transactionId);
+    const docRef = doc(db, 'products', productId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       return { id: docSnap.id, ...docSnap.data() };
     } else {
-      console.error('取引が見つかりません: transactionId=', transactionId);
+      console.error('商品が見つかりません');
       return null;
     }
   } catch (error) {
-    console.error('取引の取得エラー:', error);
+    console.error('商品の取得エラー:', error);
     throw error;
   }
 }
 
-// 取引データの更新（返品処理で使用）
-export async function updateTransaction(transactionId, updatedData) {
-  if (!transactionId) {
-    console.error('無効な取引ID:', transactionId);
+// バーコードから商品を取得
+export async function getProductByBarcode(barcode) {
+  try {
+    const q = query(collection(db, 'products'), where('barcode', '==', barcode));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      console.error('バーコードに対応する商品が見つかりません');
+      return null;
+    }
+  } catch (error) {
+    console.error('商品の取得エラー:', error);
+    throw error;
+  }
+}
+
+// すべての商品の取得
+export async function getAllProducts() {
+  try {
+    const snapshot = await getDocs(collection(db, 'products'));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('すべての商品の取得エラー:', error);
+    throw error;
+  }
+}
+
+// 商品の更新
+export async function updateProduct(id, updatedData) {
+  if (!id) {
+    console.error('無効な商品ID:', id);
     return;
   }
   try {
-    const docRef = doc(db, 'transactions', transactionId);
+    const docRef = doc(db, 'products', id);
     await updateDoc(docRef, updatedData);
   } catch (error) {
-    console.error('取引の更新エラー:', error);
+    console.error('商品の更新エラー:', error);
     throw error;
   }
 }
 
-// 取引データの削除
-export async function deleteTransaction(transactionId) {
-  if (!transactionId) {
-    console.error('無効な取引ID:', transactionId);
+// 商品の削除
+export async function deleteProduct(id) {
+  if (!id) {
+    console.error('無効な商品ID:', id);
     return;
   }
   try {
-    const docRef = doc(db, 'transactions', transactionId);
+    const docRef = doc(db, 'products', id);
     await deleteDoc(docRef);
   } catch (error) {
-    console.error('取引の削除エラー:', error);
+    console.error('商品の削除エラー:', error);
     throw error;
   }
 }
