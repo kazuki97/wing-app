@@ -14,11 +14,14 @@ async function getSalesData(filter) {
     const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : new Date(transaction.timestamp);
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
-    const matchesCategory = !filter.category || transaction.category === filter.category;
-    const matchesSubcategory = !filter.subcategory || transaction.subcategory === filter.subcategory;
+    const matchesCategory = !filter.category || String(transaction.category) === String(filter.category);
+    const matchesSubcategory = !filter.subcategory || String(transaction.subcategory) === String(filter.subcategory);
 
     console.log('カテゴリ比較:', 'フィルタカテゴリ:', filter.category, 'トランザクションカテゴリ:', transaction.category, 'マッチ:', matchesCategory); // デバッグ用
     console.log('サブカテゴリ比較:', 'フィルタサブカテゴリ:', filter.subcategory, 'トランザクションサブカテゴリ:', transaction.subcategory, 'マッチ:', matchesSubcategory); // デバッグ用
+
+    console.log('カテゴリ型:', typeof filter.category, typeof transaction.category); // 型の確認
+    console.log('サブカテゴリ型:', typeof filter.subcategory, typeof transaction.subcategory); // 型の確認
 
     const matches = matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
     console.log('トランザクション:', transaction, 'マッチ:', matches); // デバッグ用
