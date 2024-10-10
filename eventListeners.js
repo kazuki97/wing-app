@@ -966,3 +966,4 @@ window.addEventListener('DOMContentLoaded', async () => {
   addParentCategoryListener();
   addSubcategoryListener();
 });
+
