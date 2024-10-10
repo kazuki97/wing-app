@@ -56,6 +56,7 @@ function displaySalesChart(data, labels, chartType, chartContainerId) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false, // アスペクト比を維持しない
       scales: {
         y: {
           beginAtZero: true,
