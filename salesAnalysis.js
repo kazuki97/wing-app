@@ -126,7 +126,7 @@ function updateYearMonthSelectOptions() {
   const currentYear = new Date().getFullYear();
   const yearSelect = document.getElementById('analysisYear');
   yearSelect.innerHTML = '';
-  for (let year = currentYear; year >= 2000; year--) {
+  for (let year = currentYear; year >= 2020; year--) {
     const option = document.createElement('option');
     option.value = year;
     option.textContent = year;
