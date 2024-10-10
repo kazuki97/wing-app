@@ -11,7 +11,7 @@ async function getSalesData(filter) {
   console.log('全トランザクション:', transactions); // デバッグ用
 
   return transactions.filter((transaction) => {
-    const date = new Date(transaction.timestamp);
+    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : transaction.timestamp;
     const matchesYear = !filter.year || date.getFullYear() === filter.year;
     const matchesMonth = !filter.month || date.getMonth() + 1 === filter.month;
     const matchesCategory = !filter.category || transaction.category === filter.category;
@@ -84,11 +84,18 @@ async function initializeSalesAnalysis(filter) {
     }
     return;
   }
-  const labels = salesData.map((transaction) => new Date(transaction.timestamp).toLocaleDateString());
+  const labels = salesData.map((transaction) => {
+    const date = typeof transaction.timestamp === 'string' ? new Date(transaction.timestamp) : transaction.timestamp;
+    return date.toLocaleDateString();
+  });
   const data = {
-    sales: salesData.map((transaction) => transaction.totalAmount),
-    profit: salesData.map((transaction) => transaction.profit),
-    quantity: salesData.map((transaction) => transaction.items.reduce((sum, item) => sum + item.quantity, 0)),
+    sales: salesData.map((transaction) => transaction.totalAmount || 0),
+    profit: salesData.map((transaction) => transaction.profit || 0),
+    quantity: salesData.map((transaction) => {
+      return transaction.items && Array.isArray(transaction.items)
+        ? transaction.items.reduce((sum, item) => sum + item.quantity, 0)
+        : 0;
+    }),
   };
   console.log('グラフに渡すデータ:', data); // デバッグ用
   displaySalesChart(data, labels, 'bar', 'salesAnalysisChart');
