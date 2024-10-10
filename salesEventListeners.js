@@ -26,7 +26,7 @@ import { getUnitPrice } from './pricing.js';
 
 import { getOverallInventory, updateOverallInventory } from './inventoryManagement.js';
 
-import Chart from 'chart.js/auto';
+const Chart = window.Chart;
 
 // エラーメッセージ表示関数
 function showError(message) {
