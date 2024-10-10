@@ -1,5 +1,6 @@
 // salesAnalysis.js
 import { getTransactions } from './transactions.js';
+import { getCategories, getSubcategories } from './categories.js';
 
 const Chart = window.Chart;
 let salesChart = null; // グラフのインスタンスを保持する変数
@@ -15,6 +16,33 @@ async function getSalesData(filter) {
     const matchesSubcategory = !filter.subcategory || transaction.subcategory === filter.subcategory;
     return matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
   });
+}
+
+// カテゴリとサブカテゴリの選択肢を更新する
+async function updateCategoryAndSubcategoryOptions() {
+  try {
+    const categories = await getCategories();
+    const categorySelect = document.getElementById('analysisCategory');
+    categorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
+    categories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.name;
+      categorySelect.appendChild(option);
+    });
+
+    const subcategories = await getSubcategories();
+    const subcategorySelect = document.getElementById('analysisSubcategory');
+    subcategorySelect.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+    subcategories.forEach((subcategory) => {
+      const option = document.createElement('option');
+      option.value = subcategory.id;
+      option.textContent = subcategory.name;
+      subcategorySelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error('カテゴリとサブカテゴリの選択肢の更新に失敗しました:', error);
+  }
 }
 
 // グラフの表示
@@ -91,6 +119,7 @@ document.getElementById('salesAnalysisFilterForm').addEventListener('submit', as
 });
 
 // 初期化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await updateCategoryAndSubcategoryOptions();
   initializeSalesAnalysis({});
 });
