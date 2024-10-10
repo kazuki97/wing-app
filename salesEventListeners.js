@@ -62,7 +62,7 @@ async function displaySalesSummary() {
       }
     });
 
-    document.getElementById('monthlySales').textContent = `今月の売上: ¥${monthlySales}`;
+     document.getElementById('monthlySales').textContent = `今月の売上: ¥${monthlySales}`;
     document.getElementById('monthlyProfit').textContent = `今月の利益: ¥${monthlyProfit}`;
     document.getElementById('yearlySales').textContent = `今年の売上: ¥${yearlySales}`;
     document.getElementById('yearlyProfit').textContent = `今年の利益: ¥${yearlyProfit}`;
@@ -168,7 +168,7 @@ async function updatePaymentMethodSelect() {
   }
 }
 
-document.getElementById('addBarcodeButton').addEventListener('click', async () => {
+document.getElementById('addBarcodeButton')?.addEventListener('click', async () => {
   const barcodeInput = document.getElementById('barcodeInput');
   const barcode = barcodeInput.value.trim();
   if (!barcode) {
@@ -190,10 +190,10 @@ document.getElementById('addBarcodeButton').addEventListener('click', async () =
 });
 
 // Enterキーでバーコードを追加
-document.getElementById('barcodeInput').addEventListener('keydown', async (e) => {
+document.getElementById('barcodeInput')?.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
-    document.getElementById('addBarcodeButton').click();
+    document.getElementById('addBarcodeButton')?.click();
   }
 });
 
@@ -210,7 +210,8 @@ function addToCart(product) {
 
 // カートの表示
 async function displaySalesCart() {
-  const salesCartTable = document.getElementById('salesCart').querySelector('tbody');
+  const salesCartTable = document.getElementById('salesCart')?.querySelector('tbody');
+  if (!salesCartTable) return;
   salesCartTable.innerHTML = '';
   let totalAmount = 0;
 
