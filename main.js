@@ -16,7 +16,7 @@ document.querySelectorAll('.nav-link').forEach((link) => {
       // 対象のセクションを表示する
       targetSection.style.display = 'block';
       // スクロールをトップに戻す
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 });
