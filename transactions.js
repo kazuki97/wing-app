@@ -31,17 +31,25 @@ export async function getTransactions(filters = {}) {
   try {
     let transactionQuery = collection(db, 'transactions');
 
+    const conditions = [];
     if (filters.year) {
-      transactionQuery = query(transactionQuery, where('year', '==', filters.year));
+      conditions.push(where('year', '==', filters.year));
     }
     if (filters.month) {
-      transactionQuery = query(transactionQuery, where('month', '==', filters.month));
+      conditions.push(where('month', '==', filters.month));
     }
     if (filters.category) {
-      transactionQuery = query(transactionQuery, where('category', '==', filters.category));
+      conditions.push(where('category', '==', filters.category));
     }
     if (filters.subcategory) {
-      transactionQuery = query(transactionQuery, where('subcategory', '==', filters.subcategory));
+      conditions.push(where('subcategory', '==', filters.subcategory));
+    }
+    if (filters.onlyReturned) {
+      conditions.push(where('isReturned', '==', true));
+    }
+
+    if (conditions.length > 0) {
+      transactionQuery = query(transactionQuery, ...conditions);
     }
 
     transactionQuery = query(transactionQuery, orderBy('timestamp', 'desc'));
